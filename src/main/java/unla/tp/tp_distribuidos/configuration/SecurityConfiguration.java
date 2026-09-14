@@ -42,6 +42,9 @@ public class SecurityConfiguration {
                             "/vendor/jquery/*", "/vendor/bootstrap/js/*", "/api/v1/**", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll();
                     auth.requestMatchers("/auth/login", "/auth/loginProcess", "/auth/loginSuccess", "/auth/logout").permitAll();
 
+                    auth.requestMatchers("/api_rest/v1/vehiculos", "/api_rest/v1/vehiculos/**").permitAll();
+                    auth.requestMatchers("/error").permitAll();
+
                     auth.anyRequest().authenticated();
                 })
                 .exceptionHandling(exception -> exception
