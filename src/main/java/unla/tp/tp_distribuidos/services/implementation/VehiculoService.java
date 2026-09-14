@@ -23,6 +23,11 @@ public class VehiculoService implements IVehiculoService {
     }
 
     @Override
+    public Optional<Vehiculo> findByPatente(String patente) {
+        return vehiculoRepository.findByPatente(patente);
+    }
+
+    @Override
     public List<Vehiculo> findAll() {
         return vehiculoRepository.findAll();
     }

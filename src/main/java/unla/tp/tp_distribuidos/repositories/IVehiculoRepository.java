@@ -9,5 +9,6 @@ import unla.tp.tp_distribuidos.models.Vehiculo;
 @Repository("VehiculoRepository")
 public interface IVehiculoRepository extends JpaRepository<Vehiculo, Integer>{
     Optional<Vehiculo> findById(int id);
+    Optional<Vehiculo> findByPatente(String patente);
     List<Vehiculo> findAll();
 }
