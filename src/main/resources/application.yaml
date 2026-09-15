@@ -1,4 +1,6 @@
 spring:
+  config:
+    import: optional:file:.env[.properties]
   application:
     name: tp_distribuidos
 
@@ -14,6 +16,11 @@ spring:
     show-sql: true
     properties:
       dialect: org.hibernate.dialect.MySQL8Dialect
+logging:
+  level:
+    org:
+      springframework:
+        security: TRACE
 
 server:
   port: ${SERVER_PORT}
