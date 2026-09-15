@@ -21,4 +21,6 @@ public interface IUsuarioRepository extends JpaRepository<Usuario, Serializable>
 
     @Query("SELECT u FROM Usuario u WHERE u.metadatos.rol = 'CLIENTE'")
     public abstract List<Usuario> findAllClientes();
+
+    public abstract Usuario findByMetadatos_Usuario(String usuario);
 }

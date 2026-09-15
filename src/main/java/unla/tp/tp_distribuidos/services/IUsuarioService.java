@@ -12,11 +12,13 @@ public interface IUsuarioService {
 
     public boolean remove(long id);
 
+    public boolean bajaCliente(Long id);
+
     public UsuarioDTO insertOrUpdate(UsuarioDTO usuario);
 
-    public UsuarioDTO patchByDni(UsuarioDTO cambios);
+    public UsuarioDTO patchByDni(UsuarioDTO cambios); //Modificar sin pasar todo el usuario completo
 
-    public UsuarioDTO patchById(Long id, UsuarioDTO cambios);
+    public UsuarioDTO patchById(Long id, UsuarioDTO cambios); //Modificar sin pasar todo el usuario completo
 
     public UsuarioDTO getById(Long id);
 
