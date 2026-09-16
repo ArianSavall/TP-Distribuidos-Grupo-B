@@ -50,7 +50,7 @@ public class Usuario {
     private LocalDate fechaNacimiento;
 
     @Column(nullable = false)
-    private boolean estaActivo;
+    private Boolean estaActivo;
 
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "metadatos_id", referencedColumnName = "id")
