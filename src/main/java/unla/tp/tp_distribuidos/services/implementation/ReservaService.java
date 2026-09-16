@@ -43,8 +43,12 @@ public class ReservaService implements IReservaService {
             throw new Exception("ERROR: La fecha de finalización debe ser posterior a la de inicio.");
         }
 
-        Usuario cliente = usuarioRepository.findById(dto.getIdCliente()).orElseThrow(() -> new Exception("ERROR: Cliente no encontrado."));
-        if (!cliente.isEstaActivo()) {
+        Usuario cliente = usuarioRepository.findById(dto.getIdCliente());
+
+        if (cliente == null) {
+            throw new Exception("ERROR: Cliente no encontrado.");
+        }
+        if (cliente.getEstaActivo() == null || !cliente.getEstaActivo()) {
             throw new Exception("ERROR: El cliente no se encuentra activo.");
         }
 
@@ -84,8 +88,7 @@ public class ReservaService implements IReservaService {
     @Override
     @Transactional
     public void cancelarReserva(Long idReserva) throws Exception {
-        Reserva reserva = reservaRepository.findById(idReserva)
-                .orElseThrow(() -> new Exception("ERROR: Reserva no encontrada."));
+        Reserva reserva = reservaRepository.findById(idReserva).orElseThrow(() -> new Exception("ERROR: Reserva no encontrada."));
 
         LocalDateTime ahora = LocalDateTime.now();
         if (ahora.isAfter(reserva.getFechaHoraInicio()) || ahora.isEqual(reserva.getFechaHoraInicio())) {
