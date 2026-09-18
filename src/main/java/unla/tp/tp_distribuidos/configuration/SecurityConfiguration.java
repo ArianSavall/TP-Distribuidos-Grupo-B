@@ -52,12 +52,24 @@ public class SecurityConfiguration {
                             "/auth/loginSuccess",
                             "/auth/logout"
                     ).permitAll()
+		    .requestMatchers("/graphql").authenticated()
+		    .requestMatchers("/historial").hasRole("CLIENTE")
                     .anyRequest().hasRole("ADMIN")
             )
             .httpBasic(Customizer.withDefaults())
             .formLogin(AbstractHttpConfigurer::disable)
             .logout(AbstractHttpConfigurer::disable)
             .exceptionHandling(exception -> exception
+    .defaultAuthenticationEntryPointFor(
+            (request, response, authException) -> {
+                response.setHeader(
+                        "WWW-Authenticate",
+                        "Basic realm=\"Rentar\", charset=\"UTF-8\""
+                );
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+            },
+            pathPattern("/historial")
+    )
                     .defaultAuthenticationEntryPointFor(
                             new org.springframework.security.web.authentication.HttpStatusEntryPoint(
                                     HttpStatus.UNAUTHORIZED
