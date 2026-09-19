@@ -52,6 +52,7 @@ public class SecurityConfiguration {
                             "/auth/loginSuccess",
                             "/auth/logout"
                     ).permitAll()
+                    .requestMatchers("/graphql").authenticated()
                     .anyRequest().hasRole("ADMIN")
             )
             .httpBasic(Customizer.withDefaults())

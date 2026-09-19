@@ -1,0 +1,36 @@
+type Query {
+	reservas(filtros: FiltroReservasInput): [Reserva!]!
+}
+
+input FiltroReservasInput {
+	clienteId: ID
+	vehiculoId: ID
+	tipoVehiculo: TipoVehiculo
+	estado: EstadoReserva
+	fechaDesde: String
+	fechaHasta: String
+}
+
+type Reserva {
+	cliente: String!
+	vehiculo: String!
+	patente: String!
+	fechaInicio: String!
+	fechaFinalizacion: String!
+	precioDiario: Float!
+	importeTotal: Float!
+	estado: EstadoReserva!
+}
+
+enum EstadoReserva {
+	CONFIRMADO
+	CANCELADO
+}
+
+enum TipoVehiculo {
+	SEDAN
+	SUV
+	PICKUP
+	COUPE
+	HATCHBACK
+}

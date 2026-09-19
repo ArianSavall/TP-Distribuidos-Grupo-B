@@ -6,8 +6,10 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import unla.tp.tp_distribuidos.models.Reserva;
 import unla.tp.tp_distribuidos.enums.EstadoReserva;
+import unla.tp.tp_distribuidos.enums.TipoVehiculo;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Repository
 public interface IReservaRepository extends JpaRepository<Reserva, Long> {
@@ -22,4 +24,25 @@ public interface IReservaRepository extends JpaRepository<Reserva, Long> {
                                 @Param("estado") EstadoReserva estado,
                                 @Param("fechaInicio") LocalDateTime fechaInicio,
                                 @Param("fechaFin") LocalDateTime fechaFin);
+
+    @Query("""
+            SELECT r FROM Reserva r
+            JOIN FETCH r.cliente c
+            JOIN FETCH r.vehiculo v
+            WHERE (:clienteId IS NULL OR c.id = :clienteId)
+              AND (:clienteAutenticadoId IS NULL OR c.id = :clienteAutenticadoId)
+              AND (:vehiculoId IS NULL OR v.id = :vehiculoId)
+              AND (:tipoVehiculo IS NULL OR v.tipoVehiculo = :tipoVehiculo)
+              AND (:estado IS NULL OR r.estadoReserva = :estado)
+              AND (:fechaDesde IS NULL OR r.fechaHoraFinal >= :fechaDesde)
+              AND (:fechaHasta IS NULL OR r.fechaHoraInicio <= :fechaHasta)
+            ORDER BY r.fechaHoraInicio DESC
+            """)
+    List<Reserva> buscarReservas(@Param("clienteId") Long clienteId,
+                                 @Param("clienteAutenticadoId") Long clienteAutenticadoId,
+                                 @Param("vehiculoId") Long vehiculoId,
+                                 @Param("tipoVehiculo") TipoVehiculo tipoVehiculo,
+                                 @Param("estado") EstadoReserva estado,
+                                 @Param("fechaDesde") LocalDateTime fechaDesde,
+                                 @Param("fechaHasta") LocalDateTime fechaHasta);
 }
