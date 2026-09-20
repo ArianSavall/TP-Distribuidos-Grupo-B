@@ -1,0 +1,34 @@
+"""Consultas disponibles para la aplicación."""
+type Query {
+    """
+    Historial del cliente autenticado.
+    Incluye reservas canceladas y confirmadas cuyo período terminó.
+    Ordenado por fecha de inicio, de más reciente a más antigua.
+    Requiere rol CLIENTE.
+    """
+    miHistorialAlquileres: [HistorialAlquiler!]!
+}
+
+"""Datos de un alquiler incluido en el historial del cliente."""
+type HistorialAlquiler {
+    """Marca y modelo del vehículo."""
+    vehiculo: String!
+
+    """Patente del vehículo."""
+    patente: String!
+
+    """Fecha y hora de inicio en formato ISO, sin zona horaria."""
+    fechaInicio: String!
+
+    """Fecha y hora de finalización en formato ISO, sin zona horaria."""
+    fechaFinalizacion: String!
+
+    """Días según el cálculo del alta de reservas, con mínimo de uno."""
+    cantidadDias: Int!
+
+    """Importe total guardado al realizar la reserva."""
+    importeTotal: Float!
+
+    """CANCELADO o FINALIZADO; este último se deriva de la fecha de fin."""
+    estado: String!
+}
