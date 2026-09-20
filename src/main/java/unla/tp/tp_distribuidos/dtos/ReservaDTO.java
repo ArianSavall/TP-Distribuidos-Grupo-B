@@ -12,8 +12,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ReservaDTO {
-    private Long idCliente;
-    private Long idVehiculo;
+    private UsuarioDTO idCliente;
+    private VehiculoDTO idVehiculo;
     private LocalDateTime fechaHoraInicio;
     private LocalDateTime fechaHoraFinal;
 }

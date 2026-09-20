@@ -112,6 +112,7 @@ public class VehiculoRestController {
 
 	private VehiculoDTO toDto(Vehiculo vehiculo) {
 		return new VehiculoDTO(
+				vehiculo.getId(),
 				vehiculo.getPatente(),
 				vehiculo.getMarca(),
 				vehiculo.getModelo(),

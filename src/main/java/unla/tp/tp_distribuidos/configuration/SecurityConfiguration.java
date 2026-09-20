@@ -44,9 +44,13 @@ public class SecurityConfiguration {
             .authenticationProvider(authenticationProvider)
             .authorizeHttpRequests(auth -> auth
                     .requestMatchers(
+                            "/css/**",
+                            "/js/**",
                             "/swagger-ui/**",
                             "/swagger-ui.html",
                             "/v3/api-docs/**",
+                            "/login",
+                            "/login?error",
                             "/auth/login",
                             "/auth/loginProcess",
                             "/auth/loginSuccess",
@@ -55,8 +59,18 @@ public class SecurityConfiguration {
                     .anyRequest().hasRole("ADMIN")
             )
             .httpBasic(Customizer.withDefaults())
-            .formLogin(AbstractHttpConfigurer::disable)
-            .logout(AbstractHttpConfigurer::disable)
+            .formLogin(form -> form
+                    .loginPage("/login")
+                    .loginProcessingUrl("/login")
+                    .defaultSuccessUrl("/", true)
+                    .failureUrl("/login?error")
+                    .permitAll()
+            )
+            .logout(logout -> logout
+                    .logoutUrl("/logout")
+                    .logoutSuccessUrl("/login?logout")
+                    .permitAll()
+            )
             .exceptionHandling(exception -> exception
                     .defaultAuthenticationEntryPointFor(
                             new org.springframework.security.web.authentication.HttpStatusEntryPoint(

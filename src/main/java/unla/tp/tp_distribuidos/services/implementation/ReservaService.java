@@ -43,7 +43,7 @@ public class ReservaService implements IReservaService {
             throw new Exception("ERROR: La fecha de finalización debe ser posterior a la de inicio.");
         }
 
-        Usuario cliente = usuarioRepository.findById(dto.getIdCliente());
+        Usuario cliente = usuarioRepository.findById(dto.getIdCliente().getId());
 
         if (cliente == null) {
             throw new Exception("ERROR: Cliente no encontrado.");
@@ -52,7 +52,7 @@ public class ReservaService implements IReservaService {
             throw new Exception("ERROR: El cliente no se encuentra activo.");
         }
 
-        Vehiculo vehiculo = vehiculoRepository.findById(dto.getIdVehiculo()).orElseThrow(() -> new Exception("ERROR: Vehículo no encontrado."));
+        Vehiculo vehiculo = vehiculoRepository.findById(dto.getIdVehiculo().getId()).orElseThrow(() -> new Exception("ERROR: Vehículo no encontrado."));
         if (!vehiculo.isEstaActivo()) {
             throw new Exception("ERROR: El vehículo no se encuentra activo.");
         }

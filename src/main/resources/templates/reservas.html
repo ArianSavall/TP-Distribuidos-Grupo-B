@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Rentar - Gestión de Reservas</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+    <nav class="navbar">
+        <h2>Rentar - Admin</h2>
+        <div class="links">
+            <a th:href="@{/vehiculos}">Vehículos</a>
+            <a th:href="@{/clientes}">Clientes</a>
+            <a th:href="@{/reservas}">Reservas</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Alertas de éxito o error gestionadas por RedirectAttributes -->
+        <div th:if="${successMsg}" class="alert alert-success" th:text="${successMsg}" style="margin-bottom: 1rem;"></div>
+        <div th:if="${errorMsg}" class="alert alert-danger" th:text="${errorMsg}" style="margin-bottom: 1rem;"></div>
+
+        <!-- Formulario de Alta de Reserva -->
+        <div class="form-card">
+            <h3>Registrar Nueva Reserva</h3>
+            <form th:action="@{/reservas/alta}" th:object="${nuevaReserva}" method="post" class="grid-form">
+                
+                <!-- Inputs para las relaciones ManyToOne[cite: 32] -->
+                <div class="form-group">
+                    <label>DNI del Cliente:</label>
+                    <input type="number" th:field="*{idCliente.dni}" placeholder="Ej: 12345678" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Patente del Vehículo:</label>
+                    <input type="text" th:field="*{idVehiculo.patente}" placeholder="Ej: ABC123" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Fecha y Hora de Inicio:</label>
+                    <input type="datetime-local" th:field="*{fechaHoraInicio}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Fecha y Hora Final:</label>
+                    <input type="datetime-local" th:field="*{fechaHoraFinal}" required>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="grid-column: 1 / -1;">Confirmar Reserva</button>
+            </form>
+        </div>
+
+        <!-- Listado de Reservas -->
+        <h3>Historial de Reservas</h3>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID Reserva</th>
+                    <th>Cliente (ID)</th>
+                    <th>Vehículo (ID)</th>
+                    <th>Desde</th>
+                    <th>Hasta</th>
+                    <th>Importe Total</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="reserva : ${reservas}">
+                    <td th:text="${reserva.idReserva}"></td>
+                    <!-- Se asume que el DTO devuelve IDs o los objetos anidados -->
+                    <td th:text="${reserva.cliente != null ? reserva.cliente.id : reserva.clienteId}"></td>
+                    <td th:text="${reserva.vehiculo != null ? reserva.vehiculo.id : reserva.vehiculoId}"></td>
+                    <td th:text="${#temporals.format(reserva.fechaHoraInicio, 'dd/MM/yyyy HH:mm')}"></td>
+                    <td th:text="${#temporals.format(reserva.fechaHoraFinal, 'dd/MM/yyyy HH:mm')}"></td>
+                    <td th:text="${'$' + reserva.importeTotal}"></td>
+                    <td>
+                        <span th:text="${reserva.estadoReserva}" th:class="'badge ' + ${reserva.estadoReserva.name().toLowerCase()}"></span>
+                    </td>
+                    <td>
+                        <!-- Formulario para Cancelar Reserva por PUT[cite: 31] -->
+                        <form th:action="@{/reservas/cancelar/{id}(id=${reserva.idReserva})}" method="post" style="display:inline;">
+                            <!-- Muestra el botón solo si no está cancelada -->
+                            <button type="submit" class="btn btn-danger btn-sm" th:if="${reserva.estadoReserva.name() != 'CANCELADA'}">Cancelar</button>
+                        </form>
+                    </td>
+                </tr>
+                <tr th:if="${reservas == null or #lists.isEmpty(reservas)}">
+                    <td colspan="8" style="text-align: center; color: #777;">No hay reservas registradas.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

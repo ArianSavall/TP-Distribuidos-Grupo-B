@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Rentar - Gestión de Clientes</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+    <nav class="navbar">
+        <h2>Rentar - Admin</h2>
+        <div class="links">
+            <a th:href="@{/vehiculos}">Vehículos</a>
+            <a th:href="@{/clientes}">Clientes</a>
+            <a th:href="@{/reservas}">Reservas</a>
+        </div>
+    </nav>
+
+    <div class="container">
+
+        <div class="form-card">
+            <h3>Registrar Nuevo Cliente</h3>
+            <form th:action="@{/clientes/alta}" th:object="${nuevoCliente}" method="post" class="grid-form">
+
+                <div class="form-group">
+                    <label>DNI:</label>
+                    <input type="text" th:field="*{dni}" required>
+                </div>
+                <div class="form-group">
+                    <label>Nombre:</label>
+                    <input type="text" th:field="*{nombre}" required>
+                </div>
+                <div class="form-group">
+                    <label>Apellido:</label>
+                    <input type="text" th:field="*{apellido}" required>
+                </div>
+                <div class="form-group">
+                    <label>Email:</label>
+                    <input type="email" th:field="*{email}" required>
+                </div>
+                <div class="form-group">
+                    <label>Teléfono:</label>
+                    <input type="text" th:field="*{telefono}">
+                </div>
+                <div class="form-group">
+                    <label>Fecha de Nacimiento:</label>
+                    <input type="date" th:field="*{fechaNacimiento}">
+                </div>
+                
+                
+                <div class="form-group">
+                    <label>Nombre de Usuario:</label>
+
+                    <input type="text" th:field="*{metadatos.usuario}" required>
+                </div>
+                <div class="form-group">
+                    <label>Contraseña:</label>
+                    <input type="password" th:field="*{metadatos.password}" required>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="grid-column: 1 / -1;">Registrar Cliente</button>
+            </form>
+        </div>
+
+        <div class="form-card search-card">
+            <h3>Buscar Cliente por DNI</h3>
+            <form th:action="@{/clientes}" method="get" class="search-form">
+                <div class="form-group">
+                    <label for="buscarDni">Ingrese DNI:</label>
+                    <input type="text" id="buscarDni" name="dni" th:value="${dniBuscado}" placeholder="Ej: 12345678" required>
+                </div>
+                <div class="search-buttons">
+                    <button type="submit" class="btn btn-primary">Buscar</button>
+
+                    <a th:if="${dniBuscado != null and !dniBuscado.isEmpty()}" th:href="@{/clientes}" class="btn btn-secondary">Ver Todos</a>
+                </div>
+            </form>
+            <p th:if="${mensajeBusqueda != null}" class="alert alert-danger" style="margin-top: 1rem; margin-bottom: 0;" th:text="${mensajeBusqueda}"></p>
+        </div>
+
+
+        <h3>Directorio de Clientes</h3>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>DNI</th>
+                    <th>Nombre Completo</th>
+                    <th>Email</th>
+                    <th>Teléfono</th>
+                    <th>Usuario</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="cliente : ${clientes}">
+                    <td th:text="${cliente.dni}">12345678</td>
+                    <td th:text="${cliente.nombre + ' ' + cliente.apellido}">Juan Perez</td>
+                    <td th:text="${cliente.email}">juan@mail.com</td>
+                    <td th:text="${cliente.telefono}">11 5555-1234</td>
+                    <td th:text="${cliente.metadatos != null ? cliente.metadatos.usuario : 'N/A'}">jperez</td>
+                    <td>
+                        <span th:text="${cliente.estaActivo ? 'ACTIVO' : 'INACTIVO'}" 
+                              th:class="'badge ' + ${cliente.estaActivo ? 'disponible' : 'reservado'}">ACTIVO</span>
+                    </td>
+                    <td>
+
+                        <a th:href="@{/clientes/editar/{id}(id=${cliente.id})}" class="btn btn-primary" style="text-decoration: none; font-size: 0.9em; padding: 0.4rem 0.8rem;">Editar</a>
+                        
+
+                        <form th:action="@{/clientes/borrar/{id}(id=${cliente.id})}" method="post" style="display:inline;">
+                            <button type="submit" class="btn btn-danger" th:if="${cliente.estaActivo}" style="font-size: 0.9em; padding: 0.4rem 0.8rem;">Baja</button>
+                        </form>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
