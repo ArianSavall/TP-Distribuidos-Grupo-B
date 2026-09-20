@@ -1,4 +1,4 @@
-type Query {
+extend type Query {
     vehiculosDisponibles(
         tipo: TipoVehiculo
         marca: String
@@ -18,12 +18,4 @@ type VehiculoDisponible {
     color: String
     tipoVehiculo: TipoVehiculo!
     precioDiario: Float!
-}
-
-enum TipoVehiculo {
-    SEDAN
-    SUV
-    PICKUP
-    COUPE
-    HATCHBACK
 }

@@ -53,8 +53,8 @@ public class SecurityConfiguration {
                             "/auth/logout"
                     ).permitAll()
 		    .requestMatchers("/graphql").authenticated()
-                     .anyRequest().hasRole("ADMIN")
 		    .requestMatchers("/historial").hasRole("CLIENTE")
+                     .anyRequest().hasRole("ADMIN")
                     
             )
             .httpBasic(Customizer.withDefaults())

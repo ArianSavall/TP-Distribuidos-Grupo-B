@@ -45,8 +45,6 @@ public interface IReservaRepository extends JpaRepository<Reserva, Long> {
                                  @Param("estado") EstadoReserva estado,
                                  @Param("fechaDesde") LocalDateTime fechaDesde,
                                  @Param("fechaHasta") LocalDateTime fechaHasta);
-}
-
     @Query("""
             SELECT r FROM Reserva r
             JOIN FETCH r.vehiculo
@@ -60,7 +58,7 @@ public interface IReservaRepository extends JpaRepository<Reserva, Long> {
               )
             ORDER BY r.fechaHoraInicio DESC, r.idReserva DESC
             """)
-    java.util.List<Reserva> buscarHistorial(
+    List<Reserva> buscarHistorial(
             @Param("usuario") String usuario,
             @Param("cancelado") EstadoReserva cancelado,
             @Param("confirmado") EstadoReserva confirmado,

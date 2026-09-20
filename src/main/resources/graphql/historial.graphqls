@@ -1,5 +1,5 @@
-"""Consultas disponibles para la aplicación."""
-type Query {
+
+extend type Query {
     """
     Historial del cliente autenticado.
     Incluye reservas canceladas y confirmadas cuyo período terminó.
