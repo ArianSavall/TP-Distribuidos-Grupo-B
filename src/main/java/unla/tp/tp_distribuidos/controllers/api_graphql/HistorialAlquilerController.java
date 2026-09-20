@@ -1,4 +1,4 @@
-package unla.tp.tp_distribuidos.controllers.graphql;
+package unla.tp.tp_distribuidos.controllers.api_graphql;
 
 import java.util.List;
 
