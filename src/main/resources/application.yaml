@@ -1,6 +1,7 @@
 spring:
   config:
     import: optional:file:.env[.properties]
+    
   application:
     name: tp_distribuidos
 
@@ -26,4 +27,4 @@ logging:
         security: TRACE
 
 server:
-  port: ${SERVER_PORT}
+  port: ${SERVER_PORT:8080}
