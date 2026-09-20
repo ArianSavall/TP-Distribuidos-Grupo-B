@@ -1,0 +1,70 @@
+"""
+API GraphQL para consultar reservas de vehículos.
+
+Los administradores pueden consultar las reservas de cualquier cliente usando
+el filtro dniCliente. Los clientes autenticados solo reciben sus propias
+reservas, independientemente del dniCliente enviado.
+"""
+
+type Query {
+	"""Devuelve las reservas que coinciden con los filtros indicados."""
+	reservas(filtros: FiltroReservasInput): [Reserva!]!
+}
+
+"""Parámetros opcionales para buscar reservas."""
+input FiltroReservasInput {
+	"""DNI del cliente. Este filtro está disponible para administradores."""
+	dniCliente: String
+	"""Patente del vehículo."""
+	patenteVehiculo: String
+	"""Tipo de vehículo."""
+	tipoVehiculo: TipoVehiculo
+	"""Estado actual de la reserva."""
+	estado: EstadoReserva
+	"""Inicio del período de búsqueda en formato ISO-8601."""
+	fechaDesde: String
+	"""Fin del período de búsqueda en formato ISO-8601."""
+	fechaHasta: String
+}
+
+"""Información de una reserva."""
+type Reserva {
+	"""Nombre y apellido del cliente."""
+	cliente: String!
+	"""Marca y modelo del vehículo."""
+	vehiculo: String!
+	"""Patente del vehículo."""
+	patente: String!
+	"""Fecha y hora de inicio del alquiler."""
+	fechaInicio: String!
+	"""Fecha y hora de finalización del alquiler."""
+	fechaFinalizacion: String!
+	"""Precio diario del vehículo."""
+	precioDiario: Float!
+	"""Importe total de la reserva."""
+	importeTotal: Float!
+	"""Estado de la reserva."""
+	estado: EstadoReserva!
+}
+
+"""Estados posibles de una reserva."""
+enum EstadoReserva {
+	"""Reserva confirmada."""
+	CONFIRMADO
+	"""Reserva cancelada."""
+	CANCELADO
+}
+
+"""Tipos de vehículos disponibles para filtrar."""
+enum TipoVehiculo {
+	"""Vehículo tipo sedán."""
+	SEDAN
+	"""Vehículo utilitario deportivo."""
+	SUV
+	"""Vehículo tipo pickup."""
+	PICKUP
+	"""Vehículo tipo coupé."""
+	COUPE
+	"""Vehículo tipo hatchback."""
+	HATCHBACK
+}

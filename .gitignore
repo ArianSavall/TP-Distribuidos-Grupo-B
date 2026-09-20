@@ -4,6 +4,7 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 .env
+.postman
 
 ### Eclipse / STS ###
 .apt_generated
