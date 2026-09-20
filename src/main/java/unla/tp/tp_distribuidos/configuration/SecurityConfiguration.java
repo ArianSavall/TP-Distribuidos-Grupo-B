@@ -56,9 +56,16 @@ public class SecurityConfiguration {
                             "/auth/loginSuccess",
                             "/auth/logout"
                     ).permitAll()
-		    .requestMatchers("/graphql").authenticated()
+		    .requestMatchers("/graphql", "/graphiql").authenticated()
+                    .requestMatchers(
+                        "/historial", 
+                        "/reservas", 
+                        "/reservas/**", 
+                        "/api/v1/**",
+                        "/api_rest/v1/**"
+                ).hasAnyRole("ADMIN","CLIENTE")
                      .anyRequest().hasRole("ADMIN")
-		    .requestMatchers("/historial").hasRole("CLIENTE")
+		    
                     
             )
             .httpBasic(Customizer.withDefaults())

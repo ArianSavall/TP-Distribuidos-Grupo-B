@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
 import unla.tp.tp_distribuidos.models.Reserva;
 import unla.tp.tp_distribuidos.enums.EstadoReserva;
 import unla.tp.tp_distribuidos.enums.TipoVehiculo;
@@ -11,7 +12,7 @@ import unla.tp.tp_distribuidos.enums.TipoVehiculo;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Repository
+@Repository("reservaRepository")
 public interface IReservaRepository extends JpaRepository<Reserva, Long> {
 
     @Query("""
@@ -45,8 +46,6 @@ public interface IReservaRepository extends JpaRepository<Reserva, Long> {
                                  @Param("estado") EstadoReserva estado,
                                  @Param("fechaDesde") LocalDateTime fechaDesde,
                                  @Param("fechaHasta") LocalDateTime fechaHasta);
-}
-
     @Query("""
             SELECT r FROM Reserva r
             JOIN FETCH r.vehiculo

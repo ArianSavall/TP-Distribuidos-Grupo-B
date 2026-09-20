@@ -7,7 +7,7 @@
 </head>
 <body>
     <nav class="navbar">
-        <h2>Rentar - Admin</h2>
+        <h2>Rentar</h2>
         <div class="links">
             <a th:href="@{/vehiculos}">Vehículos</a>
             <a th:href="@{/clientes}">Clientes</a>
@@ -23,27 +23,21 @@
         <!-- Formulario de Alta de Reserva -->
         <div class="form-card">
             <h3>Registrar Nueva Reserva</h3>
-            <form th:action="@{/reservas/alta}" th:object="${nuevaReserva}" method="post" class="grid-form">
-                
-                <!-- Inputs para las relaciones ManyToOne[cite: 32] -->
-                <div class="form-group">
-                    <label>DNI del Cliente:</label>
-                    <input type="number" th:field="*{idCliente.dni}" placeholder="Ej: 12345678" required>
-                </div>
+            <form th:action="@{/reservas/alta}" th:object="${nuevaReserva}" method="post" class="grid-form">             
                 
                 <div class="form-group">
                     <label>Patente del Vehículo:</label>
-                    <input type="text" th:field="*{idVehiculo.patente}" placeholder="Ej: ABC123" required>
+                    <input type="text" name="patenteVehiculo" placeholder="Ej: ABC123" required>
                 </div>
 
                 <div class="form-group">
                     <label>Fecha y Hora de Inicio:</label>
-                    <input type="datetime-local" th:field="*{fechaHoraInicio}" required>
+                    <input type="datetime-local" name="fechaHoraInicio" required>
                 </div>
                 
                 <div class="form-group">
                     <label>Fecha y Hora Final:</label>
-                    <input type="datetime-local" th:field="*{fechaHoraFinal}" required>
+                    <input type="datetime-local" name="fechaHoraFinal" required>
                 </div>
 
                 <button type="submit" class="btn btn-primary" style="grid-column: 1 / -1;">Confirmar Reserva</button>
