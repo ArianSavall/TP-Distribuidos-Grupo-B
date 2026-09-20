@@ -1,17 +1,26 @@
 package unla.tp.tp_distribuidos.services.implementation;
 
-import org.modelmapper.ModelMapper; 
 import jakarta.transaction.Transactional;
+import org.modelmapper.ModelMapper;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import unla.tp.tp_distribuidos.dtos.ReservaDTO;
-import unla.tp.tp_distribuidos.dtos.ReservaResponseDTO; 
-import unla.tp.tp_distribuidos.models.*;
+import unla.tp.tp_distribuidos.dtos.ReservaFiltroGraphQLDTO;
+import unla.tp.tp_distribuidos.dtos.ReservaGraphQLDTO;
+import unla.tp.tp_distribuidos.dtos.ReservaResponseDTO;
 import unla.tp.tp_distribuidos.enums.EstadoReserva;
-import unla.tp.tp_distribuidos.repositories.*;
+import unla.tp.tp_distribuidos.models.Reserva;
+import unla.tp.tp_distribuidos.models.Usuario;
+import unla.tp.tp_distribuidos.models.Vehiculo;
+import unla.tp.tp_distribuidos.repositories.IReservaRepository;
+import unla.tp.tp_distribuidos.repositories.IUsuarioRepository;
+import unla.tp.tp_distribuidos.repositories.IVehiculoRepository;
 import unla.tp.tp_distribuidos.services.IReservaService;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ReservaService implements IReservaService {
@@ -102,5 +111,69 @@ public class ReservaService implements IReservaService {
         reserva.setEstadoReserva(EstadoReserva.CANCELADO);
         
         reservaRepository.save(reserva);
+    }
+
+    @Override
+    @Transactional
+    public List<ReservaGraphQLDTO> buscarReservas(ReservaFiltroGraphQLDTO filtros,
+                                                   Authentication authentication) {
+        ReservaFiltroGraphQLDTO criterios = filtros == null
+                ? new ReservaFiltroGraphQLDTO()
+                : filtros;
+        boolean esAdmin = authentication.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"));
+
+        Long clienteAutenticadoId = null;
+        if (!esAdmin) {
+            Usuario cliente = usuarioRepository.findByMetadatos_Usuario(authentication.getName());
+            if (cliente == null) {
+                throw new IllegalArgumentException("ERROR: Cliente autenticado no encontrado.");
+            }
+            clienteAutenticadoId = cliente.getId();
+        }
+
+        LocalDateTime fechaDesde = parsearFecha(criterios.getFechaDesde(), "fechaDesde");
+        LocalDateTime fechaHasta = parsearFecha(criterios.getFechaHasta(), "fechaHasta");
+        if (fechaDesde != null && fechaHasta != null && fechaHasta.isBefore(fechaDesde)) {
+            throw new IllegalArgumentException("ERROR: fechaHasta debe ser posterior o igual a fechaDesde.");
+        }
+
+        return reservaRepository.buscarReservas(
+                        esAdmin ? criterios.getDniCliente() : null,
+                        clienteAutenticadoId,
+                        criterios.getPatenteVehiculo(),
+                        criterios.getTipoVehiculo(),
+                        criterios.getEstado(),
+                        fechaDesde,
+                        fechaHasta)
+                .stream()
+                .map(this::toGraphQLDTO)
+                .collect(Collectors.toList());
+    }
+
+    private LocalDateTime parsearFecha(String valor, String nombreCampo) {
+        if (valor == null || valor.isBlank()) {
+            return null;
+        }
+        try {
+            return LocalDateTime.parse(valor);
+        } catch (Exception exception) {
+            throw new IllegalArgumentException(
+                    "ERROR: " + nombreCampo + " debe tener formato ISO-8601, por ejemplo 2026-09-18T00:00:00.");
+        }
+    }
+
+    private ReservaGraphQLDTO toGraphQLDTO(Reserva reserva) {
+        Usuario cliente = reserva.getCliente();
+        Vehiculo vehiculo = reserva.getVehiculo();
+        return new ReservaGraphQLDTO(
+                cliente.getNombre() + " " + cliente.getApellido(),
+                vehiculo.getMarca() + " " + vehiculo.getModelo(),
+                vehiculo.getPatente(),
+                reserva.getFechaHoraInicio().toString(),
+                reserva.getFechaHoraFinal().toString(),
+                vehiculo.getPrecioDiario(),
+                reserva.getImporteTotal(),
+                reserva.getEstadoReserva());
     }
 }
