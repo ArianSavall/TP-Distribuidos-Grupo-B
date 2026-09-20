@@ -44,22 +44,47 @@ public class SecurityConfiguration {
             .authenticationProvider(authenticationProvider)
             .authorizeHttpRequests(auth -> auth
                     .requestMatchers(
+                            "/css/**",
+                            "/js/**",
                             "/swagger-ui/**",
                             "/swagger-ui.html",
                             "/v3/api-docs/**",
-                            "/auth/login",
-                            "/auth/loginProcess",
-                            "/auth/loginSuccess",
-                            "/auth/logout"
+                            "/login",
+                            "/login?error",
+                            "/login",
+                            "/loginProcess",
+                            "/loginSuccess",
+                            "/logout",
+                            "/error"
                     ).permitAll()
-		    .requestMatchers("/graphql").authenticated()
+		    .requestMatchers("/graphql", "/graphiql").authenticated()
+                    .requestMatchers(
+                        "/historial", 
+                        "/reservas", 
+                        "/reservas/**", 
+                        "/api/v1/**",
+                        "/api_rest/v1/**",
+                        "/"
+                ).hasAnyRole("ADMIN","CLIENTE")
                      .anyRequest().hasRole("ADMIN")
-		    .requestMatchers("/historial").hasRole("CLIENTE")
+		    
                     
             )
-            .httpBasic(Customizer.withDefaults())
-            .formLogin(AbstractHttpConfigurer::disable)
-            .logout(AbstractHttpConfigurer::disable)
+            .formLogin(form -> form
+                    .loginPage("/login")
+                    .loginProcessingUrl("/login")
+                    .defaultSuccessUrl("/", true)
+                    .failureUrl("/login?error")
+                    .permitAll()
+            )
+            .logout(logout -> logout
+                    .logoutUrl("/logout")
+                    .logoutSuccessUrl("/login?logout")
+                    .invalidateHttpSession(true)
+                    .clearAuthentication(true)
+                    .deleteCookies("JSESSIONID")
+                    .permitAll()
+            )
             .exceptionHandling(exception -> exception
     .defaultAuthenticationEntryPointFor(
             (request, response, authException) -> {

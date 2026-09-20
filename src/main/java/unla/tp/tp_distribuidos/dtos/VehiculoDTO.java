@@ -15,6 +15,8 @@ import unla.tp.tp_distribuidos.enums.TipoVehiculo;
 @Schema(name = "VehiculoDTO", description = "Representa un vehiculo para exponerlo en la API")
 public class VehiculoDTO {
 
+	private Long id;
+
 	@Schema(description = "Patente del vehiculo", example = "AB123CD")
 	private String patente;
 

@@ -167,6 +167,7 @@ public class ReservaService implements IReservaService {
         Usuario cliente = reserva.getCliente();
         Vehiculo vehiculo = reserva.getVehiculo();
         return new ReservaGraphQLDTO(
+                reserva.getIdReserva(),
                 cliente.getNombre() + " " + cliente.getApellido(),
                 vehiculo.getMarca() + " " + vehiculo.getModelo(),
                 vehiculo.getPatente(),

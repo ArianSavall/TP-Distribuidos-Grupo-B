@@ -17,6 +17,9 @@ spring:
     show-sql: true
     properties:
       dialect: org.hibernate.dialect.MySQL8Dialect
+  graphql:
+    graphiql:
+      enabled: true
 logging:
   level:
     org:
