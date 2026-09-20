@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import unla.tp.tp_distribuidos.dtos.UsuarioCreateDTO;
 import unla.tp.tp_distribuidos.dtos.UsuarioDTO;
 import unla.tp.tp_distribuidos.enums.Rol;
 import unla.tp.tp_distribuidos.services.IUsuarioService;
@@ -29,15 +30,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 @RequestMapping("/api_rest/v1/clientes")
 @Tag(name = "Clientes", description = "Operaciones relacionadas con los clientes")
 public class ClienteRestController {
-    private final PasswordEncoder passwordEncoder;
 
     private IUsuarioService usuarioService;
 
     private ModelMapper modelMapper = new ModelMapper();
 
-    public ClienteRestController(IUsuarioService usuarioService, PasswordEncoder passwordEncoder) {
+    public ClienteRestController(IUsuarioService usuarioService) {
         this.usuarioService = usuarioService;
-        this.passwordEncoder = passwordEncoder;
     }
 
     @GetMapping
@@ -49,7 +48,7 @@ public class ClienteRestController {
         return new ResponseEntity<List<UsuarioDTO>>(clientes, HttpStatus.OK);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/buscar/id/{id}")
     @Operation(summary = "Obtener cliente por ID")
     public ResponseEntity<UsuarioDTO> getCliente(@PathVariable Long id) {
         UsuarioDTO usuario = usuarioService.getById(id);
@@ -61,7 +60,7 @@ public class ClienteRestController {
         }
     }
 
-    @GetMapping("/{dni}")
+    @GetMapping("/buscar/dni/{dni}")
     @Operation(summary = "Obtener cliente por DNI")
     public ResponseEntity<UsuarioDTO> getClienteByDni(@PathVariable String dni) {
         UsuarioDTO usuario = usuarioService.getByDni(dni);
@@ -75,7 +74,8 @@ public class ClienteRestController {
 
     @PostMapping
     @Operation(summary = "Alta cliente")
-    public ResponseEntity<UsuarioDTO> crearCliente(@RequestBody UsuarioDTO usuario){
+    public ResponseEntity<UsuarioDTO> crearCliente(@RequestBody UsuarioCreateDTO usuarioNuevo){
+        UsuarioDTO usuario = modelMapper.map(usuarioNuevo, UsuarioDTO.class);
 
         usuario.getMetadatos().setRol(Rol.CLIENTE.toString());
 
@@ -83,25 +83,30 @@ public class ClienteRestController {
         return ResponseEntity.ok(nuevo);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/borrar/id/{id}")
     @Operation(summary = "Baja logica cliente por ID")
     public ResponseEntity<String> bajaLogicaClienteById(@PathVariable Long id) {
         boolean eliminado = usuarioService.bajaCliente(id);
         return eliminado ? ResponseEntity.ok("Cliente dado de baja correctamente") : ResponseEntity.status(HttpStatus.NOT_FOUND).body("Cliente no encontrado");
     }
 
-    @DeleteMapping("/{dni}")
+    @DeleteMapping("/borrar/dni/{dni}")
     @Operation(summary = "Baja logica cliente por DNI")
     public ResponseEntity<String> bajaLogicaClienteByDni(@PathVariable String dni) {
         UsuarioDTO usuario = usuarioService.getByDni(dni);
+
+        if(usuario == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Cliente no encontrado");
+        }
+
         boolean eliminado = usuarioService.bajaCliente(usuario.getId());
         return eliminado ? ResponseEntity.ok("Cliente dado de baja correctamente") : ResponseEntity.status(HttpStatus.NOT_FOUND).body("Cliente no encontrado");
     }
 
 
-    @PatchMapping("/{id}")
+    @PatchMapping("/modificar/id/{id}")
     @Operation(summary = "Modificar cliente por ID")
-    public ResponseEntity<UsuarioDTO> modificarCliente(@PathVariable Long id, @RequestBody UsuarioDTO usuario) {
+    public ResponseEntity<UsuarioDTO> modificarCliente(@PathVariable Long id, @RequestBody UsuarioCreateDTO usuario) {
 
         UsuarioDTO actualizado = usuarioService.patchById(id, usuario);
 
@@ -112,9 +117,9 @@ public class ClienteRestController {
         return ResponseEntity.ok(actualizado);
     }
 
-    @PatchMapping
+    @PatchMapping("/modificar/dni")
     @Operation(summary = "Modificar cliente por DNI")
-    public ResponseEntity<UsuarioDTO> modificarClienteByDni(@RequestBody UsuarioDTO usuario) {
+    public ResponseEntity<UsuarioDTO> modificarClienteByDni(@RequestBody UsuarioCreateDTO usuario) {
 
         if (usuario.getDni() == null || usuario.getDni().isBlank()) {
             return ResponseEntity.badRequest().build();
