@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Mi historial | Rentar</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            color: #243247;
+            margin: 0;
+            padding: 32px 20px;
+        }
+        main {
+            max-width: 1200px;
+            margin: auto;
+        }
+        h1 { margin-bottom: 8px; }
+        button {
+            background: #174ea6;
+            color: white;
+            padding: 12px 20px;
+            border: 0;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        button:disabled { opacity: .6; cursor: wait; }
+        .tabla {
+            overflow-x: auto;
+            background: white;
+            border-radius: 8px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 16px;
+            text-align: left;
+            border-bottom: 1px solid #dde3eb;
+        }
+        th { background: #e8eef7; }
+        .error { color: #b42318; }
+    </style>
+</head>
+<body>
+<main>
+    <h1>Mi historial de alquileres</h1>
+    <p>Consultá tus alquileres finalizados y tus reservas canceladas.</p>
+
+    <button id="actualizar" type="button">Actualizar historial</button>
+    <p id="mensaje" role="status" aria-live="polite"></p>
+
+    <div class="tabla">
+        <table id="tabla" hidden>
+            <caption>Detalle de tus alquileres</caption>
+            <thead>
+            <tr>
+                <th scope="col">Vehículo</th>
+                <th scope="col">Patente</th>
+                <th scope="col">Inicio</th>
+                <th scope="col">Finalización</th>
+                <th scope="col">Días</th>
+                <th scope="col">Importe total</th>
+                <th scope="col">Estado</th>
+            </tr>
+            </thead>
+            <tbody id="filas"></tbody>
+        </table>
+    </div>
+</main>
+
+<script>
+    const boton = document.getElementById("actualizar");
+    const mensaje = document.getElementById("mensaje");
+    const tabla = document.getElementById("tabla");
+    const filas = document.getElementById("filas");
+
+    const consulta = `
+        query {
+            miHistorialAlquileres {
+                vehiculo
+                patente
+                fechaInicio
+                fechaFinalizacion
+                cantidadDias
+                importeTotal
+                estado
+            }
+        }
+    `;
+
+    function mostrarFecha(valor) {
+        const [fecha, hora] = valor.split("T");
+        const [anio, mes, dia] = fecha.split("-");
+        return `${dia}/${mes}/${anio} ${hora.slice(0, 5)}`;
+    }
+
+    async function cargarHistorial() {
+        boton.disabled = true;
+        mensaje.className = "";
+        mensaje.textContent = "Cargando historial...";
+        tabla.hidden = true;
+        filas.replaceChildren();
+
+        try {
+            const respuesta = await fetch("/graphql", {
+                method: "POST",
+                credentials: "same-origin",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ query: consulta })
+            });
+
+            if (respuesta.status === 401) {
+                throw new Error(
+                    "Necesitás iniciar sesión. Recargá la página para ingresar."
+                );
+            }
+            if (respuesta.status === 403) {
+                throw new Error("El historial está disponible para clientes.");
+            }
+            if (!respuesta.ok) {
+                throw new Error("No se pudo consultar el historial.");
+            }
+
+            const resultado = await respuesta.json();
+
+            if (resultado.errors && resultado.errors.length > 0) {
+                throw new Error(
+                    "No se pudo obtener el historial. Verificá tu acceso como cliente."
+                );
+            }
+
+            const historial = resultado.data?.miHistorialAlquileres;
+
+            if (!Array.isArray(historial)) {
+                throw new Error("El servidor devolvió una respuesta inesperada.");
+            }
+
+            if (historial.length === 0) {
+                mensaje.textContent =
+                    "Todavía no tenés alquileres finalizados ni reservas canceladas.";
+                return;
+            }
+
+            for (const alquiler of historial) {
+                const fila = document.createElement("tr");
+                const valores = [
+                    alquiler.vehiculo,
+                    alquiler.patente,
+                    mostrarFecha(alquiler.fechaInicio),
+                    mostrarFecha(alquiler.fechaFinalizacion),
+                    alquiler.cantidadDias,
+                    alquiler.importeTotal.toLocaleString("es-AR", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    }),
+                    alquiler.estado === "CANCELADO"
+                        ? "Cancelado" : "Finalizado"
+                ];
+
+                for (const valor of valores) {
+                    const celda = document.createElement("td");
+                    celda.textContent = valor;
+                    fila.appendChild(celda);
+                }
+
+                filas.appendChild(fila);
+            }
+
+            tabla.hidden = false;
+            mensaje.textContent = `Alquileres encontrados: ${historial.length}.`;
+        } catch (error) {
+            mensaje.className = "error";
+            mensaje.textContent = error.message;
+        } finally {
+            boton.disabled = false;
+        }
+    }
+
+    boton.addEventListener("click", cargarHistorial);
+    cargarHistorial();
+</script>
+</body>
+</html>
