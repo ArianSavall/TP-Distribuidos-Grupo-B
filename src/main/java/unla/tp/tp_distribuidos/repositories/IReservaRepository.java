@@ -22,4 +22,26 @@ public interface IReservaRepository extends JpaRepository<Reserva, Long> {
                                 @Param("estado") EstadoReserva estado,
                                 @Param("fechaInicio") LocalDateTime fechaInicio,
                                 @Param("fechaFin") LocalDateTime fechaFin);
+
+
+    @Query("""
+            SELECT r FROM Reserva r
+            JOIN FETCH r.vehiculo
+            WHERE r.cliente.metadatos.usuario = :usuario
+              AND (
+                r.estadoReserva = :cancelado
+                OR (
+                  r.estadoReserva = :confirmado
+                  AND r.fechaHoraFinal <= :ahora
+                )
+              )
+            ORDER BY r.fechaHoraInicio DESC, r.idReserva DESC
+            """)
+    java.util.List<Reserva> buscarHistorial(
+            @Param("usuario") String usuario,
+            @Param("cancelado") EstadoReserva cancelado,
+            @Param("confirmado") EstadoReserva confirmado,
+            @Param("ahora") LocalDateTime ahora);
+
 }
+
