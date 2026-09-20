@@ -10,8 +10,8 @@ import unla.tp.tp_distribuidos.enums.TipoVehiculo;
 @Setter
 @NoArgsConstructor
 public class ReservaFiltroGraphQLDTO {
-    private Long clienteId;
-    private Long vehiculoId;
+    private String dniCliente;
+    private String patenteVehiculo;
     private TipoVehiculo tipoVehiculo;
     private EstadoReserva estado;
     private String fechaDesde;

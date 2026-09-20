@@ -139,9 +139,9 @@ public class ReservaService implements IReservaService {
         }
 
         return reservaRepository.buscarReservas(
-                        esAdmin ? criterios.getClienteId() : null,
+                        esAdmin ? criterios.getDniCliente() : null,
                         clienteAutenticadoId,
-                        criterios.getVehiculoId(),
+                        criterios.getPatenteVehiculo(),
                         criterios.getTipoVehiculo(),
                         criterios.getEstado(),
                         fechaDesde,

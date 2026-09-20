@@ -29,18 +29,18 @@ public interface IReservaRepository extends JpaRepository<Reserva, Long> {
             SELECT r FROM Reserva r
             JOIN FETCH r.cliente c
             JOIN FETCH r.vehiculo v
-            WHERE (:clienteId IS NULL OR c.id = :clienteId)
+            WHERE (:dniCliente IS NULL OR c.dni = :dniCliente)
               AND (:clienteAutenticadoId IS NULL OR c.id = :clienteAutenticadoId)
-              AND (:vehiculoId IS NULL OR v.id = :vehiculoId)
+              AND (:patenteVehiculo IS NULL OR v.patente = :patenteVehiculo)
               AND (:tipoVehiculo IS NULL OR v.tipoVehiculo = :tipoVehiculo)
               AND (:estado IS NULL OR r.estadoReserva = :estado)
               AND (:fechaDesde IS NULL OR r.fechaHoraFinal >= :fechaDesde)
               AND (:fechaHasta IS NULL OR r.fechaHoraInicio <= :fechaHasta)
             ORDER BY r.fechaHoraInicio DESC
             """)
-    List<Reserva> buscarReservas(@Param("clienteId") Long clienteId,
+    List<Reserva> buscarReservas(@Param("dniCliente") String dniCliente,
                                  @Param("clienteAutenticadoId") Long clienteAutenticadoId,
-                                 @Param("vehiculoId") Long vehiculoId,
+                   @Param("patenteVehiculo") String patenteVehiculo,
                                  @Param("tipoVehiculo") TipoVehiculo tipoVehiculo,
                                  @Param("estado") EstadoReserva estado,
                                  @Param("fechaDesde") LocalDateTime fechaDesde,
