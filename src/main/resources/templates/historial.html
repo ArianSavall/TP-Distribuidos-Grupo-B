@@ -3,72 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" th:href="@{/css/app.css}">
     <title>Mi historial | Rentar</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f4f6f8;
-            color: #243247;
-            margin: 0;
-            padding: 32px 20px;
-        }
-        main {
-            max-width: 1200px;
-            margin: auto;
-        }
-        h1 { margin-bottom: 8px; }
-        button {
-            background: #174ea6;
-            color: white;
-            padding: 12px 20px;
-            border: 0;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-        button:disabled { opacity: .6; cursor: wait; }
-        .tabla {
-            overflow-x: auto;
-            background: white;
-            border-radius: 8px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            padding: 16px;
-            text-align: left;
-            border-bottom: 1px solid #dde3eb;
-        }
-        th { background: #e8eef7; }
-        .error { color: #b42318; }
-    </style>
 </head>
 <body>
-<main>
-    <h1>Mi historial de alquileres</h1>
-    <p>Consultá tus alquileres finalizados y tus reservas canceladas.</p>
+<main class="form-container historial-layout">
 
-    <button id="actualizar" type="button">Actualizar historial</button>
-    <p id="mensaje" role="status" aria-live="polite"></p>
+    <div class="top-nav">
+        <a th:href="@{/}" class="btn-back">← Volver al Panel</a>
+    </div>
+    
+    <h1 class="form-section-title historial-title">Mi historial de alquileres</h1>
+    <p class="historial-description">Consultá tus alquileres finalizados y tus reservas canceladas.</p>
 
-    <div class="tabla">
-        <table id="tabla" hidden>
-            <caption>Detalle de tus alquileres</caption>
+    <!-- Agregamos la clase btn-inline para que no ocupe toda la pantalla -->
+    <button id="actualizar" type="button" class="btn-primary btn-inline">
+        Actualizar historial
+    </button>
+    
+    <p id="mensaje" role="status" aria-live="polite" class="empty-state align-left"></p>
+
+    <div class="table-wrapper">
+        <table id="tabla" class="data-table full-width" hidden>
+            <caption class="historial-caption">Detalle de tus alquileres</caption>
             <thead>
-            <tr>
-                <th scope="col">Vehículo</th>
-                <th scope="col">Patente</th>
-                <th scope="col">Inicio</th>
-                <th scope="col">Finalización</th>
-                <th scope="col">Días</th>
-                <th scope="col">Importe total</th>
-                <th scope="col">Estado</th>
-            </tr>
+                <tr>
+                    <th scope="col">Vehículo</th>
+                    <th scope="col">Patente</th>
+                    <th scope="col">Inicio</th>
+                    <th scope="col">Finalización</th>
+                    <th scope="col">Días</th>
+                    <th scope="col">Importe total</th>
+                    <th scope="col">Estado</th>
+                </tr>
             </thead>
             <tbody id="filas"></tbody>
         </table>
     </div>
+    
 </main>
 
 <script>

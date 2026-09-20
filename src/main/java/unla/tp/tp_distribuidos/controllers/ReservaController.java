@@ -1,6 +1,9 @@
 package unla.tp.tp_distribuidos.controllers;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.core.ParameterizedTypeReference;
@@ -8,6 +11,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -23,15 +27,27 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+
 import unla.tp.tp_distribuidos.dtos.ReservaDTO;
+import unla.tp.tp_distribuidos.dtos.ReservaFiltroGraphQLDTO;
+import unla.tp.tp_distribuidos.dtos.ReservaGraphQLDTO;
+import unla.tp.tp_distribuidos.dtos.ReservaDTO;
+import unla.tp.tp_distribuidos.dtos.ReservaFiltroGraphQLDTO;
 import unla.tp.tp_distribuidos.dtos.UsuarioDTO;
 import unla.tp.tp_distribuidos.dtos.VehiculoDTO;
+import unla.tp.tp_distribuidos.dtos.VehiculoDisponibilidadDTO;
+import unla.tp.tp_distribuidos.models.Vehiculo;
 import unla.tp.tp_distribuidos.repositories.IUsuarioRepository;
 
 @Controller 
 @RequestMapping("/reservas")
 public class ReservaController {
-    private final String apiBaseUrl = "http://localhost:8080/api/v1/reservas"; 
+    private final String apiBaseUrl = "http://localhost:8080/api/v1/reservas";
+    private final String apiBaseUrlGraph = "http://localhost:8080/graphql";
 
     private IUsuarioRepository usuarioRepository;
 
@@ -40,18 +56,92 @@ public class ReservaController {
     }
 
     @GetMapping
-    public String pantallaReservas(Model model, @CookieValue(name = "JSESSIONID", required = false) String jsessionid) {
+    public String pantallaReservas(Model model, @CookieValue(name = "JSESSIONID", required = false) String jsessionid,
+        @RequestParam(required = false) String fechaInicioDisp,
+        @RequestParam(required = false) String fechaFinalDisp
+        ) {
+
+
         HttpHeaders headers = new HttpHeaders();
-        if (jsessionid != null) headers.add("Cookie", "JSESSIONID=" + jsessionid);
-        HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        if (jsessionid != null) {
+            headers.add("Cookie", "JSESSIONID=" + jsessionid);
+        }
         RestTemplate restTemplate = new RestTemplate();
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
+
+        if (fechaInicioDisp != null && !fechaInicioDisp.isEmpty() && 
+            fechaFinalDisp != null && !fechaFinalDisp.isEmpty()) {
+            try {
+                // Armamos la query GraphQL inyectando las fechas recibidas del formulario HTML
+                String queryDisponibilidad = """
+                    {
+                    "query": "query { vehiculosDisponibles(fechaInicio: \\"%s\\", fechaFinal: \\"%s\\") { patente marca modelo anio color tipoVehiculo precioDiario } }"
+                    }
+                    """.formatted(fechaInicioDisp, fechaFinalDisp);
+
+                HttpEntity<String> entityDisp = new HttpEntity<>(queryDisponibilidad, headers);
+                
+                // Hacemos el POST a GraphQL
+                ResponseEntity<String> responseDisp = restTemplate.exchange(
+                        "http://localhost:8080/graphql", HttpMethod.POST, entityDisp, String.class);
+
+                // Parseamos la respuesta
+                JsonNode rootDisp = mapper.readTree(responseDisp.getBody());
+                JsonNode vehiculosNode = rootDisp.path("data").path("vehiculosDisponibles");
+
+                List<VehiculoDisponibilidadDTO> vehiculosDisponibles = new ArrayList<>();
+                if (!vehiculosNode.isMissingNode() && !vehiculosNode.isNull()) {
+                    vehiculosDisponibles = mapper.readValue(vehiculosNode.traverse(), new TypeReference<List<VehiculoDisponibilidadDTO>>() {});
+                }
+
+                // Mandamos los vehículos al modelo para Thymeleaf
+                model.addAttribute("vehiculosDisponibles", vehiculosDisponibles);
+                model.addAttribute("fechaInicioBuscada", fechaInicioDisp);
+                model.addAttribute("fechaFinalBuscada", fechaFinalDisp);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                model.addAttribute("errorDisponibilidad", "No se pudo consultar la disponibilidad.");
+            }
+        }
+
+
+
+        String hoyISO = LocalDateTime.now().with(LocalTime.MIN).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+
+        String queryGraphQL = 
+            """
+            {
+            "query": "query { reservas(filtros: { fechaDesde: \\"%s\\" }) { id cliente vehiculo patente fechaInicio fechaFinalizacion importeTotal estado } }"
+            }
+            """.formatted(hoyISO);
+        HttpEntity<String> postEntity = new HttpEntity<>(queryGraphQL, headers);
+        
 
         try {
-            // Asumiendo que tienes un GET /api/v1/reservas para listar (o puedes adaptar a tu GraphQL si aplica)
-            ResponseEntity<List<ReservaDTO>> response = restTemplate.exchange(
-                    apiBaseUrl, HttpMethod.GET, requestEntity, new ParameterizedTypeReference<List<ReservaDTO>>() {}
+            
+            ResponseEntity<String> response = restTemplate.exchange(
+                    apiBaseUrlGraph, HttpMethod.POST, postEntity, String.class
             );
-            model.addAttribute("reservas", response.getBody());
+
+            String jsonRespuesta = response.getBody();
+
+            JsonNode rootNode = mapper.readTree(jsonRespuesta);
+            JsonNode reservasNode = rootNode.path("data").path("reservas");
+
+            List<ReservaGraphQLDTO> listaReservas = new ArrayList<>();
+
+            if(!reservasNode.isMissingNode() && !reservasNode.isNull()){
+                listaReservas = mapper.readValue(
+                    reservasNode.traverse(),
+                    new TypeReference<List<ReservaGraphQLDTO>>(){}
+                );
+            }
+
+            model.addAttribute("reservas", listaReservas);
         } catch (Exception e) {
             model.addAttribute("errorListado", "No se pudieron cargar las reservas.");
         }

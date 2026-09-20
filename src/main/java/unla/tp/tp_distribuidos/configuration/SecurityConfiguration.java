@@ -51,10 +51,11 @@ public class SecurityConfiguration {
                             "/v3/api-docs/**",
                             "/login",
                             "/login?error",
-                            "/auth/login",
-                            "/auth/loginProcess",
-                            "/auth/loginSuccess",
-                            "/auth/logout"
+                            "/login",
+                            "/loginProcess",
+                            "/loginSuccess",
+                            "/logout",
+                            "/error"
                     ).permitAll()
 		    .requestMatchers("/graphql", "/graphiql").authenticated()
                     .requestMatchers(
@@ -62,13 +63,13 @@ public class SecurityConfiguration {
                         "/reservas", 
                         "/reservas/**", 
                         "/api/v1/**",
-                        "/api_rest/v1/**"
+                        "/api_rest/v1/**",
+                        "/"
                 ).hasAnyRole("ADMIN","CLIENTE")
                      .anyRequest().hasRole("ADMIN")
 		    
                     
             )
-            .httpBasic(Customizer.withDefaults())
             .formLogin(form -> form
                     .loginPage("/login")
                     .loginProcessingUrl("/login")
@@ -79,6 +80,9 @@ public class SecurityConfiguration {
             .logout(logout -> logout
                     .logoutUrl("/logout")
                     .logoutSuccessUrl("/login?logout")
+                    .invalidateHttpSession(true)
+                    .clearAuthentication(true)
+                    .deleteCookies("JSESSIONID")
                     .permitAll()
             )
             .exceptionHandling(exception -> exception

@@ -8,6 +8,7 @@
 <body>
     <nav class="navbar">
         <h2>Rentar - Admin</h2>
+
         <div class="links">
             <a th:href="@{/vehiculos}">Vehículos</a>
             <a th:href="@{/clientes}">Clientes</a>
@@ -16,6 +17,11 @@
     </nav>
 
     <div class="container">
+
+        <div class="top-nav">
+            <a th:href="@{/}" class="btn-back">← Volver al Panel</a>
+        </div>
+
         <div class="form-card">
             <h3>Registrar Nuevo Vehículo</h3>
             <form th:action="@{/vehiculos/alta}" th:object="${nuevoVehiculo}" method="post" class="grid-form">

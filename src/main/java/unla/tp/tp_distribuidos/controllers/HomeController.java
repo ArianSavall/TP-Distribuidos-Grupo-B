@@ -14,8 +14,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 
 @Controller
-@RequestMapping("/index")
+@RequestMapping("/")
 public class HomeController {
+    
+    @GetMapping
+    public String index() {
+        return "index";
+    }
     
     
 }

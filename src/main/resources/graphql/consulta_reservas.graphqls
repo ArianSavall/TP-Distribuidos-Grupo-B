@@ -1,12 +1,12 @@
-"""
-API GraphQL para consultar reservas de vehículos.
+#"""
+#API GraphQL para consultar reservas de vehículos.
 
-Los administradores pueden consultar las reservas de cualquier cliente usando
-el filtro dniCliente. Los clientes autenticados solo reciben sus propias
-reservas, independientemente del dniCliente enviado.
-"""
+#Los administradores pueden consultar las reservas de cualquier cliente usando
+#el filtro dniCliente. Los clientes autenticados solo reciben sus propias
+#reservas, independientemente del dniCliente enviado.
+#"""
 
-type Query {
+extend type Query {
 	"""Devuelve las reservas que coinciden con los filtros indicados."""
 	reservas(filtros: FiltroReservasInput): [Reserva!]!
 }
@@ -29,6 +29,8 @@ input FiltroReservasInput {
 
 """Información de una reserva."""
 type Reserva {
+	"""Id reserva."""
+	id: ID!
 	"""Nombre y apellido del cliente."""
 	cliente: String!
 	"""Marca y modelo del vehículo."""

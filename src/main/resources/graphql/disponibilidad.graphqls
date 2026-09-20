@@ -19,11 +19,3 @@ type VehiculoDisponible {
     tipoVehiculo: TipoVehiculo!
     precioDiario: Float!
 }
-
-enum TipoVehiculo {
-    SEDAN
-    SUV
-    PICKUP
-    COUPE
-    HATCHBACK
-}
