@@ -29,6 +29,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import unla.tp.tp_distribuidos.dtos.ReservaDTO;
 import unla.tp.tp_distribuidos.dtos.ReservaGraphQLDTO;
@@ -53,6 +54,12 @@ public class ReservaController {
     public String pantallaReservas(Model model, @CookieValue(name = "JSESSIONID", required = false) String jsessionid,
         @RequestParam(required = false) String fechaInicioDisp,
         @RequestParam(required = false) String fechaFinalDisp,
+        Authentication authentication,
+        @RequestParam(required = false) String tipoVehiculoDisp,
+        @RequestParam(required = false) String marcaDisp,
+        @RequestParam(required = false) String modeloDisp,
+        @RequestParam(required = false) Double precioMinDisp,
+        @RequestParam(required = false) Double precioMaxDisp,
         @RequestParam(required = false) String dniCliente,
         @RequestParam(required = false) String patenteVehiculo,
         @RequestParam(required = false) String tipoVehiculo,
@@ -70,18 +77,35 @@ public class ReservaController {
         RestTemplate restTemplate = new RestTemplate();
         ObjectMapper mapper = new ObjectMapper();
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        boolean esAdmin = authentication != null && authentication.getAuthorities().stream()
+            .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"));
+        model.addAttribute("esAdmin", esAdmin);
 
 
         if (fechaInicioDisp != null && !fechaInicioDisp.isEmpty() && 
             fechaFinalDisp != null && !fechaFinalDisp.isEmpty()) {
             try {
-                String queryDisponibilidad = """
-                    {
-                    "query": "query { vehiculosDisponibles(fechaInicio: \\"%s\\", fechaFinal: \\"%s\\") { patente marca modelo anio color tipoVehiculo precioDiario } }"
-                    }
-                    """.formatted(fechaInicioDisp, fechaFinalDisp);
+                ObjectNode graphqlRequest = mapper.createObjectNode();
+                graphqlRequest.put("query", "query($tipo: TipoVehiculo, $marca: String, $modelo: String, "
+                        + "$precioMin: Float, $precioMax: Float, $fechaInicio: String!, $fechaFinal: String!) "
+                        + "{ vehiculosDisponibles(tipo: $tipo, marca: $marca, modelo: $modelo, "
+                        + "precioMin: $precioMin, precioMax: $precioMax, fechaInicio: $fechaInicio, "
+                        + "fechaFinal: $fechaFinal) { patente marca modelo anio color tipoVehiculo precioDiario } }");
+                ObjectNode variables = graphqlRequest.putObject("variables");
+                variables.put("fechaInicio", fechaInicioDisp);
+                variables.put("fechaFinal", fechaFinalDisp);
+                if (tipoVehiculoDisp == null || tipoVehiculoDisp.isBlank()) variables.putNull("tipo");
+                else variables.put("tipo", tipoVehiculoDisp);
+                if (marcaDisp == null || marcaDisp.isBlank()) variables.putNull("marca");
+                else variables.put("marca", marcaDisp.trim());
+                if (modeloDisp == null || modeloDisp.isBlank()) variables.putNull("modelo");
+                else variables.put("modelo", modeloDisp.trim());
+                if (precioMinDisp == null) variables.putNull("precioMin");
+                else variables.put("precioMin", precioMinDisp);
+                if (precioMaxDisp == null) variables.putNull("precioMax");
+                else variables.put("precioMax", precioMaxDisp);
 
-                HttpEntity<String> entityDisp = new HttpEntity<>(queryDisponibilidad, headers);
+                HttpEntity<String> entityDisp = new HttpEntity<>(mapper.writeValueAsString(graphqlRequest), headers);
                 
                 ResponseEntity<String> responseDisp = restTemplate.exchange(
                         "http://localhost:8080/graphql", HttpMethod.POST, entityDisp, String.class);
@@ -97,6 +121,11 @@ public class ReservaController {
                 model.addAttribute("vehiculosDisponibles", vehiculosDisponibles);
                 model.addAttribute("fechaInicioBuscada", fechaInicioDisp);
                 model.addAttribute("fechaFinalBuscada", fechaFinalDisp);
+                model.addAttribute("tipoVehiculoBuscado", tipoVehiculoDisp);
+                model.addAttribute("marcaBuscada", marcaDisp);
+                model.addAttribute("modeloBuscado", modeloDisp);
+                model.addAttribute("precioMinBuscado", precioMinDisp);
+                model.addAttribute("precioMaxBuscado", precioMaxDisp);
 
             } catch (Exception e) {
                 model.addAttribute("errorDisponibilidad", "No se pudo consultar la disponibilidad.");
@@ -105,7 +134,7 @@ public class ReservaController {
 
         StringBuilder filtrosGraph = new StringBuilder();
 
-        if (dniCliente != null && !dniCliente.trim().isEmpty()) {
+        if (esAdmin && dniCliente != null && !dniCliente.trim().isEmpty()) {
         filtrosGraph.append("dniCliente: \\\"").append(dniCliente.trim()).append("\\\", ");
         }
         if (patenteVehiculo != null && !patenteVehiculo.trim().isEmpty()) {

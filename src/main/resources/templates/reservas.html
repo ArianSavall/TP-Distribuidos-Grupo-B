@@ -35,6 +35,37 @@
                         <label class="form-label">Buscar hasta:</label>
                         <input type="datetime-local" name="fechaFinalDisp" th:value="${fechaFinalBuscada}" required class="form-input">
                     </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Tipo de vehículo:</label>
+                        <select name="tipoVehiculoDisp" class="form-input">
+                            <option value="">Todos los tipos</option>
+                            <option value="SEDAN" th:selected="${tipoVehiculoBuscado == 'SEDAN'}">Sedán</option>
+                            <option value="HATCHBACK" th:selected="${tipoVehiculoBuscado == 'HATCHBACK'}">Hatchback</option>
+                            <option value="SUV" th:selected="${tipoVehiculoBuscado == 'SUV'}">SUV</option>
+                            <option value="PICKUP" th:selected="${tipoVehiculoBuscado == 'PICKUP'}">Pick-up</option>
+                            <option value="COUPE" th:selected="${tipoVehiculoBuscado == 'COUPE'}">Coupé</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Marca:</label>
+                        <input type="text" name="marcaDisp" th:value="${marcaBuscada}" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Modelo:</label>
+                        <input type="text" name="modeloDisp" th:value="${modeloBuscado}" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Precio diario mínimo:</label>
+                        <input type="number" name="precioMinDisp" th:value="${precioMinBuscado}" min="0" step="0.01" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Precio diario máximo:</label>
+                        <input type="number" name="precioMaxDisp" th:value="${precioMaxBuscado}" min="0" step="0.01" class="form-input">
+                    </div>
                 </div>
                 
                 <button type="submit" class="btn-primary">Ver Disponibles</button>
@@ -51,17 +82,21 @@
                             <th>Patente</th>
                             <th>Vehículo</th>
                             <th>Tipo</th>
+                            <th>Color</th>
+                            <th>Año</th>
                             <th>Precio Diario</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr th:if="${#lists.isEmpty(vehiculosDisponibles)}">
-                            <td colspan="4" class="empty-state">No hay vehículos disponibles en esas fechas.</td>
+                            <td colspan="6" class="empty-state">No hay vehículos disponibles en esas fechas.</td>
                         </tr>
                         <tr th:each="vehiculo : ${vehiculosDisponibles}">
                             <td th:text="${vehiculo.patente}" class="font-bold"></td>
                             <td th:text="${vehiculo.marca} + ' ' + ${vehiculo.modelo}"></td>
                             <td th:text="${vehiculo.tipoVehiculo}"></td>
+                            <td th:text="${vehiculo.color != null ? vehiculo.color : '-'}"></td>
+                            <td th:text="${vehiculo.anio}"></td>
                             <td th:text="'$' + ${vehiculo.precioDiario}"></td>
                         </tr>
                     </tbody>
@@ -109,7 +144,7 @@
             <form th:action="@{/reservas}" method="get">
                 
                 <div class="form-row">
-                    <div class="form-group">
+                    <div class="form-group" th:if="${esAdmin}">
                         <label class="form-label">DNI del Cliente:</label>
                         <input type="text" name="dniCliente" class="form-input" placeholder="Ej: 12345678" th:value="${param.dniCliente}">
                     </div>
@@ -127,6 +162,7 @@
                             <option value="HATCHBACK" th:selected="${param.tipoVehiculo != null and param.tipoVehiculo[0] == 'HATCHBACK'}">Hatchback</option>
                             <option value="SUV" th:selected="${param.tipoVehiculo != null and param.tipoVehiculo[0] == 'SUV'}">SUV</option>
                             <option value="PICKUP" th:selected="${param.tipoVehiculo != null and param.tipoVehiculo[0] == 'PICKUP'}">Pick-up</option>
+                            <option value="COUPE" th:selected="${param.tipoVehiculo != null and param.tipoVehiculo[0] == 'COUPE'}">Coupé</option>
                         </select>
                     </div>
                 </div>
