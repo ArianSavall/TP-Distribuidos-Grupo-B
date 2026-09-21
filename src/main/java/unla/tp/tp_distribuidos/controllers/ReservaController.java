@@ -192,8 +192,9 @@ public class ReservaController {
             restTemplate.exchange(apiBaseUrl, HttpMethod.POST, entity, Void.class);
             redirectAttributes.addFlashAttribute("successMsg", "Reserva creada exitosamente.");
         } catch (HttpClientErrorException e) {
-            // Captura el mensaje de error de tu backend (ej. "El vehículo no existe")
-            redirectAttributes.addFlashAttribute("errorMsg", "Error al crear: " + e.getResponseBodyAsString());
+            String errorMsg = e.getResponseBodyAsString();
+            redirectAttributes.addFlashAttribute("errorMsg", 
+                (errorMsg == null || errorMsg.isBlank()) ? "Error: Verifique que la patente ingresada sea correcta." : errorMsg);
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMsg", "Error inesperado al crear la reserva: " + e.getMessage());
         }
@@ -222,7 +223,9 @@ public class ReservaController {
             restTemplate.exchange(apiBaseUrl + "/" + id + "/cancelar", HttpMethod.PUT, entity, Void.class);
             redirectAttributes.addFlashAttribute("successMsg", "Reserva cancelada exitosamente.");
         } catch (HttpClientErrorException e) {
-            redirectAttributes.addFlashAttribute("errorMsg", "Error al cancelar: " + e.getResponseBodyAsString());
+            String errorMsg = e.getResponseBodyAsString();
+            redirectAttributes.addFlashAttribute("errorMsg", 
+                (errorMsg == null || errorMsg.isBlank()) ? "Error al procesar la cancelación." : errorMsg);
         }
 
         return "redirect:/reservas";
