@@ -112,7 +112,6 @@
                     <td>
                         <a th:href="@{/vehiculos/editar/{patente}(patente=${vehiculo.patente})}" class="btn btn-primary btn-sm">Editar</a>
                         
-                        <!-- Botón para Activar/Desactivar dinámico[cite: 25] -->
                         <form th:action="@{/vehiculos/estado/{patente}(patente=${vehiculo.patente})}" method="post" style="display:inline;">
                             <input type="hidden" name="activar" th:value="${!vehiculo.estaActivo}">
                             <button type="submit" th:class="'btn btn-sm ' + ${vehiculo.estaActivo ? 'btn-danger' : 'btn-success'}" 

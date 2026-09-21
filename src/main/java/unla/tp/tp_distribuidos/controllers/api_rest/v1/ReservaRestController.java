@@ -16,7 +16,6 @@ public class ReservaRestController {
         this.reservaService = reservaService;
     }
 
-    //FALTARIA LO DE SECURITY PREGUNTAR
 
     @PostMapping 
     public ResponseEntity<?> altaReserva(@RequestBody ReservaDTO request) {

@@ -14,11 +14,12 @@
     </nav>
 
     <div class="container">
+        <div th:if="${errorMsg}" class="alert alert-danger" th:text="${errorMsg}" style="margin-bottom: 1rem;"></div>
         <div class="form-card">
             <h3>Modificar Cliente: <span th:text="${cliente.nombre + ' ' + cliente.apellido}"></span></h3>
             
 
-            <form th:action="@{/clientes/modificar/{id}(id=${cliente.id})}" th:object="${cliente}" method="patch" class="grid-form">
+            <form th:action="@{/clientes/modificar/{id}(id=${cliente.id})}" th:object="${cliente}" method="post" class="grid-form">
                 
                 <div class="form-group">
                     <label>DNI:</label>

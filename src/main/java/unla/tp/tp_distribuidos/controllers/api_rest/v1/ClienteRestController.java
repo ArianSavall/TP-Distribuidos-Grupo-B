@@ -3,7 +3,6 @@ package unla.tp.tp_distribuidos.controllers.api_rest.v1;
 import java.util.List;
 
 import org.modelmapper.ModelMapper;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -74,13 +73,17 @@ public class ClienteRestController {
 
     @PostMapping
     @Operation(summary = "Alta cliente")
-    public ResponseEntity<UsuarioDTO> crearCliente(@RequestBody UsuarioCreateDTO usuarioNuevo){
+    public ResponseEntity<?> crearCliente(@RequestBody UsuarioCreateDTO usuarioNuevo){
         UsuarioDTO usuario = modelMapper.map(usuarioNuevo, UsuarioDTO.class);
 
         usuario.getMetadatos().setRol(Rol.CLIENTE.toString());
-
-        UsuarioDTO nuevo = usuarioService.insertOrUpdate(usuario);
-        return ResponseEntity.ok(nuevo);
+        try{
+            UsuarioDTO nuevo = usuarioService.insertOrUpdate(usuario);
+            return ResponseEntity.ok(nuevo);
+        }
+        catch(Exception e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @DeleteMapping("/borrar/id/{id}")
@@ -106,38 +109,48 @@ public class ClienteRestController {
 
     @PatchMapping("/modificar/id/{id}")
     @Operation(summary = "Modificar cliente por ID")
-    public ResponseEntity<UsuarioDTO> modificarCliente(@PathVariable Long id, @RequestBody UsuarioCreateDTO usuario) {
+    public ResponseEntity<?> modificarCliente(@PathVariable Long id, @RequestBody UsuarioCreateDTO usuario) {
 
-        UsuarioDTO actualizado = usuarioService.patchById(id, usuario);
+        try{
+            UsuarioDTO actualizado = usuarioService.patchById(id, usuario);
 
-        if (actualizado == null) {
-            return ResponseEntity.notFound().build();
+            if (actualizado == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            return ResponseEntity.ok(actualizado);
         }
-
-        return ResponseEntity.ok(actualizado);
+        catch(Exception e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @PatchMapping("/modificar/dni")
     @Operation(summary = "Modificar cliente por DNI")
-    public ResponseEntity<UsuarioDTO> modificarClienteByDni(@RequestBody UsuarioCreateDTO usuario) {
+    public ResponseEntity<?> modificarClienteByDni(@RequestBody UsuarioCreateDTO usuario) {
 
-        if (usuario.getDni() == null || usuario.getDni().isBlank()) {
-            return ResponseEntity.badRequest().build();
+        try{
+            if (usuario.getDni() == null || usuario.getDni().isBlank()) {
+                return ResponseEntity.badRequest().build();
+            }
+
+            UsuarioDTO existente = usuarioService.getByDni(usuario.getDni());
+
+            if (existente == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+
+            UsuarioDTO actualizado = usuarioService.patchByDni(usuario);
+
+            if(actualizado == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            return ResponseEntity.ok(actualizado);
         }
-
-        UsuarioDTO existente = usuarioService.getByDni(usuario.getDni());
-
-        if (existente == null) {
-            return ResponseEntity.notFound().build();
+        catch(Exception e){
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
-
-
-        UsuarioDTO actualizado = usuarioService.patchByDni(usuario);
-
-        if(actualizado == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        return ResponseEntity.ok(actualizado);
     }
 }

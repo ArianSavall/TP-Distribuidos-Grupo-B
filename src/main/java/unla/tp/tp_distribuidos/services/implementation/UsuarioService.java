@@ -119,8 +119,9 @@ public class UsuarioService implements IUsuarioService, UserDetailsService {
             }
         }
 
-        Usuario usuarioActualizado = usuarioRepository.save(usuario);
-        return modelMapper.map(usuarioActualizado, UsuarioDTO.class);
+        UsuarioDTO usuarioDto = modelMapper.map(usuario, UsuarioDTO.class);
+
+        return insertOrUpdate(usuarioDto);
     }
 
     //Modifica solo los campos que no sean nulos segun el usuario pasado por ID
@@ -131,6 +132,12 @@ public class UsuarioService implements IUsuarioService, UserDetailsService {
         if (usuario == null) {
             throw new IllegalArgumentException("No se encontró un usuario con el ID proporcionado.");
         }
+
+        if(usuario.equals(usuarioRepository.findByDni(cambios.getDni()))){
+            modelMapper.map(cambios, usuario);
+            return modelMapper.map(usuarioRepository.save(usuario), UsuarioDTO.class);
+        }
+
 
         if(cambios.getDni() != null) {
             usuario.setDni(cambios.getDni());
@@ -165,8 +172,9 @@ public class UsuarioService implements IUsuarioService, UserDetailsService {
             }
         }
 
-        Usuario actualizado = usuarioRepository.save(usuario);
-        return modelMapper.map(actualizado, UsuarioDTO.class);
+        UsuarioDTO usuarioDto = modelMapper.map(usuario, UsuarioDTO.class);
+
+        return insertOrUpdate(usuarioDto);
     }
 
     @Override

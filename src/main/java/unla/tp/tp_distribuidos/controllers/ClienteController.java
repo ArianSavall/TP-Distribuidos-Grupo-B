@@ -13,12 +13,15 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpStatusCodeException;
+import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import unla.tp.tp_distribuidos.dtos.UsuarioCreateDTO;
 import unla.tp.tp_distribuidos.dtos.UsuarioDTO;
@@ -80,14 +83,20 @@ public class ClienteController {
     }
 
     @PostMapping("/alta")
-    public String altaCliente(@ModelAttribute UsuarioCreateDTO cliente, @CookieValue(name = "JSESSIONID", required = false) String jsessionid) {
+    public String altaCliente(@ModelAttribute UsuarioCreateDTO cliente, @CookieValue(name = "JSESSIONID", required = false) String jsessionid, RedirectAttributes redirectAttributes) {
         HttpHeaders headers = new HttpHeaders();
         if (jsessionid != null) {
             headers.add("Cookie", "JSESSIONID=" + jsessionid);
         }
-        HttpEntity<UsuarioCreateDTO> entity = new HttpEntity<>(cliente, headers);
-        RestTemplate restTemplate = new RestTemplate();
-        restTemplate.postForEntity(apiBaseUrl + "clientes", entity, Void.class);
+        
+        try{
+            HttpEntity<UsuarioCreateDTO> entity = new HttpEntity<>(cliente, headers);
+            RestTemplate restTemplate = new RestTemplate();
+            restTemplate.postForEntity(apiBaseUrl + "clientes", entity, Void.class);
+        }
+        catch(HttpStatusCodeException e){
+            redirectAttributes.addFlashAttribute("errorMsg", "Error al crear el usuario: " + e.getResponseBodyAsString());
+        }
         return "redirect:/clientes";
     }
 
@@ -117,15 +126,21 @@ public class ClienteController {
     }
 
     @PostMapping("/modificar/{id}")
-    public String modificarCliente(@PathVariable Long id, @ModelAttribute UsuarioDTO cliente, @CookieValue(name = "JSESSIONID", required = false) String jsessionid) {
+    public String modificarCliente(@PathVariable Long id, @ModelAttribute UsuarioDTO cliente, @CookieValue(name = "JSESSIONID", required = false) String jsessionid, RedirectAttributes redirectAttributes) {
         HttpHeaders headers = new HttpHeaders();
         if (jsessionid != null) {
             headers.add("Cookie", "JSESSIONID=" + jsessionid);
         }
-        HttpEntity<UsuarioDTO> entity = new HttpEntity<>(cliente, headers);
-        RestTemplate restTemplate = new RestTemplate();
-        restTemplate.setRequestFactory(new JdkClientHttpRequestFactory());
-        restTemplate.exchange(apiBaseUrl + "clientes/modificar/id/" + id, HttpMethod.PATCH, entity, Void.class);
-        return "redirect:/clientes";
+        try{
+            HttpEntity<UsuarioDTO> entity = new HttpEntity<>(cliente, headers);
+            RestTemplate restTemplate = new RestTemplate();
+            restTemplate.setRequestFactory(new JdkClientHttpRequestFactory());
+            restTemplate.exchange(apiBaseUrl + "clientes/modificar/id/" + id, HttpMethod.PATCH, entity, Void.class);
+            return "redirect:/clientes";
+        }
+        catch(HttpStatusCodeException e){
+            redirectAttributes.addFlashAttribute("errorMsg", "Error al modificar al usuario: " + e.getResponseBodyAsString());
+            return "redirect:/clientes/editar/"+ id;
+        }
     }
 }

@@ -6,7 +6,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -18,7 +17,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -33,14 +31,10 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import unla.tp.tp_distribuidos.dtos.ReservaDTO;
-import unla.tp.tp_distribuidos.dtos.ReservaFiltroGraphQLDTO;
 import unla.tp.tp_distribuidos.dtos.ReservaGraphQLDTO;
-import unla.tp.tp_distribuidos.dtos.ReservaDTO;
-import unla.tp.tp_distribuidos.dtos.ReservaFiltroGraphQLDTO;
 import unla.tp.tp_distribuidos.dtos.UsuarioDTO;
 import unla.tp.tp_distribuidos.dtos.VehiculoDTO;
 import unla.tp.tp_distribuidos.dtos.VehiculoDisponibilidadDTO;
-import unla.tp.tp_distribuidos.models.Vehiculo;
 import unla.tp.tp_distribuidos.repositories.IUsuarioRepository;
 
 @Controller 
@@ -75,7 +69,6 @@ public class ReservaController {
         if (fechaInicioDisp != null && !fechaInicioDisp.isEmpty() && 
             fechaFinalDisp != null && !fechaFinalDisp.isEmpty()) {
             try {
-                // Armamos la query GraphQL inyectando las fechas recibidas del formulario HTML
                 String queryDisponibilidad = """
                     {
                     "query": "query { vehiculosDisponibles(fechaInicio: \\"%s\\", fechaFinal: \\"%s\\") { patente marca modelo anio color tipoVehiculo precioDiario } }"
@@ -84,11 +77,9 @@ public class ReservaController {
 
                 HttpEntity<String> entityDisp = new HttpEntity<>(queryDisponibilidad, headers);
                 
-                // Hacemos el POST a GraphQL
                 ResponseEntity<String> responseDisp = restTemplate.exchange(
                         "http://localhost:8080/graphql", HttpMethod.POST, entityDisp, String.class);
 
-                // Parseamos la respuesta
                 JsonNode rootDisp = mapper.readTree(responseDisp.getBody());
                 JsonNode vehiculosNode = rootDisp.path("data").path("vehiculosDisponibles");
 
@@ -97,13 +88,11 @@ public class ReservaController {
                     vehiculosDisponibles = mapper.readValue(vehiculosNode.traverse(), new TypeReference<List<VehiculoDisponibilidadDTO>>() {});
                 }
 
-                // Mandamos los vehículos al modelo para Thymeleaf
                 model.addAttribute("vehiculosDisponibles", vehiculosDisponibles);
                 model.addAttribute("fechaInicioBuscada", fechaInicioDisp);
                 model.addAttribute("fechaFinalBuscada", fechaFinalDisp);
 
             } catch (Exception e) {
-                e.printStackTrace();
                 model.addAttribute("errorDisponibilidad", "No se pudo consultar la disponibilidad.");
             }
         }
@@ -215,7 +204,6 @@ public class ReservaController {
         HttpEntity<Void> entity = new HttpEntity<>(headers);
         
         RestTemplate restTemplate = new RestTemplate();
-        // Usamos JdkClientHttpRequestFactory para soportar el método PUT nativamente
         restTemplate.setRequestFactory(new org.springframework.http.client.JdkClientHttpRequestFactory());
 
         try {

@@ -39,7 +39,6 @@ public class HistorialAlquilerService {
     }
 
     private HistorialAlquilerDTO convertir(Reserva reserva) {
-        // Mismo criterio de dias que utiliza el alta de reservas.
         long dias = Math.max(1, ChronoUnit.DAYS.between(
                 reserva.getFechaHoraInicio(),
                 reserva.getFechaHoraFinal()

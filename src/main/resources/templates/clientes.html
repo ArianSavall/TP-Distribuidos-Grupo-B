@@ -21,6 +21,8 @@
             <a th:href="@{/}" class="btn-back">← Volver al Panel</a>
         </div>
 
+        <div th:if="${errorMsg}" class="alert alert-danger" th:text="${errorMsg}" style="margin-bottom: 1rem;"></div>
+
         <div class="form-card">
             <h3>Registrar Nuevo Cliente</h3>
             <form th:action="@{/clientes/alta}" th:object="${nuevoCliente}" method="post" class="grid-form">

@@ -17,10 +17,8 @@
         <div class="form-card">
             <h3>Modificar Vehículo: <span th:text="${vehiculo.patente}"></span></h3>
             
-            <!-- Apunta al POST que luego hará el PUT[cite: 26] -->
             <form th:action="@{/vehiculos/modificar/{patente}(patente=${vehiculo.patente})}" th:object="${vehiculo}" method="post" class="grid-form">
                 
-                <!-- La patente no se edita según los requerimientos (o se manda como solo lectura) -->
                 <div class="form-group">
                     <label>Patente:</label>
                     <input type="text" th:field="*{patente}" readonly style="background-color: #e9ecef;">

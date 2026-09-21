@@ -12,21 +12,17 @@
             <p>Acceso al Sistema</p>
         </div>
 
-        <!-- Alertas dinámicas gestionadas por el controlador -->
         <div th:if="${errorMsg}" class="alert alert-danger" th:text="${errorMsg}"></div>
         <div th:if="${successMsg}" class="alert alert-success" th:text="${successMsg}"></div>
 
-        <!-- El formulario apunta al loginProcessingUrl("/login")[cite: 3] -->
         <form th:action="@{/login}" method="post" class="login-form">
             <div class="form-group">
                 <label for="username">Usuario:</label>
-                <!-- El name="username" es el que Spring Security espera por defecto -->
                 <input type="text" id="username" name="username" required autofocus>
             </div>
             
             <div class="form-group">
                 <label for="password">Contraseña:</label>
-                <!-- El name="password" es el que Spring Security espera por defecto -->
                 <input type="password" id="password" name="password" required>
             </div>
             

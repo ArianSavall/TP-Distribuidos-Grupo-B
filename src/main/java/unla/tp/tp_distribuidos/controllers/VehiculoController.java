@@ -78,7 +78,7 @@ public class VehiculoController {
         HttpHeaders headers = new HttpHeaders();
         if (jsessionid != null) headers.add("Cookie", "JSESSIONID=" + jsessionid);
         
-        vehiculo.setEstaActivo(true); // Se asume activo al crear[cite: 27]
+        vehiculo.setEstaActivo(true);
         HttpEntity<VehiculoDTO> entity = new HttpEntity<>(vehiculo, headers);
         RestTemplate restTemplate = new RestTemplate();
         
