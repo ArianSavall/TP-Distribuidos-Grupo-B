@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
@@ -71,7 +72,9 @@ public class VehiculoController {
     }
 
     @PostMapping("/alta")
-    public String altaVehiculo(@ModelAttribute VehiculoDTO vehiculo, @CookieValue(name = "JSESSIONID", required = false) String jsessionid) {
+    public String altaVehiculo(@ModelAttribute VehiculoDTO vehiculo,
+            @CookieValue(name = "JSESSIONID", required = false) String jsessionid,
+            RedirectAttributes redirectAttributes) {
         HttpHeaders headers = new HttpHeaders();
         if (jsessionid != null) headers.add("Cookie", "JSESSIONID=" + jsessionid);
         
@@ -79,8 +82,12 @@ public class VehiculoController {
         HttpEntity<VehiculoDTO> entity = new HttpEntity<>(vehiculo, headers);
         RestTemplate restTemplate = new RestTemplate();
         
-        // POST /create[cite: 24]
-        restTemplate.exchange(apiBaseUrl + "/create", HttpMethod.POST, entity, VehiculoDTO.class);
+        try {
+            restTemplate.exchange(apiBaseUrl + "/create", HttpMethod.POST, entity, VehiculoDTO.class);
+        } catch (HttpClientErrorException.Conflict e) {
+            redirectAttributes.addFlashAttribute("mensajeAlta", "Error: La patente ya está registrada");
+        }
+
         return "redirect:/vehiculos";
     }
 
