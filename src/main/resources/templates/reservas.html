@@ -103,6 +103,64 @@
         </div>
 
 
+        <div class="form-container">
+            <h3 class="form-section-title">Buscar Reservas</h3>
+            
+            <form th:action="@{/reservas}" method="get">
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">DNI del Cliente:</label>
+                        <input type="text" name="dniCliente" class="form-input" placeholder="Ej: 12345678" th:value="${param.dniCliente}">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Patente del Vehículo:</label>
+                        <input type="text" name="patenteVehiculo" class="form-input" placeholder="Ej: ASF587" th:value="${param.patenteVehiculo}">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Tipo de Vehículo:</label>
+                        <select name="tipoVehiculo" class="form-input">
+                            <option value="">Todos los tipos</option>
+                            <option value="SEDAN" th:selected="${param.tipoVehiculo != null and param.tipoVehiculo[0] == 'SEDAN'}">Sedán</option>
+                            <option value="HATCHBACK" th:selected="${param.tipoVehiculo != null and param.tipoVehiculo[0] == 'HATCHBACK'}">Hatchback</option>
+                            <option value="SUV" th:selected="${param.tipoVehiculo != null and param.tipoVehiculo[0] == 'SUV'}">SUV</option>
+                            <option value="PICKUP" th:selected="${param.tipoVehiculo != null and param.tipoVehiculo[0] == 'PICKUP'}">Pick-up</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Estado de la Reserva:</label>
+                        <select name="estado" class="form-input">
+                            <option value="">Todos los estados</option>
+                            <option value="CONFIRMADO" th:selected="${param.estado != null and param.estado[0] == 'CONFIRMADO'}">Confirmado</option>
+                            <option value="CANCELADO" th:selected="${param.estado != null and param.estado[0] == 'CANCELADO'}">Cancelado</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Fecha Desde:</label>
+                        <input type="date" name="fechaDesde" class="form-input" th:value="${param.fechaDesde}">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Fecha Hasta:</label>
+                        <input type="date" name="fechaHasta" class="form-input" th:value="${param.fechaHasta}">
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 15px; margin-top: 10px;">
+                    <button type="submit" class="btn-primary" style="width: auto; padding: 10px 25px;">Filtrar</button>
+                    <a th:href="@{/reservas}" class="btn-secondary" style="width: auto;">Limpiar Filtros</a>
+                </div>
+                
+            </form>
+        </div>
+
+
         <h3>Historial de Reservas</h3>
         <table class="data-table">
             <thead>
