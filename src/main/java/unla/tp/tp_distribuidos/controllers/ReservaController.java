@@ -52,7 +52,13 @@ public class ReservaController {
     @GetMapping
     public String pantallaReservas(Model model, @CookieValue(name = "JSESSIONID", required = false) String jsessionid,
         @RequestParam(required = false) String fechaInicioDisp,
-        @RequestParam(required = false) String fechaFinalDisp
+        @RequestParam(required = false) String fechaFinalDisp,
+        @RequestParam(required = false) String dniCliente,
+        @RequestParam(required = false) String patenteVehiculo,
+        @RequestParam(required = false) String tipoVehiculo,
+        @RequestParam(required = false) String estado,
+        @RequestParam(required = false) String fechaDesde,
+        @RequestParam(required = false) String fechaHasta
         ) {
 
 
@@ -97,16 +103,37 @@ public class ReservaController {
             }
         }
 
+        StringBuilder filtrosGraph = new StringBuilder();
 
-
-        String hoyISO = LocalDateTime.now().with(LocalTime.MIN).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        if (dniCliente != null && !dniCliente.trim().isEmpty()) {
+        filtrosGraph.append("dniCliente: \\\"").append(dniCliente.trim()).append("\\\", ");
+        }
+        if (patenteVehiculo != null && !patenteVehiculo.trim().isEmpty()) {
+            filtrosGraph.append("patenteVehiculo: \\\"").append(patenteVehiculo.trim()).append("\\\", ");
+        }
+        if (tipoVehiculo != null && !tipoVehiculo.trim().isEmpty()) {
+            filtrosGraph.append("tipoVehiculo: ").append(tipoVehiculo).append(", "); 
+        }
+        if (estado != null && !estado.trim().isEmpty()) {
+            filtrosGraph.append("estado: ").append(estado).append(", "); 
+        }
+        if (fechaDesde != null && !fechaDesde.isEmpty()) {
+        filtrosGraph.append("fechaDesde: \\\"").append(fechaDesde).append("T00:00:00\\\", ");
+        } else if (fechaHasta == null || fechaHasta.isEmpty()) {
+            String hoyISO = LocalDateTime.now().with(LocalTime.MIN).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+            filtrosGraph.append("fechaDesde: \\\"").append(hoyISO).append("\\\", ");
+        }
+        
+        if (fechaHasta != null && !fechaHasta.isEmpty()) {
+            filtrosGraph.append("fechaHasta: \\\"").append(fechaHasta).append("T23:59:59\\\", ");
+        }
 
         String queryGraphQL = 
             """
             {
-            "query": "query { reservas(filtros: { fechaDesde: \\"%s\\" }) { id cliente vehiculo patente fechaInicio fechaFinalizacion importeTotal estado } }"
+            "query": "query { reservas(filtros: { %s }) { id cliente vehiculo patente fechaInicio fechaFinalizacion importeTotal estado } }"
             }
-            """.formatted(hoyISO);
+            """.formatted(filtrosGraph.toString());
         HttpEntity<String> postEntity = new HttpEntity<>(queryGraphQL, headers);
         
 
