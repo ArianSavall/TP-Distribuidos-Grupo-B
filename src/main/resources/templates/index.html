@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Inicio | Rentar</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+
+    <main class="form-container dashboard-layout">
+        
+        <div class="dashboard-header">
+            <h1 class="form-section-title">Panel de Control</h1>
+            
+            <form th:action="@{/logout}" method="post">
+                <button type="submit" class="btn-secondary btn-inline">Cerrar Sesión</button>
+            </form>
+        </div>
+
+        <p class="historial-description">Seleccioná una opción del menú para continuar.</p>
+
+        <div class="menu-grid">
+            
+            <div sec:authorize="hasAuthority('ROLE_ADMIN')" class="menu-card">
+                <h3 class="menu-title">Administración</h3>
+                <a th:href="@{/clientes}" class="btn-primary menu-btn">Gestionar Clientes</a>
+                <a th:href="@{/vehiculos}" class="btn-primary menu-btn">Gestionar Vehículos</a>
+            </div>
+
+            <div sec:authorize="isAuthenticated()" class="menu-card">
+                <h3 class="menu-title">Gestión de Reservas</h3>
+                <a th:href="@{/reservas}" class="btn-primary menu-btn">Gestionar Reservas</a>
+            </div>
+
+            <div sec:authorize="hasAuthority('ROLE_CLIENTE')" class="menu-card">
+                <h3 class="menu-title">Mi Cuenta</h3>
+                <a th:href="@{/historial}" class="btn-primary menu-btn">Historial de Reservas</a>
+            </div>
+
+        </div>
+
+    </main>
+
+</body>
+</html>

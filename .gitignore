@@ -4,18 +4,21 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 .env
+.postman
 
-### STS ###
+### Eclipse / STS ###
 .apt_generated
+.apt_generated_tests
 .classpath
 .factorypath
 .project
-.settings
+.settings/
 .springBeans
 .sts4-cache
+bin/
 
 ### IntelliJ IDEA ###
-.idea
+.idea/
 *.iws
 *.iml
 *.ipr
