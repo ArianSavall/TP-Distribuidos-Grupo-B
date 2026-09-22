@@ -1,6 +1,8 @@
 # Integrantes Grupo B
-- 
-
+- Juan Martin Diez DNI 46335961
+- Arian Savall DNI 46686015
+- Joaquin Vadillo DNI 46687269
+- Santiago Zurlo DNI 46291432
 
 # Rentar - Gestión de alquiler de vehículos
 
