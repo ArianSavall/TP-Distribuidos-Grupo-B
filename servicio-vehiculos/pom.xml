@@ -1,0 +1,15 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>unla.tp</groupId> <!-- El groupId de tu pom padre -->
+        <artifactId>tp-distribuidos-parent</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+    </parent>
+    <artifactId>servicio-vehiculos</artifactId>
+
+    <dependencies>
+        <!-- Dependencia a tu repositorio de contratos gRPC -->
+        <!-- Dependencias específicas de este servicio -->
+    </dependencies>
+</project>
