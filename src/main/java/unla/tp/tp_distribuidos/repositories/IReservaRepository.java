@@ -1,4 +1,4 @@
-package repositories;
+package unla.tp.tp_distribuidos.repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -59,7 +59,7 @@ public interface IReservaRepository extends JpaRepository<Reserva, Long> {
               )
             ORDER BY r.fechaHoraInicio DESC, r.idReserva DESC
             """)
-    List<Reserva> buscarHistorial(
+    java.util.List<Reserva> buscarHistorial(
             @Param("usuario") String usuario,
             @Param("cancelado") EstadoReserva cancelado,
             @Param("confirmado") EstadoReserva confirmado,

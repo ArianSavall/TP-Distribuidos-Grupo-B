@@ -1,4 +1,4 @@
-package repositories;
+package unla.tp.tp_distribuidos.repositories;
 
 import java.io.Serializable;
 import java.util.List;

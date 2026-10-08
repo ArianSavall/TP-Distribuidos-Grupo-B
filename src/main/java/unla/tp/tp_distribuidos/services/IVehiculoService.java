@@ -1,6 +1,6 @@
-package services;
+package unla.tp.tp_distribuidos.services;
 
-import models.Vehiculo;
+import unla.tp.tp_distribuidos.models.Vehiculo;
 
 import java.util.List;
 import java.util.Optional;

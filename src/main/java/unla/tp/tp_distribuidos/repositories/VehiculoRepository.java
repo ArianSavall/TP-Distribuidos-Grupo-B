@@ -1,4 +1,4 @@
-package repositories;
+package unla.tp.tp_distribuidos.repositories;
 
 import java.time.LocalDateTime;
 import java.util.List;

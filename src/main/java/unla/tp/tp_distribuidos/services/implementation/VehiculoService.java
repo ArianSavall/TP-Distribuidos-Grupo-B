@@ -1,9 +1,9 @@
-package services;
+package unla.tp.tp_distribuidos.services.implementation;
 
 import org.springframework.stereotype.Service;
 import unla.tp.tp_distribuidos.models.Vehiculo;
 import unla.tp.tp_distribuidos.repositories.IVehiculoRepository;
-import services.IVehiculoService;
+import unla.tp.tp_distribuidos.services.IVehiculoService;
 
 import java.util.List;
 import java.util.Optional;
