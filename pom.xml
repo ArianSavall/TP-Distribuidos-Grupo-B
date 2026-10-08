@@ -113,6 +113,13 @@
 			<version>1.84.0</version>
 			<scope>compile</scope>
 		</dependency>
+		<!-- Source: https://mvnrepository.com/artifact/net.devh/grpc-spring-boot-starter -->
+		<dependency>
+			<groupId>net.devh</groupId>
+			<artifactId>grpc-spring-boot-starter</artifactId>
+			<version>3.1.0.RELEASE</version>
+			<scope>compile</scope>
+		</dependency>
 	</dependencies>
 
 	<build>

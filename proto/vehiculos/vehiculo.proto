@@ -20,7 +20,7 @@
    string modelo = 3;
    string patente = 4;
    string tipo_vehiculo = 5;
-   string precio_diario = 6;
+   double precio_diario = 6;
    bool esta_activo = 7;
    string estado = 8;
    int32 anio = 9;
