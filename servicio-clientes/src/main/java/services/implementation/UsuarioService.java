@@ -1,4 +1,4 @@
-package unla.tp.tp_distribuidos.services.implementation;
+package implementation;
 
 import java.util.List;
 
