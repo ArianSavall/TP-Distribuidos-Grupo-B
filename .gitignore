@@ -35,5 +35,3 @@ build/
 
 ### VS Code ###
 .vscode/
-/servicio-vehiculos/src/main/java/grpc/
-/servicio-vehiculos/target
