@@ -1,0 +1,67 @@
+ syntax = "proto3";
+
+ option java_multiple_files = true;
+ option java_package = "unla.tp.tp_distribuidos.grpc.vehiculos";
+ option java_outer_classname = "VehiculoProto";
+
+ service VehiculoService{
+   rpc getVehiculoById(GetVehiculoIdRequest) returns (Vehiculo);
+   rpc getVehiculoByPatente(GetVehiculoPatenteRequest) returns (Vehiculo);
+   rpc getAllVehiculos(empty) returns (VehiculoListResponse);
+   rpc getVehiculosDisponibles(GetVehiculosDisponiblesRequest) returns (VehiculoListResponse);
+   rpc saveVehiculo(PutVehiculoRequest) returns (Vehiculo);
+ }
+
+ message Vehiculo {
+   int64 id = 1;
+   string marca = 2;
+   string modelo = 3;
+   string patente = 4;
+   string tipo_vehiculo = 5;
+   string precio_diario = 6;
+   bool esta_activo = 7;
+   string estado = 8;
+   int32 anio = 9;
+   string color= 10;
+ }
+
+ message GetVehiculoIdRequest {
+   int64 id = 1;
+ }
+
+ message GetVehiculoPatenteRequest{
+   string patente = 1;
+ }
+
+ message GetVehiculosDisponiblesRequest{
+   string marca = 1;
+   string modelo = 2;
+   string tipoVehiculo = 3;
+   date_time fechaDesde = 4;
+   date_time fechaHasta = 5;
+   double precioDiarioMin = 6;
+   double precioDiarioMax = 7;
+ }
+
+ message PutVehiculoRequest{
+   string marca = 1;
+   string modelo = 2;
+   int32 anio = 3;
+   string color = 4;
+   string tipoVehiculo = 5;
+   double precioDiario = 6;
+ }
+
+ message VehiculoListResponse {
+   repeated Vehiculo vehiculos = 1;// "repeated" equivale a un List o Array en Java
+ }
+
+ message date_time{
+   int32 year = 1;
+   int32 month = 2;
+   int32 day = 3;
+
+   int32 hours = 4;
+   int32 minutes = 5;
+ }
+ message empty{}
