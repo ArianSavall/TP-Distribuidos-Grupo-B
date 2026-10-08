@@ -1,0 +1,96 @@
+syntax = "proto3";
+
+package clientes;
+
+option java_multiple_files = true;
+option java_package = "grpc";
+option java_outer_classname = "ClienteProto";
+
+service clienteService {
+    rpc CrearCliente (ClienteRequest) returns (ClienteResponse);
+
+    rpc ModificarClienteId (ModificarClienteIdRequest) returns (ClienteResponse);
+
+    rpc ModificarClienteDni (ClienteRequest) returns (ClienteResponse);
+
+    rpc ConsultarClienteId (ClienteIdRequest) returns (ClienteResponse);
+
+    rpc ConsultarClienteDni (ClienteDniRequest) returns (ClienteResponse);
+
+    rpc ListarClientes (ListarClientesRequest) returns (ListarClientesResponse);
+
+    rpc BorrarClienteId (ClienteIdRequest) returns (ClienteResponse);
+
+    rpc BorrarClienteDni (ClienteDniRequest) returns (ClienteResponse);
+}
+
+message ClienteDTO{
+    int64 id = 1;
+    string dni = 2;
+    string nombre = 3;
+    string apellido = 4;
+    string email = 5;
+    string telefono = 6;
+    string fechaNacimiento = 7;
+    bool estaActivo = 8;
+    Metadatos metados = 9;
+}
+
+message Metadatos{
+    int64 id = 1;
+    string usuario = 2;
+    string password = 3;
+    string rol = 4;
+}
+
+message ClienteRequest{
+    string dni = 1;
+    string nombre = 2;
+    string apellido = 3;
+    string email = 4;
+    string telefono = 5;
+    string fechaNacimiento = 6;
+    MetadatosRequest metadatos= 7;
+}
+
+message MetadatosRequest{
+    string usuario = 1;
+    string password = 2;
+}
+
+message ClienteResponse {
+    string status = 1;
+    string message = 2;
+    oneof data{
+        ClienteDTO cliente = 3;
+    }   
+}
+
+message ModificarClienteIdRequest{
+    int64 id = 1;
+    string dni = 2;
+    string nombre = 3;
+    string apellido = 4;
+    string email = 5;
+    string telefono = 6;
+    string fechaNacimiento = 7;
+    MetadatosRequest metadatos = 8;
+}
+
+message ClienteIdRequest{
+    int64 id = 1;
+}
+
+message ClienteDniRequest{
+    string dni = 1;
+}
+
+message ListarClientesRequest{
+
+}
+
+message ListarClientesResponse{
+    string status = 1;
+    string message = 2;
+    repeated ClienteDTO cliente = 3;
+}

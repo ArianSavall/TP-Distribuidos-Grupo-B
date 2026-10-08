@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+package reservas;
+
+option java_multiple_files = true;
+option java_package = "grpc";
+option java_outer_classname = "ReservaProto";
+
+service ReservaService {
+    rpc CrearReserva (CrearReservaRequest) returns (Reserva);
+    rpc ObtenerReserva (ObtenerReservaRequest) returns (Reserva);
+    rpc ListarReservas (ListarReservasRequest) returns (ListarReservasResponse);
+    rpc CancelarReserva (CancelarReservaRequest) returns (CancelarReservaResponse);
+}
+
+enum EstadoReserva {
+    ESTADO_NO_ESPECIFICADO = 0;
+    CONFIRMADO = 1;
+    CANCELADO = 2;
+}
+
+message Reserva {
+    int64 idReserva = 1;
+    string patenteVehiculo = 2;
+    int64 idCliente = 3;
+    string fechaHoraInicio = 4;
+    string fechaHoraFinal = 5;
+    EstadoReserva estadoReserva = 6;
+    double importeTotal = 7;
+}
+
+message CrearReservaRequest {
+    string patenteVehiculo = 1;
+    int64 idCliente = 2;
+    string fechaHoraInicio = 3;
+    string fechaHoraFinal = 4;
+}
+
+message ObtenerReservaRequest {
+    int64 id = 1;
+}
+
+message ListarReservasRequest {}
+
+message ListarReservasResponse {
+    repeated Reserva reservas = 1;
+}
+
+message CancelarReservaRequest {
+    int64 id = 1;
+}
+
+message CancelarReservaResponse {
+    bool exito = 1;
+    EstadoReserva estadoReserva = 2;
+}
+

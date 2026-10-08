@@ -1,4 +1,4 @@
-package unla.tp.tp_distribuidos.repositories;
+/*package repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -6,8 +6,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import unla.tp.tp_distribuidos.models.Reserva;
-import unla.tp.tp_distribuidos.enums.EstadoReserva;
-import unla.tp.tp_distribuidos.enums.TipoVehiculo;
+import enums.EstadoReserva;
+import enums.TipoVehiculo;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -59,11 +59,11 @@ public interface IReservaRepository extends JpaRepository<Reserva, Long> {
               )
             ORDER BY r.fechaHoraInicio DESC, r.idReserva DESC
             """)
-    java.util.List<Reserva> buscarHistorial(
+    List<Reserva> buscarHistorial(
             @Param("usuario") String usuario,
             @Param("cancelado") EstadoReserva cancelado,
             @Param("confirmado") EstadoReserva confirmado,
             @Param("ahora") LocalDateTime ahora);
 
 }
-
+*/
