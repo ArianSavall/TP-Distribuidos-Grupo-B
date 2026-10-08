@@ -1,21 +1,21 @@
-package unla.tp.tp_distribuidos.services.implementation;
+package unla.tp.tp_distribuidos.reservas.services.implementation;
 
-import jakarta.transaction.Transactional;
+
 import org.modelmapper.ModelMapper;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
-import unla.tp.tp_distribuidos.dtos.ReservaDTO;
-import unla.tp.tp_distribuidos.dtos.ReservaFiltroGraphQLDTO;
-import unla.tp.tp_distribuidos.dtos.ReservaGraphQLDTO;
-import unla.tp.tp_distribuidos.dtos.ReservaResponseDTO;
-import unla.tp.tp_distribuidos.enums.EstadoReserva;
-import unla.tp.tp_distribuidos.models.Reserva;
-import unla.tp.tp_distribuidos.models.Usuario;
-import unla.tp.tp_distribuidos.models.Vehiculo;
+import unla.tp.tp_distribuidos.reservas.dtos.ReservaDTO;
+import unla.tp.tp_distribuidos.reservas.dtos.ReservaFiltroGraphQLDTO;
+import unla.tp.tp_distribuidos.reservas.dtos.ReservaGraphQLDTO;
+import unla.tp.tp_distribuidos.reservas.dtos.ReservaResponseDTO;
+import unla.tp.tp_distribuidos.reservas.enums.EstadoReserva;
+import unla.tp.tp_distribuidos.reservas.models.Reserva;
+import unla.tp.tp_distribuidos.reservas.models.Usuario;
+import unla.tp.tp_distribuidos.reservas.models.Vehiculo;
 import unla.tp.tp_distribuidos.repositories.IReservaRepository;
 import unla.tp.tp_distribuidos.repositories.IUsuarioRepository;
 import unla.tp.tp_distribuidos.repositories.IVehiculoRepository;
-import unla.tp.tp_distribuidos.services.IReservaService;
+import unla.tp.tp_distribuidos.reservas.services.IReservaService;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -52,7 +52,7 @@ public class ReservaService implements IReservaService {
             throw new Exception("ERROR: La fecha de finalización debe ser posterior a la de inicio.");
         }
 
-        Usuario cliente = usuarioRepository.findById(dto.getIdCliente());
+       /* Usuario cliente = usuarioRepository.findById(dto.getIdCliente());
 
         if (cliente == null) {
             throw new Exception("ERROR: Cliente no encontrado.");
@@ -177,4 +177,24 @@ public class ReservaService implements IReservaService {
                 reserva.getImporteTotal(),
                 reserva.getEstadoReserva());
     }
-}
+    */
+
+long diasAlquiler = ChronoUnit.DAYS.between(dto.getFechaHoraInicio(), dto.getFechaHoraFinal());
+        if (diasAlquiler == 0) diasAlquiler = 1;
+        // double importeTotal = diasAlquiler * precioDiario; // Usarás el precio traído por gRPC
+
+        // 5. ARMADO DEL MODELO PURO (Acá pasás las FK del proto que te dijo tu amigo)
+        Reserva reserva = new Reserva();
+        reserva.setIdCliente(dto.getIdCliente());              // FK directa
+        reserva.setPatenteVehiculo(dto.getPatenteVehiculo());  // FK directa
+        reserva.setFechaHoraInicio(dto.getFechaHoraInicio());
+        reserva.setFechaHoraFinal(dto.getFechaHoraFinal());
+        // reserva.setImporteTotal(importeTotal); 
+        reserva.setEstadoReserva(EstadoReserva.CONFIRMADO);
+
+        // 6. GUARDADO (Vía gRPC)
+        // TODO: Hacer llamada gRPC a servicio-database enviando el objeto 'reserva' para que lo persista.
+        // Reserva reservaGuardada = ... (la respuesta de gRPC con el ID generado)
+        
+        return modelMapper.map(reserva, ReservaResponseDTO.class);
+    }

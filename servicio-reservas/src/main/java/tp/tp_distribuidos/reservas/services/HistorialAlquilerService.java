@@ -1,4 +1,4 @@
-package unla.tp.tp_distribuidos.services.implementation;
+package unla.tp.tp_distribuidos.reservas.services.implementation;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -10,10 +10,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import unla.tp.tp_distribuidos.dtos.HistorialAlquilerDTO;
-import unla.tp.tp_distribuidos.enums.EstadoReserva;
-import unla.tp.tp_distribuidos.models.Reserva;
-import unla.tp.tp_distribuidos.repositories.IReservaRepository;
+import unla.tp.tp_distribuidos.reservas.dtos.HistorialAlquilerDTO;
+import unla.tp.tp_distribuidos.reservas.enums.EstadoReserva;
+import unla.tp.tp_distribuidos.reservas.models.Reserva;
+import unla.tp.tp_distribuidos.reservas.repositories.IReservaRepository;
 
 @Service
 public class HistorialAlquilerService {

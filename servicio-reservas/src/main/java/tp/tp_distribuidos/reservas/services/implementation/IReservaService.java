@@ -1,9 +1,9 @@
-package unla.tp.tp_distribuidos.services;
+package unla.tp.tp_distribuidos.reservas.services;
 
-import unla.tp.tp_distribuidos.dtos.ReservaDTO;
-import unla.tp.tp_distribuidos.dtos.ReservaResponseDTO;
-import unla.tp.tp_distribuidos.dtos.ReservaFiltroGraphQLDTO;
-import unla.tp.tp_distribuidos.dtos.ReservaGraphQLDTO;
+import unla.tp.tp_distribuidos.reservas.dtos.ReservaDTO;
+import unla.tp.tp_distribuidos.reservas.dtos.ReservaResponseDTO;
+import unla.tp.tp_distribuidos.reservas.dtos.ReservaFiltroGraphQLDTO;
+import unla.tp.tp_distribuidos.reservas.dtos.ReservaGraphQLDTO;
 import org.springframework.security.core.Authentication;
 
 import java.util.List;
