@@ -6,8 +6,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import unla.tp.tp_distribuidos.models.Reserva;
-import unla.tp.tp_distribuidos.enums.EstadoReserva;
-import unla.tp.tp_distribuidos.enums.TipoVehiculo;
+import enums.EstadoReserva;
+import enums.TipoVehiculo;
 
 import java.time.LocalDateTime;
 import java.util.List;

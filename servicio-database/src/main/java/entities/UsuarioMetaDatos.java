@@ -1,6 +1,6 @@
 package entities;
 
-import unla.tp.tp_distribuidos.enums.Rol;
+import enums.Rol;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
