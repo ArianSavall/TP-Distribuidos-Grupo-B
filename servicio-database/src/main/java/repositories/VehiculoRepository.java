@@ -1,4 +1,4 @@
-/*package repositories;
+package repositories;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -7,9 +7,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import unla.tp.tp_distribuidos.enums.EstadoReserva;
-import unla.tp.tp_distribuidos.enums.TipoVehiculo;
-import unla.tp.tp_distribuidos.models.Vehiculo;
+import enums.EstadoReserva;
+import enums.TipoVehiculo;
+import entities.Vehiculo;
 
 public interface VehiculoRepository extends JpaRepository<Vehiculo, Long> {
 
@@ -43,4 +43,4 @@ public interface VehiculoRepository extends JpaRepository<Vehiculo, Long> {
         @Param("fechaFinal") LocalDateTime fechaFinal,
         @Param("estadoConfirmado") EstadoReserva estadoConfirmado
     );
-}*/
+}
