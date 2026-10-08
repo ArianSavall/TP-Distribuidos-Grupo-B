@@ -3,7 +3,7 @@ syntax = "proto3";
 package reservas;
 
 option java_multiple_files = true;
-option java_package = "unla.tp.tp_distribuidos.grpc.reservas";
+option java_package = "grpc";
 option java_outer_classname = "ReservaProto";
 
 service ReservaService {
