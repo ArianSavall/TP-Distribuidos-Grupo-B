@@ -1,3 +1,4 @@
+/*
 package services;
 
 import models.Vehiculo;
@@ -11,3 +12,4 @@ public interface IVehiculoService {
     List<Vehiculo> findAll();
     Vehiculo save(Vehiculo vehiculo);
 }
+*/
