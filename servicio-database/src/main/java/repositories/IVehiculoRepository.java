@@ -1,4 +1,4 @@
-package unla.tp.tp_distribuidos.repositories;
+package repositories;
 import java.util.List;
 import java.util.Optional;
 

@@ -3,13 +3,18 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>unla.tp</groupId> <!-- El groupId de tu pom padre -->
-        <artifactId>tp-distribuidos-parent</artifactId>
+        <artifactId>tp_distribuidos-pom-padre</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
     <artifactId>servicio-vehiculos</artifactId>
 
     <dependencies>
-        <!-- Dependencia a tu repositorio de contratos gRPC -->
-        <!-- Dependencias específicas de este servicio -->
+        <!-- Tu librería independiente con las clases autogeneradas de Protobuf
+        <dependency>
+            <groupId>unla.tp.grpc</groupId>
+            <artifactId>contratos-grpc</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+        -->
     </dependencies>
 </project>

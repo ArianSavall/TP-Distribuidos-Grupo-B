@@ -1,7 +1,7 @@
  syntax = "proto3";
 
  option java_multiple_files = true;
- option java_package = "unla.tp.tp_distribuidos.grpc.vehiculos";
+ option java_package = "unla.tp.tp_distribuidos.grpc";
  option java_outer_classname = "VehiculoProto";
 
  service VehiculoService{
