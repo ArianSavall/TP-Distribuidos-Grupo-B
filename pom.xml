@@ -105,13 +105,12 @@
 			<artifactId>spring-dotenv</artifactId>
 			<version>4.0.0</version>
 		</dependency>
-		<!-- Source: https://mvnrepository.com/artifact/org.xolstice.maven.plugins/protobuf-maven-plugin -->
 		<dependency>
-			<groupId>org.xolstice.maven.plugins</groupId>
-			<artifactId>protobuf-maven-plugin</artifactId>
-			<version>0.6.1</version>
-			<scope>compile</scope>
-		</dependency>
+            <groupId>org.xolstice.maven.plugins</groupId>
+            <artifactId>protobuf-maven-plugin</artifactId>
+            <version>0.6.1</version>
+            <scope>compile</scope>
+        </dependency>
 	</dependencies>
 
 	<build>
