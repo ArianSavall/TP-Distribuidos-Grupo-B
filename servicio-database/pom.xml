@@ -9,7 +9,15 @@
     <artifactId>servicio-database</artifactId>
 
     <dependencies>
-        <!-- Dependencia a tu repositorio de contratos gRPC -->
-        <!-- Dependencias específicas de este servicio -->
+        <!-- Source: https://mvnrepository.com/artifact/jakarta.persistence/jakarta.persistence-api -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa-test</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 </project>

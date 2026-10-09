@@ -325,7 +325,7 @@ src/
 │   │   ├── controllers/       Controladores web, REST y GraphQL
 │   │   ├── dtos/              Objetos de transferencia
 │   │   ├── enums/             Enumeraciones del dominio
-│   │   ├── models/            Entidades JPA
+│   │   ├── entities/            Entidades JPA
 │   │   ├── repositories/      Repositorios de persistencia
 │   │   └── services/          Lógica de negocio
 │   └── resources/

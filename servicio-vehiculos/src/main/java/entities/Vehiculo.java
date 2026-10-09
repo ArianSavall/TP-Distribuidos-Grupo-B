@@ -1,4 +1,4 @@
-package models;
+package entities;
 
 import enums.EstadoVehiculo;
 import enums.TipoVehiculo;
