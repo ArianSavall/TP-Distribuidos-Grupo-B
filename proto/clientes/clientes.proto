@@ -6,7 +6,7 @@ option java_multiple_files = true;
 option java_package = "grpc";
 option java_outer_classname = "ClientesProto";
 
-service clienteService {
+service ClienteService {
     rpc CrearCliente (ClienteRequest) returns (ClienteResponse);
 
     rpc ModificarClienteId (ModificarClienteIdRequest) returns (ClienteResponse);
@@ -17,11 +17,17 @@ service clienteService {
 
     rpc ConsultarClienteDni (ClienteDniRequest) returns (ClienteResponse);
 
+    rpc ListarUsuarios (ListarClientesRequest) returns (ListarClientesResponse);
+
     rpc ListarClientes (ListarClientesRequest) returns (ListarClientesResponse);
 
     rpc BorrarClienteId (ClienteIdRequest) returns (ClienteResponse);
 
     rpc BorrarClienteDni (ClienteDniRequest) returns (ClienteResponse);
+
+    rpc VerificarExistenciaDni (ClienteDniRequest) returns (ValidacionResponse);
+
+    rpc VerificarClienteActivo (ClienteIdRequest) returns (ValidacionResponse);
 }
 
 message ClienteDTO{
@@ -33,7 +39,7 @@ message ClienteDTO{
     string telefono = 6;
     string fechaNacimiento = 7;
     bool estaActivo = 8;
-    Metadatos metados = 9;
+    Metadatos metadatos = 9;
 }
 
 message Metadatos{
@@ -93,4 +99,9 @@ message ListarClientesResponse{
     string status = 1;
     string message = 2;
     repeated ClienteDTO cliente = 3;
+}
+
+message ValidacionResponse {
+    bool esValido = 1;     
+    string mensaje = 2;
 }
