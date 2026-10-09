@@ -1,10 +1,10 @@
-package unla.tp.tp_distribuidos.services;
+/*package services;
 
 import java.util.List;
-
+ 
 import unla.tp.tp_distribuidos.dtos.UsuarioCreateDTO;
 import unla.tp.tp_distribuidos.dtos.UsuarioDTO;
-import unla.tp.tp_distribuidos.models.Usuario;
+import models.Usuario;
 
 public interface IUsuarioService {
     public List<Usuario> getAll();
@@ -27,3 +27,4 @@ public interface IUsuarioService {
 
 
 }
+*/

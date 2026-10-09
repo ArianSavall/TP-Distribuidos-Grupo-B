@@ -2,7 +2,7 @@
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>unla.tp</groupId>
+        <groupId>unla.tp</groupId> <!-- El groupId de tu pom padre -->
         <artifactId>tp_distribuidos-pom-padre</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
@@ -50,7 +50,7 @@
                     <protoSourceRoot>${project.parent.basedir}/proto/reservas</protoSourceRoot>
 
                     <!-- 2. Directorio destino unificado para los DTOs y Servicios gRPC -->
-                    <outputDirectory>${project.basedir}/src/main/java</outputDirectory>
+                    <outputDirectory>${project.basedir}/src/main/java/grpc</outputDirectory>
 
                     <!-- 3. CRÍTICO: Falso para evitar que el plugin elimine el resto de tus clases Java -->
                     <clearOutputDirectory>false</clearOutputDirectory>

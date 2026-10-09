@@ -1,7 +1,9 @@
  syntax = "proto3";
 
+ package vehiculos;
+
  option java_multiple_files = true;
- option java_package = "unla.tp.tp_distribuidos.grpc.vehiculos";
+ option java_package = "grpc";
  option java_outer_classname = "VehiculoProto";
 
  service VehiculoService{
@@ -18,7 +20,7 @@
    string modelo = 3;
    string patente = 4;
    string tipo_vehiculo = 5;
-   string precio_diario = 6;
+   double precio_diario = 6;
    bool esta_activo = 7;
    string estado = 8;
    int32 anio = 9;
