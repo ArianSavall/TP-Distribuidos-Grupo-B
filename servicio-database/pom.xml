@@ -2,11 +2,7 @@
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-<<<<<<< HEAD
-        <groupId>unla.tp</groupId>
-=======
         <groupId>unla.tp</groupId> <!-- El groupId de tu pom padre -->
->>>>>>> d122ad6e9eef95f84b604cd3739a6d2b7b9a758f
         <artifactId>tp_distribuidos-pom-padre</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
