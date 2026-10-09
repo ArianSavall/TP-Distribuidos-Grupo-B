@@ -3,7 +3,7 @@ syntax = "proto3";
 package reservas;
 
 option java_multiple_files = true;
-option java_package = "unla.tp.tp_distribuidos.grpc.reservas";
+option java_package = "grpc";
 option java_outer_classname = "ReservaProto";
 
 service ReservaService {
@@ -11,6 +11,7 @@ service ReservaService {
     rpc ObtenerReserva (ObtenerReservaRequest) returns (Reserva);
     rpc ListarReservas (ListarReservasRequest) returns (ListarReservasResponse);
     rpc CancelarReserva (CancelarReservaRequest) returns (CancelarReservaResponse);
+    rpc ObtenerMiHistorial (ObtenerHistorialRequest) returns (ObtenerHistorialResponse);
 }
 
 enum EstadoReserva {
@@ -55,3 +56,20 @@ message CancelarReservaResponse {
     EstadoReserva estadoReserva = 2;
 }
 
+message ObtenerHistorialRequest {
+    int64 idCliente = 1; 
+}
+
+message ObtenerHistorialResponse {
+    repeated HistorialItem historial = 1;
+}
+
+message HistorialItem {
+    string vehiculo = 1; 
+    string patente = 2;
+    string fechaHoraInicio = 3;
+    string fechaHoraFinal = 4;
+    int32 dias = 5;
+    double importeTotal = 6;
+    string estado = 7;
+}

@@ -9,7 +9,50 @@
     <artifactId>servicio-vehiculos</artifactId>
 
     <dependencies>
-        <!-- Dependencia a tu repositorio de contratos gRPC -->
-        <!-- Dependencias específicas de este servicio -->
     </dependencies>
+
+    <build>
+        <extensions>
+            <!-- Detecta tu sistema operativo para descargar el compilador gRPC correcto -->
+            <extension>
+                <groupId>kr.motd.maven</groupId>
+                <artifactId>os-maven-plugin</artifactId>
+                <version>1.7.1</version>
+            </extension>
+        </extensions>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <groupId>org.xolstice.maven.plugins</groupId>
+                <artifactId>protobuf-maven-plugin</artifactId>
+                <version>0.6.1</version>
+                <configuration>
+                    <protocArtifact>com.google.protobuf:protoc:3.24.0:exe:${os.detected.classifier}</protocArtifact>
+                    <pluginId>grpc-java</pluginId>
+                    <pluginArtifact>io.grpc:protoc-gen-grpc-java:1.58.0:exe:${os.detected.classifier}</pluginArtifact>
+
+                    <!-- 1. Ruta donde está tu archivo .proto -->
+                    <protoSourceRoot>${project.parent.basedir}/proto/vehiculos</protoSourceRoot>
+
+                    <!-- 2. Directorio destino unificado para los DTOs y Servicios gRPC -->
+                    <outputDirectory>${project.basedir}/src/main/java</outputDirectory>
+
+                    <!-- 3. CRÍTICO: Falso para evitar que el plugin elimine el resto de tus clases Java -->
+                    <clearOutputDirectory>false</clearOutputDirectory>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>compile</goal>
+                            <goal>compile-custom</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>
