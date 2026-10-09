@@ -38,3 +38,4 @@ build/
 
 servicio-clientes\target
 servicio-clientes\src\main\java\grpc
+/servicio-vehiculos/src/main/java/grpc/
