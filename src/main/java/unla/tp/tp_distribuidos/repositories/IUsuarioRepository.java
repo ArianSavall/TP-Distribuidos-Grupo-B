@@ -1,4 +1,4 @@
-/*package repositories;
+package unla.tp.tp_distribuidos.repositories;
 
 import java.io.Serializable;
 import java.util.List;
@@ -23,4 +23,4 @@ public interface IUsuarioRepository extends JpaRepository<Usuario, Serializable>
     public abstract List<Usuario> findAllClientes();
 
     public abstract Usuario findByMetadatos_Usuario(String usuario);
-}*/
+}

@@ -4,7 +4,7 @@ package clientes;
 
 option java_multiple_files = true;
 option java_package = "grpc";
-option java_outer_classname = "ClienteProto";
+option java_outer_classname = "ClientesProto";
 
 service clienteService {
     rpc CrearCliente (ClienteRequest) returns (ClienteResponse);

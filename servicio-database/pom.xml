@@ -10,15 +10,6 @@
 
     <dependencies>
         <!-- Dependencia a tu repositorio de contratos gRPC -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jpa</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jpa-test</artifactId>
-            <scope>test</scope>
-        </dependency>
+        <!-- Dependencias específicas de este servicio -->
     </dependencies>
 </project>

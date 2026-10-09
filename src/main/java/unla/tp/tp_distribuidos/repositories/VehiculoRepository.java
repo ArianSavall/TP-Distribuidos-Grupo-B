@@ -1,4 +1,4 @@
-/*package repositories;
+package unla.tp.tp_distribuidos.repositories;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -43,4 +43,4 @@ public interface VehiculoRepository extends JpaRepository<Vehiculo, Long> {
         @Param("fechaFinal") LocalDateTime fechaFinal,
         @Param("estadoConfirmado") EstadoReserva estadoConfirmado
     );
-}*/
+}

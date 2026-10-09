@@ -12,7 +12,6 @@
         <!-- Dependencia a tu repositorio de contratos gRPC -->
         <!-- Dependencias específicas de este servicio -->
     </dependencies>
-
     <build>
         <extensions>
             <!-- Detecta tu sistema operativo para descargar el compilador gRPC correcto -->
@@ -41,7 +40,7 @@
                     <protoSourceRoot>${project.parent.basedir}/proto/clientes</protoSourceRoot>
 
                     <!-- 2. Directorio destino unificado para los DTOs y Servicios gRPC -->
-                    <outputDirectory>${project.basedir}/src/main/java/grpc</outputDirectory>
+                    <outputDirectory>${project.basedir}/src/main/java</outputDirectory>
 
                     <!-- 3. CRÍTICO: Falso para evitar que el plugin elimine el resto de tus clases Java -->
                     <clearOutputDirectory>false</clearOutputDirectory>
