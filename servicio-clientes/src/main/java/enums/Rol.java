@@ -1,4 +1,4 @@
-package unla.tp.tp_distribuidos.enums;
+package enums;
 
 public enum Rol {
     ADMIN,

@@ -35,3 +35,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+servicio-clientes\target
+servicio-clientes\src\main\java\grpc
