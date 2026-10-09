@@ -35,3 +35,5 @@ build/
 
 ### VS Code ###
 .vscode/
+servicio-reservas/src/main/java/grpc/
+servicio-reservas/target/

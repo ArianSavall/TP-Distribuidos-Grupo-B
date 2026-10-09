@@ -9,8 +9,18 @@
     <artifactId>servicio-reservas</artifactId>
 
     <dependencies>
-        <!-- Dependencia a tu repositorio de contratos gRPC -->
-        <!-- Dependencias específicas de este servicio -->
+        <dependency>
+                    <groupId>net.devh</groupId>
+                    <artifactId>grpc-server-spring-boot-starter</artifactId>
+                    <version>2.15.0.RELEASE</version>
+                </dependency>
+
+                <!-- Cliente gRPC (Para hablar con el servicio de vehículos) -->
+                <dependency>
+                    <groupId>net.devh</groupId>
+                    <artifactId>grpc-client-spring-boot-starter</artifactId>
+                    <version>2.15.0.RELEASE</version>
+                </dependency>
     </dependencies>
     <build>
         <extensions>
