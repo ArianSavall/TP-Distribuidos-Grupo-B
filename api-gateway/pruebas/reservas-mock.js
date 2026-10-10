@@ -32,6 +32,30 @@ const reservas = [
 let siguienteId = 101;
 
 servidor.addService(contrato.reservas.ReservaService.service, {
+  obtenerMiHistorial: (llamada, responder) => {
+    console.log(
+      "gRPC: obtenerMiHistorial para cliente",
+      llamada.request.idCliente
+    );
+
+    // Caso ficticio para comprobar el contrato y el mapeo.
+    // No implementa la selección real del historial.
+    const historial = llamada.request.idCliente === "1"
+      ? [
+          {
+            vehiculo: "Fiat Cronos",
+            patente: "PRUEBA01",
+            fechaHoraInicio: "2026-09-01T10:00:00",
+            fechaHoraFinal: "2026-09-03T10:00:00",
+            dias: 2,
+            importeTotal: 50000,
+            estado: "FINALIZADO"
+          }
+        ]
+      : [];
+
+    responder(null, { historial });
+  },
   listarReservas: (llamada, responder) => {
     console.log("gRPC: listarReservas");
     responder(null, { reservas });
