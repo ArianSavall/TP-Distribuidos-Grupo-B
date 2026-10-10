@@ -21,6 +21,30 @@ const servidor = new grpc.Server();
 
 // Datos ficticios: no se consulta ninguna base de datos.
 servidor.addService(contrato.vehiculos.VehiculoService.service, {
+  getVehiculoById: (llamada, responder) => {
+    console.log("gRPC: getVehiculoById");
+
+    if (llamada.request.id !== "1") {
+      responder({
+        code: grpc.status.NOT_FOUND,
+        details: "Vehículo no incluido en esta prueba"
+      });
+      return;
+    }
+
+    responder(null, {
+      id: "1",
+      marca: "Fiat",
+      modelo: "Cronos",
+      patente: "PRUEBA01",
+      tipoVehiculo: "AUTO",
+      precioDiario: 25000,
+      estaActivo: true,
+      estado: "DISPONIBLE",
+      anio: 2024,
+      color: "Blanco"
+    });
+  },
   getVehiculoByPatente: (llamada, responder) => {
     console.log("gRPC: getVehiculoByPatente");
 
