@@ -1,4 +1,6 @@
 const express = require("express");
+const graphqlHandler = require("./graphql");
+const clientesRoutes = require("./clientes-routes");
 const grpc = require("@grpc/grpc-js");
 const {
   vehiculos,
@@ -10,6 +12,8 @@ const app = express();
 const PORT = 3000;
 
 app.use(express.json());
+app.all("/graphql", graphqlHandler);
+app.use("/api_rest/v1/clientes", clientesRoutes);
 
 app.get("/", (req, res) => {
   res.json({
