@@ -1,6 +1,7 @@
 const express = require("express");
 const graphqlHandler = require("./graphql");
 const clientesRoutes = require("./clientes-routes");
+const vehiculosRoutes = require("./vehiculos-routes");
 const grpc = require("@grpc/grpc-js");
 const {
   vehiculos,
@@ -44,6 +45,8 @@ app.get("/api_rest/v1/vehiculos/getAll", async (req, res, next) => {
     next(error);
   }
 });
+
+app.use("/api_rest/v1/vehiculos", vehiculosRoutes);
 
 app.use((req, res) => {
   res.status(404).json({
