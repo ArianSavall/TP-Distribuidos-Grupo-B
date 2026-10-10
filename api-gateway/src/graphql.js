@@ -1,6 +1,7 @@
 const { buildSchema, GraphQLError } = require("graphql");
 const { createHandler } = require("graphql-http/lib/use/express");
 const { vehiculos, llamarRpc } = require("./grpc-clients");
+const { consultarMiHistorial } = require("./historial");
 
 const schema = buildSchema(`
   type Vehiculo {
@@ -16,8 +17,19 @@ const schema = buildSchema(`
     color: String!
   }
 
+  type HistorialAlquiler {
+    vehiculo: String!
+    patente: String!
+    fechaInicio: String!
+    fechaFinalizacion: String!
+    cantidadDias: Int!
+    importeTotal: Float!
+    estado: String!
+  }
+
   type Query {
     vehiculos: [Vehiculo!]!
+    miHistorialAlquileres: [HistorialAlquiler!]!
   }
 `);
 
@@ -43,10 +55,20 @@ const rootValue = {
         }
       );
     }
+  },
+
+  miHistorialAlquileres: async (argumentos, contexto) => {
+    return consultarMiHistorial(contexto.usuario);
   }
 };
 
 module.exports = createHandler({
   schema,
-  rootValue
+  rootValue,
+
+  // Pendiente: obtener el usuario mediante autenticación verificada.
+  // Mientras tanto, el historial permanece bloqueado.
+  context: () => ({
+    usuario: null
+  })
 });
