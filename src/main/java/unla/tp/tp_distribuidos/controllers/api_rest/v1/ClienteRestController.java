@@ -15,6 +15,7 @@ import unla.tp.tp_distribuidos.services.IUsuarioService;
 
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -47,7 +48,7 @@ public class ClienteRestController {
         return new ResponseEntity<List<UsuarioDTO>>(clientes, HttpStatus.OK);
     }
 
-    @GetMapping("/buscar/id/{id}")
+    @GetMapping("/{id}")
     @Operation(summary = "Obtener cliente por ID")
     public ResponseEntity<UsuarioDTO> getCliente(@PathVariable Long id) {
         UsuarioDTO usuario = usuarioService.getById(id);
@@ -59,13 +60,13 @@ public class ClienteRestController {
         }
     }
 
-    @GetMapping("/buscar/dni/{dni}")
+    @GetMapping("/{dni}")
     @Operation(summary = "Obtener cliente por DNI")
     public ResponseEntity<UsuarioDTO> getClienteByDni(@PathVariable String dni) {
         UsuarioDTO usuario = usuarioService.getByDni(dni);
         if (usuario != null) {
             UsuarioDTO clienteDTO = modelMapper.map(usuario, UsuarioDTO.class);
-            return ResponseEntity.ok(clienteDTO);
+            return ResponseEntity.status(HttpStatus.OK).body(clienteDTO);
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
@@ -73,27 +74,27 @@ public class ClienteRestController {
 
     @PostMapping
     @Operation(summary = "Alta cliente")
-    public ResponseEntity<?> crearCliente(@RequestBody UsuarioCreateDTO usuarioNuevo){
+    public ResponseEntity<UsuarioDTO> crearCliente(@RequestBody UsuarioCreateDTO usuarioNuevo){
         UsuarioDTO usuario = modelMapper.map(usuarioNuevo, UsuarioDTO.class);
 
         usuario.getMetadatos().setRol(Rol.CLIENTE.toString());
         try{
             UsuarioDTO nuevo = usuarioService.insertOrUpdate(usuario);
-            return ResponseEntity.ok(nuevo);
+            return ResponseEntity.status(HttpStatus.CREATED).body(nuevo);
         }
         catch(Exception e){
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
         }
     }
 
-    @DeleteMapping("/borrar/id/{id}")
+    @DeleteMapping("/{id}")
     @Operation(summary = "Baja logica cliente por ID")
     public ResponseEntity<String> bajaLogicaClienteById(@PathVariable Long id) {
         boolean eliminado = usuarioService.bajaCliente(id);
-        return eliminado ? ResponseEntity.ok("Cliente dado de baja correctamente") : ResponseEntity.status(HttpStatus.NOT_FOUND).body("Cliente no encontrado");
+        return eliminado ? ResponseEntity.status(HttpStatus.OK).body("Cliente dado de baja correctamente") : ResponseEntity.status(HttpStatus.NOT_FOUND).body("Cliente no encontrado");
     }
 
-    @DeleteMapping("/borrar/dni/{dni}")
+    @DeleteMapping("/{dni}")
     @Operation(summary = "Baja logica cliente por DNI")
     public ResponseEntity<String> bajaLogicaClienteByDni(@PathVariable String dni) {
         UsuarioDTO usuario = usuarioService.getByDni(dni);
@@ -103,13 +104,13 @@ public class ClienteRestController {
         }
 
         boolean eliminado = usuarioService.bajaCliente(usuario.getId());
-        return eliminado ? ResponseEntity.ok("Cliente dado de baja correctamente") : ResponseEntity.status(HttpStatus.NOT_FOUND).body("Cliente no encontrado");
+        return eliminado ? ResponseEntity.status(HttpStatus.OK).body("Cliente dado de baja correctamente") : ResponseEntity.status(HttpStatus.NOT_FOUND).body("Cliente no encontrado");
     }
 
 
-    @PatchMapping("/modificar/id/{id}")
+    @PatchMapping("/{id}")
     @Operation(summary = "Modificar cliente por ID")
-    public ResponseEntity<?> modificarCliente(@PathVariable Long id, @RequestBody UsuarioCreateDTO usuario) {
+    public ResponseEntity<UsuarioDTO> modificarCliente(@PathVariable Long id, @RequestBody UsuarioCreateDTO usuario) {
 
         try{
             UsuarioDTO actualizado = usuarioService.patchById(id, usuario);
@@ -118,39 +119,39 @@ public class ClienteRestController {
                 return ResponseEntity.notFound().build();
             }
 
-            return ResponseEntity.ok(actualizado);
+            return ResponseEntity.status(HttpStatus.OK).body(actualizado);
         }
         catch(Exception e){
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
 
-    @PatchMapping("/modificar/dni")
+    @PatchMapping("")
     @Operation(summary = "Modificar cliente por DNI")
-    public ResponseEntity<?> modificarClienteByDni(@RequestBody UsuarioCreateDTO usuario) {
+    public ResponseEntity<UsuarioDTO> modificarClienteByDni(@RequestBody UsuarioCreateDTO usuario) {
 
         try{
             if (usuario.getDni() == null || usuario.getDni().isBlank()) {
-                return ResponseEntity.badRequest().build();
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
             }
 
             UsuarioDTO existente = usuarioService.getByDni(usuario.getDni());
 
             if (existente == null) {
-                return ResponseEntity.notFound().build();
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             }
 
 
             UsuarioDTO actualizado = usuarioService.patchByDni(usuario);
 
             if(actualizado == null) {
-                return ResponseEntity.notFound().build();
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             }
 
-            return ResponseEntity.ok(actualizado);
+            return ResponseEntity.status(HttpStatus.OK).body(actualizado);
         }
         catch(Exception e){
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
 }
