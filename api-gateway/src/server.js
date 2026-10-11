@@ -1,3 +1,4 @@
+const reservasRoutes = require("./reservas-routes");
 const { instalarAutenticacion } = require("./auth");
 const express = require("express");
 const graphqlHandler = require("./graphql");
@@ -17,6 +18,7 @@ app.use(express.json());
 instalarAutenticacion(app);
 app.all("/graphql", graphqlHandler);
 app.use("/api_rest/v1/clientes", clientesRoutes);
+app.use("/api_rest/v1/reservas", reservasRoutes);
 
 app.get("/", (req, res) => {
   res.json({
