@@ -65,10 +65,7 @@ const rootValue = {
 module.exports = createHandler({
   schema,
   rootValue,
-
-  // Pendiente: obtener el usuario mediante autenticación verificada.
-  // Mientras tanto, el historial permanece bloqueado.
-  context: () => ({
-    usuario: null
+  context: (request) => ({
+    usuario: request.raw.session?.usuario || null
   })
 });

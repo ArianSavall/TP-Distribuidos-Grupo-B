@@ -1,3 +1,4 @@
+const { instalarAutenticacion } = require("./auth");
 const express = require("express");
 const graphqlHandler = require("./graphql");
 const clientesRoutes = require("./clientes-routes");
@@ -13,6 +14,7 @@ const app = express();
 const PORT = 3000;
 
 app.use(express.json());
+instalarAutenticacion(app);
 app.all("/graphql", graphqlHandler);
 app.use("/api_rest/v1/clientes", clientesRoutes);
 

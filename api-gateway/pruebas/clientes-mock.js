@@ -65,6 +65,40 @@ function darDeBaja(cliente, responder) {
 }
 
 servidor.addService(contrato.clientes.ClienteService.service, {
+  autenticarCliente: (llamada, responder) => {
+    console.log("gRPC: autenticarCliente");
+
+    const { usuario, password } = llamada.request;
+
+    // Credenciales ficticias, exclusivamente para esta prueba.
+    if (usuario !== "cliente_prueba" || password !== "clave-prueba") {
+      responder({
+        code: grpc.status.UNAUTHENTICATED,
+        details: "Usuario o contraseña incorrectos"
+      });
+      return;
+    }
+
+    const cliente = clientes.find(
+      c => c.metadatos.usuario === usuario
+    );
+
+    if (!cliente || !cliente.estaActivo) {
+      responder({
+        code: grpc.status.PERMISSION_DENIED,
+        details: "Usuario no habilitado"
+      });
+      return;
+    }
+
+    responder(null, {
+      idCliente: cliente.id,
+      usuario: cliente.metadatos.usuario,
+      rol: cliente.metadatos.rol,
+      nombre: cliente.nombre,
+      apellido: cliente.apellido
+    });
+  },
   listarClientes: (llamada, responder) => {
     console.log("gRPC: listarClientes");
 

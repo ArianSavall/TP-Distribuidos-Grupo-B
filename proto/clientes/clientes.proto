@@ -7,6 +7,10 @@ option java_package = "grpc";
 option java_outer_classname = "ClientesProto";
 
 service ClienteService {
+ // Verifica credenciales mediante el servicio de clientes.
+    // Credenciales incorrectas: error gRPC UNAUTHENTICATED.
+    // Usuario inactivo: error gRPC PERMISSION_DENIED.
+    rpc AutenticarCliente (AutenticarClienteRequest) returns (AutenticarClienteResponse);
     rpc CrearCliente (ClienteRequest) returns (ClienteResponse);
 
     rpc ModificarClienteId (ModificarClienteIdRequest) returns (ClienteResponse);
@@ -104,4 +108,19 @@ message ListarClientesResponse{
 message ValidacionResponse {
     bool esValido = 1;     
     string mensaje = 2;
+}
+
+
+
+message AutenticarClienteRequest {
+    string usuario = 1;
+    string password = 2;
+}
+
+message AutenticarClienteResponse {
+    int64 idCliente = 1;
+    string usuario = 2;
+    string rol = 3;
+    string nombre = 4;
+    string apellido = 5;
 }
