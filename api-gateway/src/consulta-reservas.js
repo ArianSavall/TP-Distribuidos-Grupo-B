@@ -1,61 +1,94 @@
-const {
-  reservas,
-  clientes,
-  vehiculos,
-  llamarRpc
-} = require("./grpc-clients");
+const { buildSchema, GraphQLError } = require("graphql");
+const { createHandler } = require("graphql-http/lib/use/express");
+const { vehiculos, llamarRpc } = require("./grpc-clients");
+const { consultarMiHistorial } = require("./historial");
+const { consultarReservasCompletas } = require("./consulta-reservas");
 
-// Consulta los tres servicios y adapta sus respuestas.
-// El acceso del usuario y los filtros se incorporarán
-// antes de conectar esta función a una ruta pública.
-async function consultarReservasCompletas() {
-  const [respuestaReservas, respuestaClientes, respuestaVehiculos] =
-    await Promise.all([
-      llamarRpc(reservas, "listarReservas", {}),
-      llamarRpc(clientes, "listarClientes", {}),
-      llamarRpc(vehiculos, "getAllVehiculos", {})
-    ]);
-
-  if (respuestaClientes.status !== "SUCCESS") {
-    throw new Error("El servicio de clientes no pudo completar la consulta");
+const schema = buildSchema(`
+  type Vehiculo {
+    id: ID!
+    marca: String!
+    modelo: String!
+    patente: String!
+    tipoVehiculo: String!
+    precioDiario: Float!
+    estaActivo: Boolean!
+    estado: String!
+    anio: Int!
+    color: String!
   }
 
-  const clientesPorId = new Map(
-    respuestaClientes.cliente.map((cliente) => [
-      String(cliente.id),
-      cliente
-    ])
-  );
+  enum EstadoReserva {
+    CONFIRMADO
+    CANCELADO
+  }
 
-  const vehiculosPorPatente = new Map(
-    respuestaVehiculos.vehiculos.map((vehiculo) => [
-      vehiculo.patente,
-      vehiculo
-    ])
-  );
+  type Reserva {
+    id: ID!
+    cliente: String!
+    vehiculo: String!
+    patente: String!
+    fechaInicio: String!
+    fechaFinalizacion: String!
+    precioDiario: Float!
+    importeTotal: Float!
+    estado: EstadoReserva!
+  }
 
-  return respuestaReservas.reservas.map((reserva) => {
-    const cliente = clientesPorId.get(String(reserva.idCliente));
-    const vehiculo = vehiculosPorPatente.get(reserva.patenteVehiculo);
+  type HistorialAlquiler {
+    vehiculo: String!
+    patente: String!
+    fechaInicio: String!
+    fechaFinalizacion: String!
+    cantidadDias: Int!
+    importeTotal: Float!
+    estado: String!
+  }
 
-    if (!cliente || !vehiculo) {
-      throw new Error(
-        `No se pudieron completar los datos de la reserva ${reserva.idReserva}`
+  type Query {
+    vehiculos: [Vehiculo!]!
+    reservas: [Reserva!]!
+    miHistorialAlquileres: [HistorialAlquiler!]!
+  }
+`);
+
+const rootValue = {
+  vehiculos: async () => {
+    try {
+      const respuesta = await llamarRpc(
+        vehiculos,
+        "getAllVehiculos",
+        {}
+      );
+
+      return respuesta.vehiculos;
+    } catch (error) {
+      console.error("Error gRPC al consultar vehículos:", error.message);
+
+      throw new GraphQLError(
+        "No se pudo completar la consulta al servicio de vehículos",
+        {
+          extensions: {
+            code: "SERVICIO_VEHICULOS_ERROR"
+          }
+        }
       );
     }
+  },
 
-    return {
-      id: reserva.idReserva,
-      cliente: `${cliente.nombre} ${cliente.apellido}`.trim(),
-      vehiculo: `${vehiculo.marca} ${vehiculo.modelo}`.trim(),
-      patente: reserva.patenteVehiculo,
-      fechaInicio: reserva.fechaHoraInicio,
-      fechaFinalizacion: reserva.fechaHoraFinal,
-      precioDiario: vehiculo.precioDiario,
-      importeTotal: reserva.importeTotal,
-      estado: reserva.estadoReserva
-    };
-  });
-}
+  reservas: (argumentos, contexto) => {
+    return consultarReservasCompletas(contexto.usuario);
+  },
 
-module.exports = { consultarReservasCompletas };
+  miHistorialAlquileres: (argumentos, contexto) => {
+    return consultarMiHistorial(contexto.usuario);
+  }
+};
+
+module.exports = createHandler({
+  schema,
+  rootValue,
+  context: request => ({
+    usuario: request.raw.session?.usuario || null
+  })
+});
