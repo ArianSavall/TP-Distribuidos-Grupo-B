@@ -22,7 +22,7 @@ public class VehiculoRestController {
 		this.vehiculoService = vehiculoService;
 	}
 
-	@GetMapping("/getAll")
+	@GetMapping
 	public ResponseEntity<List<VehiculoDTO>> getAllVehiculos() {
 		List<VehiculoDTO> vehiculos = vehiculoService.findAll()
 				.stream()
@@ -32,7 +32,7 @@ public class VehiculoRestController {
 		return ResponseEntity.ok(vehiculos);
 	}
 
-	@PostMapping("/create")
+	@PostMapping
 	public ResponseEntity<VehiculoDTO> createVehiculo(@RequestBody VehiculoDTO vehiculoDTO) {
 		if (vehiculoService.findByPatente(vehiculoDTO.getPatente()).isPresent()) {
 			return ResponseEntity.status(HttpStatus.CONFLICT).build();
@@ -43,7 +43,7 @@ public class VehiculoRestController {
 		vehiculo.setId(null);
 
 		Vehiculo vehiculoGuardado = vehiculoService.save(vehiculo);
-		return ResponseEntity.ok(toDto(vehiculoGuardado));
+		return ResponseEntity.status(HttpStatus.CREATED).body(toDto(vehiculoGuardado));
 	}
 
 	@PostMapping("/desactivar")
@@ -75,7 +75,7 @@ public class VehiculoRestController {
 				.orElseGet(() -> ResponseEntity.notFound().build());
 	}
 
-	@PutMapping("/{patente}")
+	@PatchMapping("/{patente}")
 	public ResponseEntity<VehiculoDTO> updateVehiculoByPatente(@PathVariable String patente,
 													   @RequestBody VehiculoUpdateDTO vehiculoDTO) {
 		return vehiculoService.findByPatente(patente)

@@ -1,21 +1,43 @@
+"""Consultas relacionadas con la disponibilidad de los vehiculos."""
 type Query {
+    """
+    Devuelve una lista de vehículos que se encuentran disponibles para ser alquilados en el período indicado.
+    Un vehículo se considera disponible si no tiene reservas superpuestas (confirmadas o en curso) 
+    durante el rango de fechas solicitado. Los parámetros opcionales actúan como filtros para limitar 
+    los resultados devueltos según las preferencias del cliente.
+    """
     vehiculosDisponibles(
+        """Filtro opcional para buscar por tipo de vehiculo."""
         tipo: TipoVehiculo
+        """Filtro opcional para buscar por marca de vehiculo exacta."""
         marca: String
+        """Filtro opcional para buscar por modelo de vehiculo exacto."""
         modelo: String
+        """Filtro opcional para establecer precio diario minimo."""
         precioMin: Float
+        """Filtro opcional para establecer precio diario maximo."""
         precioMax: Float
+        """Inicio del periodo solicitado en formato ISO-8601, sin zona horaria."""
         fechaInicio: String!
+        """Fin del periodo solicitado en formato ISO-8601, sin zona horaria."""
         fechaFinal: String!
     ): [VehiculoDisponible!]!
 }
 
+"""Información detallada de un vehículo que cumple con las condiciones de disponibilidad."""
 type VehiculoDisponible {
+    """Patente unica que identifica al vehiculo."""
     patente: String!
+    """Marca del vehiculo."""
     marca: String!
+    """Modelo del vehiculo."""
     modelo: String!
+    """Año de fabricacion."""
     anio: Int!
+    """Color exterior del vehiculo."""
     color: String
+    """Tipo de vehiculo."""
     tipoVehiculo: TipoVehiculo!
+    """Costo de alquiler por dia."""
     precioDiario: Float!
 }
