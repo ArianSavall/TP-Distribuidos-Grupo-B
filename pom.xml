@@ -17,6 +17,7 @@
 		<module>servicio-vehiculos</module>
 		<module>servicio-clientes</module>
 		<module>servicio-reservas</module>
+		<module>proto</module>
 	</modules>
 
 	<properties>
@@ -90,26 +91,6 @@
 			<groupId>me.paulschwarz</groupId>
 			<artifactId>spring-dotenv</artifactId>
 			<version>4.0.0</version>
-		</dependency>
-		<dependency>
-			<groupId>org.xolstice.maven.plugins</groupId>
-			<artifactId>protobuf-maven-plugin</artifactId>
-			<version>0.6.1</version>
-			<scope>compile</scope>
-		</dependency>
-		<!-- Source: https://mvnrepository.com/artifact/com.google.protobuf/protobuf-java -->
-		<dependency>
-			<groupId>com.google.protobuf</groupId>
-			<artifactId>protobuf-java</artifactId>
-			<version>4.36.2</version>
-			<scope>compile</scope>
-		</dependency>
-		<!-- Source: https://mvnrepository.com/artifact/io.grpc/grpc-all -->
-		<dependency>
-			<groupId>io.grpc</groupId>
-			<artifactId>grpc-all</artifactId>
-			<version>1.84.0</version>
-			<scope>compile</scope>
 		</dependency>
 		<!-- Source: https://mvnrepository.com/artifact/net.devh/grpc-spring-boot-starter -->
 		<dependency>
@@ -213,12 +194,12 @@
 				</executions>
 			</plugin>
 
+			<!--
 			<plugin>
 				<groupId>org.xolstice.maven.plugins</groupId>
 				<artifactId>protobuf-maven-plugin</artifactId>
 				<version>0.6.1</version>
 				<configuration>
-					<!--suppress UnresolvedMavenProperty -->
 					<protocArtifact>
 						com.google.protobuf:protoc:3.25.5:exe:${os.detected.classifier}
 					</protocArtifact>
@@ -231,7 +212,7 @@
 						</goals>
 					</execution>
 				</executions>
-			</plugin>
+			</plugin> -->
 		</plugins>
 	</build>
 
