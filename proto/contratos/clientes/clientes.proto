@@ -63,7 +63,7 @@ message MetadatosRequest{
 }
 
 message ClienteResponse {
-    ClienteDTO cliente = 3;
+    ClienteDTO cliente = 1;
 }
 
 message ModificarClienteIdRequest{
