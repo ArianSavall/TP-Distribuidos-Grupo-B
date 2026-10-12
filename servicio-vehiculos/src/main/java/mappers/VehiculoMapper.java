@@ -15,7 +15,7 @@ public final class VehiculoMapper {
                 .setMarca(v.getMarca())
                 .setModelo(v.getModelo())
                 .setAnio(v.getAnio())
-                .setTipoVehiculo(v.getTipoVehiculo().name())
+                .setTipoVehiculo(v.getTipoVehiculo().toString())
                 .setPrecioDiario(v.getPrecioDiario())
                 .setEstado(v.getEstado().name())
                 .setEstaActivo(v.isEstaActivo());
