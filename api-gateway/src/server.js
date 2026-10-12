@@ -90,12 +90,15 @@ app.use((err, req, res, next) => {
   });
 });
 
-const servidor = app.listen(PORT, "127.0.0.1", () => {
-  console.log(`API Gateway de Rentar: http://localhost:${PORT}`);
-});
+// Permite probar el servidor HTTP en un puerto libre sin abrir el puerto habitual.
+if (require.main === module) {
+  const servidor = app.listen(PORT, "127.0.0.1", () => {
+    console.log(`API Gateway de Rentar: http://localhost:${PORT}`);
+  });
+  process.on("SIGINT", () => {
+    cerrarClientes();
+    servidor.close(() => process.exit(0));
+  });
+}
 
-// Cierra las conexiones al detener el Gateway.
-process.on("SIGINT", () => {
-  cerrarClientes();
-  servidor.close(() => process.exit(0));
-});
+module.exports = app;

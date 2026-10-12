@@ -2,6 +2,7 @@ const { buildSchema, GraphQLError } = require("graphql");
 const { createHandler } = require("graphql-http/lib/use/express");
 const { vehiculos, llamarRpc } = require("./grpc-clients");
 const { consultarMiHistorial } = require("./historial");
+const { consultarReservasCompletas } = require("./consulta-reservas");
 
 const schema = buildSchema(`
   type Vehiculo {
@@ -17,6 +18,34 @@ const schema = buildSchema(`
     color: String!
   }
 
+  enum TipoVehiculo { SEDAN SUV PICKUP COUPE HATCHBACK }
+
+  input FiltroReservasInput {
+    dniCliente: String
+    patenteVehiculo: String
+    tipoVehiculo: TipoVehiculo
+    estado: EstadoReserva
+    fechaDesde: String
+    fechaHasta: String
+  }
+
+  enum EstadoReserva {
+    CONFIRMADO
+    CANCELADO
+  }
+
+  type Reserva {
+    id: ID!
+    cliente: String!
+    vehiculo: String!
+    patente: String!
+    fechaInicio: String!
+    fechaFinalizacion: String!
+    precioDiario: Float!
+    importeTotal: Float!
+    estado: EstadoReserva!
+  }
+
   type HistorialAlquiler {
     vehiculo: String!
     patente: String!
@@ -29,6 +58,7 @@ const schema = buildSchema(`
 
   type Query {
     vehiculos: [Vehiculo!]!
+    reservas(filtros: FiltroReservasInput): [Reserva!]!
     miHistorialAlquileres: [HistorialAlquiler!]!
   }
 `);
@@ -57,7 +87,11 @@ const rootValue = {
     }
   },
 
-  miHistorialAlquileres: async (argumentos, contexto) => {
+  reservas: (argumentos, contexto) => {
+    return consultarReservasCompletas(contexto.usuario, argumentos.filtros);
+  },
+
+  miHistorialAlquileres: (argumentos, contexto) => {
     return consultarMiHistorial(contexto.usuario);
   }
 };
@@ -65,7 +99,7 @@ const rootValue = {
 module.exports = createHandler({
   schema,
   rootValue,
-  context: (request) => ({
+  context: request => ({
     usuario: request.raw.session?.usuario || null
   })
 });
