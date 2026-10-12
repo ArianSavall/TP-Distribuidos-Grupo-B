@@ -1,14 +1,13 @@
-package application;
+package clientes.application;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
-@SpringBootApplication(scanBasePackages = {
-        "application", "entities", "repositories", "services"
-})
-@EntityScan("entities")
-@EnableJpaRepositories("repositories")
+@SpringBootApplication(scanBasePackages = "clientes")
+@EntityScan("clientes.entities")
+@EnableJpaRepositories("clientes.repositories")
 public class ClientesApplication {
     public static void main(String[] args) {
         SpringApplication.run(ClientesApplication.class, args);

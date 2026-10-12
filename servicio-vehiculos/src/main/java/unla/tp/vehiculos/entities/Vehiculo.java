@@ -1,15 +1,12 @@
-package entities;
+package unla.tp.vehiculos.entities;
 
-import enums.EstadoVehiculo;
-import enums.TipoVehiculo;
+import unla.tp.vehiculos.enums.EstadoVehiculo;
+import unla.tp.vehiculos.enums.TipoVehiculo;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Getter

@@ -1,8 +1,8 @@
-package mappers;
+package unla.tp.vehiculos.mappers;
 
-import entities.Vehiculo;
-import enums.EstadoVehiculo;
-import enums.TipoVehiculo;
+import unla.tp.vehiculos.entities.Vehiculo;
+import unla.tp.vehiculos.enums.EstadoVehiculo;
+import unla.tp.vehiculos.enums.TipoVehiculo;
 public final class VehiculoMapper {
 
     private VehiculoMapper() {

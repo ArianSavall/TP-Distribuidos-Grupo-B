@@ -1,7 +1,8 @@
 spring:
   config:
     import: optional:file:.env[.properties]
-
+  main:
+    web-application-type: none
   application:
     name: tp_distribuidos
 
@@ -28,4 +29,4 @@ logging:
 
 grpc:
   server:
-    port: 9092
+    port: 9091

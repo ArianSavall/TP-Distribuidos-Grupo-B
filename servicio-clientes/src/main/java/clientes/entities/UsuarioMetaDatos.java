@@ -1,6 +1,6 @@
-package entities;
+package clientes.entities;
 
-import enums.Rol;
+import clientes.enums.Rol;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

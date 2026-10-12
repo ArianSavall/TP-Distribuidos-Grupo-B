@@ -1,4 +1,4 @@
-package enums;
+package unla.tp.vehiculos.enums;
 
 public enum TipoVehiculo {
     SEDAN,

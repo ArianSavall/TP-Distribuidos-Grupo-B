@@ -1,13 +1,12 @@
 package services;
 
-import entities.Vehiculo;
-import enums.EstadoVehiculo;
-import enums.TipoVehiculo;
+import unla.tp.vehiculos.entities.Vehiculo;
+import unla.tp.vehiculos.enums.EstadoVehiculo;
+import unla.tp.vehiculos.enums.TipoVehiculo;
 import grpc.*;
-import grpc.FechasRequest;
 import grpc.ReservaServiceGrpc;
 import grpc.VehiculosOcupadosResponse;
-import repositories.IVehiculoRepository;
+import unla.tp.vehiculos.repositories.IVehiculoRepository;
 import io.grpc.stub.StreamObserver;
 import io.grpc.StatusRuntimeException;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,9 +16,9 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import unla.tp.vehiculos.services.VehiculoService;
 
 import java.util.List;
-import java.util.Collections;
 
 import java.util.Optional;
 
@@ -189,19 +188,19 @@ class VehiculoServiceTest {
 
         // 1. Simulamos que el servicio de reservas indica que el ID 2 está ocupado
         VehiculosOcupadosResponse ocupadosMock = VehiculosOcupadosResponse.newBuilder()
-                .addVehiculoIds(2L)
+                .addPatentes("AB123CD")
                 .build();
         when(reservaStub.getVehiculosOcupados(any())).thenReturn(ocupadosMock);
 
         // 2. Simulamos que nuestra base de datos, al excluir el ID 2, solo devuelve nuestro vehiculoMock (ID 1)[cite: 9]
-        when(vehiculoRepository.findDisponiblesExcluyendo(List.of(2L))).thenReturn(List.of(vehiculoMock));
+        when(vehiculoRepository.findDisponiblesExcluyendo(List.of("AB123CD"))).thenReturn(List.of(vehiculoMock));
 
         // Act
         vehiculoService.getVehiculosDisponibles(request, listResponseObserver);
 
         // Assert
         ArgumentCaptor<VehiculoListResponse> captor = ArgumentCaptor.forClass(VehiculoListResponse.class);
-        verify(vehiculoRepository).findDisponiblesExcluyendo(List.of(2L));
+        verify(vehiculoRepository).findDisponiblesExcluyendo(List.of("AB123CD"));
         verify(vehiculoRepository, never()).findAll(); // No debió llamar al listado completo
         verify(listResponseObserver).onNext(captor.capture());
         verify(listResponseObserver).onCompleted();

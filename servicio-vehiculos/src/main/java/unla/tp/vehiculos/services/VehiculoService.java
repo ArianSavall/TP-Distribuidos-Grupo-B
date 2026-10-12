@@ -1,7 +1,7 @@
-package services;
+package unla.tp.vehiculos.services;
 
-import entities.Vehiculo;
-import enums.TipoVehiculo;
+import unla.tp.vehiculos.entities.Vehiculo;
+import unla.tp.vehiculos.enums.TipoVehiculo;
 import grpc.*;
 import grpc.FechasRequest;
 import grpc.ReservaServiceGrpc;
@@ -9,12 +9,14 @@ import grpc.VehiculosOcupadosResponse;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import jakarta.validation.ConstraintViolationException;
-import mappers.VehiculoMapper;
+import unla.tp.vehiculos.mappers.VehiculoMapper;
 import net.devh.boot.grpc.client.inject.GrpcClient;
 import net.devh.boot.grpc.server.service.GrpcService;
 import org.springframework.beans.factory.annotation.Autowired;
-import repositories.IVehiculoRepository;
+import unla.tp.vehiculos.repositories.IVehiculoRepository;
+import java.time.format.DateTimeFormatter;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -96,23 +98,28 @@ public class VehiculoService extends VehiculoServiceGrpc.VehiculoServiceImplBase
     @Override
     public void getVehiculosDisponibles(GetVehiculosDisponiblesRequest request, StreamObserver<VehiculoListResponse> responseObserver) {
         try {
-            // 1. Extraer fechas del request (asumiendo que las pasaste a String o LocalDateTime)
-            // ...
+            // 1. Extraer fechas del request (asumiendo que las pasaste a String o LocalDateTime)2026-10-20T10:00:00
+            LocalDateTime fechaDesde = LocalDateTime.of(request.getFechaDesde().getYear(),request.getFechaDesde().getMonth(),
+                    request.getFechaDesde().getDay(), request.getFechaDesde().getHours(), request.getFechaDesde().getMinutes());
+
+            LocalDateTime fechaHasta = LocalDateTime.of(request.getFechaHasta().getYear(), request.getFechaHasta().getMonth(),
+                    request.getFechaHasta().getDay(), request.getFechaHasta().getHours(),
+                    request.getFechaHasta().getMinutes());
 
             // 2. Preguntar al servicio de reservas qué vehículos están OCUPADOS en esas fechas
             FechasRequest fechasRequest = FechasRequest.newBuilder()
-                    // .setFechaDesde(...) .setFechaHasta(...)
+                    .setFechaDesde(fechaDesde.toString()).setFechaHasta(fechaHasta.toString())
                     .build();
 
             VehiculosOcupadosResponse ocupadosResponse = reservaStub.getVehiculosOcupados(fechasRequest);
-            List<Long> idsOcupados = ocupadosResponse.getVehiculoIdsList();
+            List<String> patentesOcupadas = ocupadosResponse.getPatentesList();
 
             // 3. Buscar en la base de datos PROPIA de vehículos
             List<Vehiculo> vehiculosDisponibles;
-            if (idsOcupados.isEmpty()) {
+            if (patentesOcupadas.isEmpty()) {
                 vehiculosDisponibles = vehiculoRepository.findAll();
             } else {
-                vehiculosDisponibles = vehiculoRepository.findDisponiblesExcluyendo(idsOcupados);
+                vehiculosDisponibles = vehiculoRepository.findDisponiblesExcluyendo(patentesOcupadas);
             }
 
             // 4. (Opcional) Filtrar por precioDiarioMin y precioDiarioMax en memoria

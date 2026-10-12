@@ -1,17 +1,17 @@
-package services.implementation;
+package clientes.services;
 
 import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import entities.Usuario;
-import entities.UsuarioMetaDatos;
+import clientes.entities.Usuario;
+import clientes.entities.UsuarioMetaDatos;
 import grpc.*;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import net.devh.boot.grpc.server.service.GrpcService;
-import repositories.IUsuarioRepository;
+import clientes.repositories.IUsuarioRepository;
 
 
 @GrpcService
@@ -172,11 +172,11 @@ public class UsuarioService extends ClienteServiceGrpc.ClienteServiceImplBase{
             u.setTelefono(request.getTelefono());
             u.setFechaNacimiento(LocalDate.parse(request.getFechaNacimiento()));
             u.setEstaActivo(true);
-            u.setMetadatos(new entities.UsuarioMetaDatos(
+            u.setMetadatos(new clientes.entities.UsuarioMetaDatos(
                 null,
                 request.getMetadatos().getUsuario(),
                 passwordEncoder().encode(request.getMetadatos().getPassword()),
-                enums.Rol.CLIENTE,
+                clientes.enums.Rol.CLIENTE,
                 null
             ));
 

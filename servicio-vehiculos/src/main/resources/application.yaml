@@ -1,6 +1,8 @@
 spring:
   config:
     import: optional:file:.env[.properties]
+  main:
+    web-application-type: none
     
   application:
     name: tp_distribuidos
@@ -29,3 +31,7 @@ logging:
 grpc:
   server:
     port: 9090
+  client:
+    servicio-reservas:
+      address: 'static://localhost:9092'
+      negotiation-type: plaintext
