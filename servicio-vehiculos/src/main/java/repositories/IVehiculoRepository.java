@@ -45,4 +45,8 @@ public interface IVehiculoRepository extends JpaRepository<Vehiculo, Integer>{
             @Param("fechaInicio") LocalDateTime fechaInicio,
             @Param("fechaFinal") LocalDateTime fechaFinal//,
     );
+
+    // Si la lista de ocupados tiene elementos, exclúyelos
+    @Query("SELECT v FROM Vehiculo v WHERE v.estaActivo = true AND v.id NOT IN :idsOcupados")
+    List<Vehiculo> findDisponiblesExcluyendo(@Param("idsOcupados") List<Long> idsOcupados);
 }

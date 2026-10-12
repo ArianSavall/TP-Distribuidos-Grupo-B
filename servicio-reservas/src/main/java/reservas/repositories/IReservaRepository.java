@@ -55,5 +55,10 @@ public interface IReservaRepository extends JpaRepository<Reserva, Long> {
             @Param("cancelado") EstadoReserva cancelado,
             @Param("confirmado") EstadoReserva confirmado,
             @Param("ahora") LocalDateTime ahora);
+
+    @Query("SELECT r.vehiculoId FROM Reserva r WHERE r.estadoReserva != 'CANCELADA' " +
+            "AND (r.fechaDesde <= :fechaHasta AND r.fechaHasta >= :fechaDesde)")
+    List<Long> findVehiculosOcupadosEnRango(@Param("fechaDesde") LocalDateTime fechaDesde,
+                                            @Param("fechaHasta") LocalDateTime fechaHasta);
 }
 

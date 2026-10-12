@@ -3,6 +3,9 @@ package services;
 import entities.Vehiculo;
 import enums.TipoVehiculo;
 import grpc.*;
+import grpc.FechasRequest;
+import grpc.ReservaServiceGrpc;
+import grpc.VehiculosOcupadosResponse;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import jakarta.validation.ConstraintViolationException;
@@ -20,9 +23,10 @@ import java.util.Optional;
 public class VehiculoService extends VehiculoServiceGrpc.VehiculoServiceImplBase {
     @Autowired
     private IVehiculoRepository vehiculoRepository;
+
     // Cliente gRPC para hablar con Reservas
-//    @GrpcClient("servicio-reservas")
-//    private ReservaServiceGrpc.ReservaServiceBlockingStub reservaStub;
+    @GrpcClient("servicio-reservas")
+    private ReservaServiceGrpc.ReservaServiceBlockingStub reservaStub;
 
     @Override
     public void createVehiculo(PostVehiculoRequest request, StreamObserver<grpc.Vehiculo> responseObserver ){
@@ -89,46 +93,46 @@ public class VehiculoService extends VehiculoServiceGrpc.VehiculoServiceImplBase
             );
         }
     }
-//    @Override
-//    public void getVehiculosDisponibles(GetVehiculosDisponiblesRequest request, StreamObserver<VehiculoListResponse> responseObserver) {
-//        try {
-//            // 1. Extraer fechas del request (asumiendo que las pasaste a String o LocalDateTime)
-//            // ...
-//
-//            // 2. Preguntar al servicio de reservas qué vehículos están OCUPADOS en esas fechas
-//            FechasRequest fechasRequest = FechasRequest.newBuilder()
-//                    // .setFechaDesde(...) .setFechaHasta(...)
-//                    .build();
-//
-//            VehiculosOcupadosResponse ocupadosResponse = reservaStub.getVehiculosOcupados(fechasRequest);
-//            List<Long> idsOcupados = ocupadosResponse.getVehiculoIdsList();
-//
-//            // 3. Buscar en la base de datos PROPIA de vehículos
-//            List<Vehiculo> vehiculosDisponibles;
-//            if (idsOcupados.isEmpty()) {
-//                vehiculosDisponibles = vehiculoRepository.findAllActivos();
-//            } else {
-//                vehiculosDisponibles = vehiculoRepository.findDisponiblesExcluyendo(idsOcupados);
-//            }
-//
-//            // 4. (Opcional) Filtrar por precioDiarioMin y precioDiarioMax en memoria
-//            // ya que vienen en el GetVehiculosDisponiblesRequest de tu contrato.
-//
-//            // 5. Mapear a Protobuf y devolver al API Gateway
-//            VehiculoListResponse.Builder responseBuilder = VehiculoListResponse.newBuilder();
-//            for (Vehiculo v : vehiculosDisponibles) {
-//                responseBuilder.addVehiculos(
-//                        grpc.Vehiculo.newBuilder().setId(v.getId()).setMarca(v.getMarca()).build() // Setear campos...
-//                );
-//            }
-//
-//            responseObserver.onNext(responseBuilder.build());
-//            responseObserver.onCompleted();
-//
-//        } catch (Exception e) {
-//            responseObserver.onError(Status.INTERNAL.withDescription("Error: " + e.getMessage()).asRuntimeException());
-//        }
-//    }
+    @Override
+    public void getVehiculosDisponibles(GetVehiculosDisponiblesRequest request, StreamObserver<VehiculoListResponse> responseObserver) {
+        try {
+            // 1. Extraer fechas del request (asumiendo que las pasaste a String o LocalDateTime)
+            // ...
+
+            // 2. Preguntar al servicio de reservas qué vehículos están OCUPADOS en esas fechas
+            FechasRequest fechasRequest = FechasRequest.newBuilder()
+                    // .setFechaDesde(...) .setFechaHasta(...)
+                    .build();
+
+            VehiculosOcupadosResponse ocupadosResponse = reservaStub.getVehiculosOcupados(fechasRequest);
+            List<Long> idsOcupados = ocupadosResponse.getVehiculoIdsList();
+
+            // 3. Buscar en la base de datos PROPIA de vehículos
+            List<Vehiculo> vehiculosDisponibles;
+            if (idsOcupados.isEmpty()) {
+                vehiculosDisponibles = vehiculoRepository.findAll();
+            } else {
+                vehiculosDisponibles = vehiculoRepository.findDisponiblesExcluyendo(idsOcupados);
+            }
+
+            // 4. (Opcional) Filtrar por precioDiarioMin y precioDiarioMax en memoria
+            // ya que vienen en el GetVehiculosDisponiblesRequest de tu contrato.
+
+            // 5. Mapear a Protobuf y devolver al API Gateway
+            VehiculoListResponse.Builder responseBuilder = VehiculoListResponse.newBuilder();
+            for (Vehiculo v : vehiculosDisponibles) {
+                responseBuilder.addVehiculos(
+                        grpc.Vehiculo.newBuilder().setId(v.getId()).setMarca(v.getMarca()).build() // Setear campos...
+                );
+            }
+
+            responseObserver.onNext(responseBuilder.build());
+            responseObserver.onCompleted();
+
+        } catch (Exception e) {
+            responseObserver.onError(Status.INTERNAL.withDescription("Error: " + e.getMessage()).asRuntimeException());
+        }
+    }
     @Override
     public void getAllVehiculos(empty request, StreamObserver<VehiculoListResponse> responseObserver) {
         // 1. Encontrar todos los vehiculos
