@@ -26,5 +26,6 @@ logging:
       springframework:
         security: TRACE
 
-server:
-  port: ${SERVER_PORT:8080}
+grpc:
+  server:
+    port: 9090

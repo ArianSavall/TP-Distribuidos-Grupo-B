@@ -9,6 +9,12 @@
     <artifactId>servicio-vehiculos</artifactId>
 
     <dependencies>
+        <dependency>
+            <groupId>unla.tp</groupId>
+            <artifactId>servicio-reservas</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
     <build>
