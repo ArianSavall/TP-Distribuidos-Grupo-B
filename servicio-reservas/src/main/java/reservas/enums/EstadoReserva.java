@@ -1,4 +1,4 @@
-package unla.tp.tp_distribuidos.reservas.enums;
+package reservas.enums;
 
 public enum EstadoReserva {
     CONFIRMADO,

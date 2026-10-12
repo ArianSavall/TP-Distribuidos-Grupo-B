@@ -1,4 +1,4 @@
-package unla.tp.tp_distribuidos.reservas;
+package reservas;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
