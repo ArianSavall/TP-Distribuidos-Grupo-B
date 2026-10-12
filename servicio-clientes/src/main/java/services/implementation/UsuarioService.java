@@ -32,7 +32,7 @@ public class UsuarioService extends ClienteServiceGrpc.ClienteServiceImplBase{
     public void listarUsuarios(ListarClientesRequest request, StreamObserver<ListarClientesResponse> responseObserver) {
         try {
             //Logica para obtener la lista de usuarios desde la base de datos
-            List<Usuario> usuarios = usuarioRepository.findAll();
+            List<Usuario> usuarios = usuarioRepository.findAllWithMetadatos();
             
              
             ListarClientesResponse.Builder responseBuilder = ListarClientesResponse.newBuilder();
@@ -42,6 +42,8 @@ public class UsuarioService extends ClienteServiceGrpc.ClienteServiceImplBase{
                 Metadatos metaDto = Metadatos.newBuilder()
                         .setId(u.getMetadatos().getId())
                         .setUsuario(u.getMetadatos().getUsuario())
+                        .setPassword(u.getMetadatos().getPassword())
+                        .setRol(u.getMetadatos().getRol().name())
                         .build();
 
                 ClienteDTO clienteDto = ClienteDTO.newBuilder()
@@ -50,7 +52,7 @@ public class UsuarioService extends ClienteServiceGrpc.ClienteServiceImplBase{
                         .setNombre(u.getNombre())
                         .setApellido(u.getApellido())
                         .setEmail(u.getEmail())
-                        .setTelefono(u.getTelefono())
+                        .setTelefono(u.getTelefono() != null ? u.getTelefono() : "")
                         .setFechaNacimiento(u.getFechaNacimiento() != null ? u.getFechaNacimiento().toString() : "")
                         .setEstaActivo(u.getEstaActivo())
                         .setMetadatos(metaDto)
@@ -89,6 +91,8 @@ public class UsuarioService extends ClienteServiceGrpc.ClienteServiceImplBase{
                 Metadatos metaDto = Metadatos.newBuilder()
                         .setId(u.getMetadatos().getId())
                         .setUsuario(u.getMetadatos().getUsuario())
+                        .setPassword(u.getMetadatos().getPassword())
+                        .setRol(u.getMetadatos().getRol().name())
                         .build();
 
                 ClienteDTO clienteDto = ClienteDTO.newBuilder()
@@ -97,7 +101,7 @@ public class UsuarioService extends ClienteServiceGrpc.ClienteServiceImplBase{
                         .setNombre(u.getNombre())
                         .setApellido(u.getApellido())
                         .setEmail(u.getEmail())
-                        .setTelefono(u.getTelefono())
+                        .setTelefono(u.getTelefono() != null ? u.getTelefono() : "")
                         .setFechaNacimiento(u.getFechaNacimiento() != null ? u.getFechaNacimiento().toString() : "")
                         .setEstaActivo(u.getEstaActivo())
                         .setMetadatos(metaDto)
@@ -210,26 +214,26 @@ public class UsuarioService extends ClienteServiceGrpc.ClienteServiceImplBase{
                 return;
             }
 
-            if (request.getNombre() != null) {
+            if (request.getNombre().isBlank() == false) {
                 usuario.setNombre(request.getNombre());
             }
-            if (request.getApellido() != null) {
+            if (request.getApellido().isBlank() == false) {
                 usuario.setApellido(request.getApellido());
             }
-            if (request.getFechaNacimiento() != null) {
+            if (request.getFechaNacimiento().isBlank() == false) {
                 usuario.setFechaNacimiento(LocalDate.parse(request.getFechaNacimiento()));
             }
-            if( request.getEmail() != null) {
+            if(request.getEmail().isBlank() == false) {
                 usuario.setEmail(request.getEmail());
             }
-            if( request.getTelefono() != null) {
+            if( request.getTelefono().isBlank() == false) {
                 usuario.setTelefono(request.getTelefono());
             }
-            if( request.getMetadatos() != null) {
-                if (request.getMetadatos().getUsuario() != null) {
+            if( request.getMetadatos().isInitialized() == true) {
+                if (request.getMetadatos().getUsuario().isBlank() == false) {
                     usuario.getMetadatos().setUsuario(request.getMetadatos().getUsuario());
                 }
-                if (request.getMetadatos().getPassword() != null) {
+                if (request.getMetadatos().getPassword().isBlank() == false) {
                     usuario.getMetadatos().setPassword(passwordEncoder().encode(request.getMetadatos().getPassword()));
                 }
             }
@@ -266,29 +270,29 @@ public class UsuarioService extends ClienteServiceGrpc.ClienteServiceImplBase{
             }
 
 
-            if( request.getDni() != null) {
+            if( request.getDni().isBlank() == false) {
                 usuario.setDni(request.getDni());
             }
-            if (request.getNombre() != null) {
+            if (request.getNombre().isBlank() == false) {
                 usuario.setNombre(request.getNombre());
             }
-            if (request.getApellido() != null) {
+            if (request.getApellido().isBlank() == false) {
                 usuario.setApellido(request.getApellido());
             }
-            if (request.getFechaNacimiento() != null) {
+            if (request.getFechaNacimiento().isBlank() == false) {
                 usuario.setFechaNacimiento(LocalDate.parse(request.getFechaNacimiento()));
             }
-            if( request.getEmail() != null) {
+            if( request.getEmail().isBlank() == false) {
                 usuario.setEmail(request.getEmail());
             }
-            if( request.getTelefono() != null) {
+            if( request.getTelefono().isBlank() == false) {
                 usuario.setTelefono(request.getTelefono());
             }
-            if( request.getMetadatos() != null) {
-                if (request.getMetadatos().getUsuario() != null) {
+            if( request.getMetadatos().isInitialized() == true) {
+                if (request.getMetadatos().getUsuario().isBlank() == false) {
                     usuario.getMetadatos().setUsuario(request.getMetadatos().getUsuario());
                 }
-                if (request.getMetadatos().getPassword() != null) {
+                if (request.getMetadatos().getPassword().isBlank() == false) {
                     usuario.getMetadatos().setPassword(passwordEncoder().encode(request.getMetadatos().getPassword()));
                 }
             }
@@ -362,14 +366,18 @@ public class UsuarioService extends ClienteServiceGrpc.ClienteServiceImplBase{
 
 
     @Override
-    public void verificarExistenciaDni(ClienteDniRequest request, StreamObserver<ClienteResponse> responseObserver) {
+    public void verificarExistenciaDni(ClienteDniRequest request, StreamObserver<VerificarActivoResponse> responseObserver) {
         try {
             // Buscamos al usuario por su DNI
              Usuario usuario = usuarioRepository.findByDni(request.getDni());
             
             
             if (usuario != null) {
-                responseObserver.onNext(mapearUsuarioAResponse(usuario, usuario.getMetadatos()));
+                VerificarActivoResponse response = VerificarActivoResponse.newBuilder()
+                        .setMensaje("El cliente existe.")
+                        .build();
+                responseObserver.onNext(response);
+                responseObserver.onCompleted();
             } else {
                 responseObserver.onError(
                     Status.NOT_FOUND
@@ -387,20 +395,32 @@ public class UsuarioService extends ClienteServiceGrpc.ClienteServiceImplBase{
     }
 
     @Override
-    public void verificarClienteActivo(ClienteIdRequest request, StreamObserver<ClienteResponse> responseObserver) {
+    public void verificarClienteActivo(ClienteIdRequest request, StreamObserver<VerificarActivoResponse> responseObserver) {
         try {
             // Buscamos al usuario por su ID
              Usuario usuario = usuarioRepository.findById(request.getId());
             
-             if (usuario != null) {
-                responseObserver.onNext(mapearUsuarioAResponse(usuario, usuario.getMetadatos()));
-                responseObserver.onCompleted();
-            } else {
+            if(usuario == null) {
                 responseObserver.onError(
                     Status.NOT_FOUND
                         .withDescription("No se encontró ningún cliente con el ID proporcionado.")
                         .asRuntimeException()
                 );
+                return;
+            }
+
+            if (usuario.getEstaActivo() == true) {
+                VerificarActivoResponse response = VerificarActivoResponse.newBuilder()
+                        .setMensaje("El cliente está activo.")
+                        .build();
+                responseObserver.onNext(response);
+                responseObserver.onCompleted();
+            } else {
+                VerificarActivoResponse response = VerificarActivoResponse.newBuilder()
+                        .setMensaje("El cliente no está activo.")
+                        .build();
+                responseObserver.onNext(response);
+                responseObserver.onCompleted();
             }
             
         } catch (Exception e) {
@@ -415,12 +435,6 @@ public class UsuarioService extends ClienteServiceGrpc.ClienteServiceImplBase{
 
 
     private ClienteResponse mapearUsuarioAResponse(Usuario usuario, UsuarioMetaDatos metadatos) {
-        
-        Metadatos metaDto = Metadatos.newBuilder()
-                .setId(metadatos.getId())
-                .setUsuario(metadatos.getUsuario())
-                .setRol(metadatos.getRol().name())
-                .build();
 
        
         ClienteDTO clienteDto = ClienteDTO.newBuilder()
@@ -429,10 +443,15 @@ public class UsuarioService extends ClienteServiceGrpc.ClienteServiceImplBase{
                 .setNombre(usuario.getNombre())
                 .setApellido(usuario.getApellido())
                 .setEmail(usuario.getEmail())
-                .setTelefono(usuario.getTelefono())
-                .setFechaNacimiento(usuario.getFechaNacimiento().toString())
+                .setTelefono(usuario.getTelefono() != null ? usuario.getTelefono() : "")
+                .setFechaNacimiento(usuario.getFechaNacimiento() != null ? usuario.getFechaNacimiento().toString() : "")
                 .setEstaActivo(usuario.getEstaActivo())
-                .setMetadatos(metaDto) 
+                .setMetadatos(Metadatos.newBuilder()
+                    .setId(metadatos.getId())
+                    .setUsuario(metadatos.getUsuario())
+                    .setPassword(metadatos.getPassword())
+                    .setRol(metadatos.getRol().name())
+                    .build()) 
                 .build();
 
        

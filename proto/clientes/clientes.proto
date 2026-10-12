@@ -23,11 +23,9 @@ service ClienteService {
 
     rpc BorrarClienteId (ClienteIdRequest) returns (ClienteResponse);
 
-    rpc BorrarClienteDni (ClienteDniRequest) returns (ClienteResponse);
+    rpc VerificarExistenciaDni (ClienteDniRequest) returns (VerificarActivoResponse);
 
-    rpc VerificarExistenciaDni (ClienteDniRequest) returns (ClienteResponse);
-
-    rpc VerificarClienteActivo (ClienteIdRequest) returns (ClienteResponse);
+    rpc VerificarClienteActivo (ClienteIdRequest) returns (VerificarActivoResponse);
 }
 
 message ClienteDTO{
@@ -93,4 +91,8 @@ message ListarClientesRequest{
 
 message ListarClientesResponse{
     repeated ClienteDTO cliente = 3;
+}
+
+message VerificarActivoResponse{
+    string mensaje = 1;
 }
