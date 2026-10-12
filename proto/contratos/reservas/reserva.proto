@@ -71,7 +71,7 @@ message FechasRequest { // Para pedir un rango de fechas
 }
 
 message VehiculosOcupadosResponse {
-    repeated int64 vehiculo_ids = 1; // Lista de IDs que ya están reservados
+    repeated string patentes = 1; 
 }
 
 message HistorialItem {

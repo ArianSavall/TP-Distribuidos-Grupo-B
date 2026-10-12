@@ -1,15 +1,37 @@
-grpc:
-  server:
-    port: 9091
-
 spring:
+  config:
+    import: optional:file:.env[.properties]
+    
+  application:
+    name: servicio-reservas
+
   datasource:
-    url: jdbc:mysql://localhost:3306/reservas_db?createDatabaseIfNotExist=true&serverTimezone=UTC
-    username: root
-    password: Zurlo.123 
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
-  
+
   jpa:
     hibernate:
-      ddl-auto: update 
-    show-sql: true 
+      ddl-auto: update
+    show-sql: true
+    properties:
+      dialect: org.hibernate.dialect.MySQL8Dialect
+      
+  graphql:
+    graphiql:
+      enabled: true
+
+logging:
+  level:
+    org:
+      springframework:
+        security: TRACE
+
+grpc:
+  server:
+    port: 9092 
+  client:
+    servicio-vehiculos:
+      address: 'static://localhost:9090' 
+      negotiation-type: plaintext
