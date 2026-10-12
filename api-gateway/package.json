@@ -1,11 +1,12 @@
 {
   "name": "api-gateway",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "API Gateway REST/GraphQL de Rentar con servicios internos gRPC",
+  "main": "src/server.js",
   "scripts": {
     "test": "node --test pruebas/*.test.js",
-    "start": "node src/server.js"
+    "start": "node src/server.js",
+    "demo": "node pruebas/demo.js"
   },
   "keywords": [],
   "author": "",

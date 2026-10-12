@@ -1,174 +1,50 @@
-const express = require("express");
-const { clientes, llamarRpc } = require("./grpc-clients");
+const router = require('express').Router();
+const { clientes, llamarRpc } = require('./grpc-clients');
+const { exigirRol, objetoJSON, clienteDeRespuesta, campos } = require('./http-utils');
+router.use(exigirRol('ADMIN'));
 
-const router = express.Router();
-
-// Excluye la contraseña de las respuestas al navegador.
-function clientePublico(cliente) {
-  const { metadatos, ...datos } = cliente;
-
-  if (!metadatos) {
-    return datos;
-  }
-
-  const { password, ...metadatosPublicos } = metadatos;
-
-  return {
-    ...datos,
-    metadatos: metadatosPublicos
-  };
+// Nunca devolver contraseñas, incluso si el servicio las incluye por error.
+function publico(c) {
+  const { metadatos, ...resto } = c;
+  if (!metadatos) return resto;
+  const { password, ...meta } = metadatos;
+  return { ...resto, metadatos: meta };
 }
-
-// El contrato actual devuelve SUCCESS o ERROR.
-// Todavía no distingue tipos de error de negocio.
-function respuestaExitosa(respuesta, res) {
-  if (respuesta.status === "SUCCESS") {
-    return true;
+function datos(body) {
+  const r = campos(body, ['dni', 'nombre', 'apellido', 'email', 'telefono', 'fechaNacimiento']);
+  if (body.metadatos && typeof body.metadatos === 'object') {
+    r.metadatos = campos(body.metadatos, ['usuario', 'password']);
   }
-
-  if (respuesta.status === "ERROR") {
-    res.status(400).json({
-      error: "El servicio de clientes rechazó la operación"
-    });
-    return false;
-  }
-
-  res.status(502).json({
-    error: "Respuesta inesperada del servicio de clientes"
+  return r;
+}
+router.get('/', async (req, res) => {
+  const r = await llamarRpc(clientes, 'listarClientes', {});
+  const lista = clienteDeRespuesta(r);
+  if (!Array.isArray(lista)) return res.status(502).json({ error: 'Lista de clientes inválida' });
+  res.json(lista.map(publico));
+});
+for (const [clave, sufijo] of [['id', 'Id'], ['dni', 'Dni']]) {
+  router.get(`/buscar/${clave}/:${clave}`, async (req, res) => {
+    const r = await llamarRpc(clientes, `consultarCliente${sufijo}`, { [clave]: req.params[clave] });
+    res.json(publico(clienteDeRespuesta(r)));
   });
-  return false;
+  router.delete(`/borrar/${clave}/:${clave}`, async (req, res) => {
+    clienteDeRespuesta(await llamarRpc(clientes, `borrarCliente${sufijo}`, { [clave]: req.params[clave] }));
+    res.send('Cliente dado de baja correctamente');
+  });
 }
-
-// Selecciona los campos que admite el contrato de alta.
-// El rol y el estado activo los determina el servicio.
-function datosDeAlta(body) {
-  return {
-    dni: body.dni,
-    nombre: body.nombre,
-    apellido: body.apellido,
-    email: body.email,
-    telefono: body.telefono,
-    fechaNacimiento: body.fechaNacimiento,
-    metadatos: {
-      usuario: body.metadatos?.usuario,
-      password: body.metadatos?.password
-    }
-  };
-}
-
-// Listar clientes.
-router.get("/", async (req, res, next) => {
-  try {
-    const respuesta = await llamarRpc(clientes, "listarClientes", {});
-
-    if (!respuestaExitosa(respuesta, res)) return;
-
-    res.json(respuesta.cliente.map(clientePublico));
-  } catch (error) {
-    next(error);
-  }
+router.post('/', objetoJSON, async (req, res) => {
+  res.json(publico(clienteDeRespuesta(await llamarRpc(clientes, 'crearCliente', datos(req.body)))));
 });
-
-// Consultar un cliente por ID.
-router.get("/buscar/id/:id", async (req, res, next) => {
-  try {
-    const respuesta = await llamarRpc(clientes, "consultarClienteId", {
-      id: req.params.id
-    });
-
-    if (!respuestaExitosa(respuesta, res)) return;
-
-    if (!respuesta.cliente) {
-      return res.status(502).json({
-        error: "El servicio informó éxito pero no devolvió el cliente"
-      });
-    }
-
-    res.json(clientePublico(respuesta.cliente));
-  } catch (error) {
-    next(error);
-  }
+router.patch('/modificar/id/:id', objetoJSON, async (req, res) => {
+  const r = await llamarRpc(clientes, 'modificarClienteId', { ...datos(req.body), id: req.params.id });
+  res.json(publico(clienteDeRespuesta(r)));
 });
-
-// Consultar un cliente por DNI.
-router.get("/buscar/dni/:dni", async (req, res, next) => {
-  try {
-    const respuesta = await llamarRpc(clientes, "consultarClienteDni", {
-      dni: req.params.dni
-    });
-
-    if (!respuestaExitosa(respuesta, res)) return;
-
-    if (!respuesta.cliente) {
-      return res.status(502).json({
-        error: "El servicio informó éxito pero no devolvió el cliente"
-      });
-    }
-
-    res.json(clientePublico(respuesta.cliente));
-  } catch (error) {
-    next(error);
-  }
+// Conserva el endpoint del controlador Java y permite también el DNI en la URL.
+router.patch(['/modificar/dni', '/modificar/dni/:dni'], objetoJSON, async (req, res) => {
+  const r = await llamarRpc(clientes, 'modificarClienteDni', {
+    ...datos(req.body), dni: req.params.dni || req.body.dni
+  });
+  res.json(publico(clienteDeRespuesta(r)));
 });
-
-// Alta de cliente.
-router.post("/", async (req, res, next) => {
-  try {
-    if (!req.body || typeof req.body !== "object" || Array.isArray(req.body)) {
-      return res.status(400).json({
-        error: "Se requiere un objeto JSON"
-      });
-    }
-
-    const respuesta = await llamarRpc(
-      clientes,
-      "crearCliente",
-      datosDeAlta(req.body)
-    );
-
-    if (!respuestaExitosa(respuesta, res)) return;
-
-    if (!respuesta.cliente) {
-      return res.status(502).json({
-        error: "El servicio informó éxito pero no devolvió el cliente creado"
-      });
-    }
-
-    // Conserva el código HTTP 200 del controlador original.
-    res.status(200).json(clientePublico(respuesta.cliente));
-  } catch (error) {
-    next(error);
-  }
-});
-
-// Baja lógica por ID.
-router.delete("/borrar/id/:id", async (req, res, next) => {
-  try {
-    const respuesta = await llamarRpc(clientes, "borrarClienteId", {
-      id: req.params.id
-    });
-
-    if (!respuestaExitosa(respuesta, res)) return;
-
-    res.status(200).send("Cliente dado de baja correctamente");
-  } catch (error) {
-    next(error);
-  }
-});
-
-// Baja lógica por DNI.
-router.delete("/borrar/dni/:dni", async (req, res, next) => {
-  try {
-    const respuesta = await llamarRpc(clientes, "borrarClienteDni", {
-      dni: req.params.dni
-    });
-
-    if (!respuestaExitosa(respuesta, res)) return;
-
-    res.status(200).send("Cliente dado de baja correctamente");
-  } catch (error) {
-    next(error);
-  }
-});
-
 module.exports = router;

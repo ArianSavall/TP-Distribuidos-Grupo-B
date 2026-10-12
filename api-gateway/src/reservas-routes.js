@@ -1,5 +1,5 @@
 const express = require("express");
-const { reservas, llamarRpc } = require("./grpc-clients");
+const { reservas, clientes, llamarRpc } = require("./grpc-clients");
 const {
   crearReserva,
   cancelarReserva
@@ -49,9 +49,14 @@ router.post("/", async (req, res, next) => {
       idCliente = usuario.id;
     } else {
       idCliente = datos.idCliente;
+      if (!idCliente && datos.dniCliente) {
+        const { clienteDeRespuesta } = require("./http-utils");
+        const r = await llamarRpc(clientes, "consultarClienteDni", { dni: datos.dniCliente });
+        idCliente = clienteDeRespuesta(r).id;
+      }
     }
 
-    if (!idValido(idCliente) || !idValido(datos.idVehiculo)) {
+    if (!idValido(idCliente) || (!datos.patenteVehiculo && !idValido(datos.idVehiculo))) {
       return res.status(400).json({
         error: "Los identificadores deben ser enteros positivos"
       });
@@ -59,7 +64,8 @@ router.post("/", async (req, res, next) => {
 
     const respuesta = await crearReserva({
       idCliente: String(idCliente),
-      idVehiculo: String(datos.idVehiculo),
+      idVehiculo: datos.idVehiculo == null ? undefined : String(datos.idVehiculo),
+      patenteVehiculo: datos.patenteVehiculo,
       fechaHoraInicio: datos.fechaHoraInicio,
       fechaHoraFinal: datos.fechaHoraFinal
     });

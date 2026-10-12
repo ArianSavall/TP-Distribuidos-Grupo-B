@@ -11,7 +11,7 @@ function instalarAutenticacion(app) {
   // Al reiniciar el Gateway, habrá que iniciar sesión nuevamente.
   app.use(session({
     name: "rentar.sid",
-    secret: randomBytes(32).toString("hex"),
+    secret: process.env.SESSION_SECRET || randomBytes(32).toString("hex"),
     resave: false,
     saveUninitialized: false,
     cookie: {

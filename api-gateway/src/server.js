@@ -12,7 +12,7 @@ const {
 } = require("./grpc-clients");
 
 const app = express();
-const PORT = 3000;
+const PORT = Number(process.env.PORT || 3000);
 
 app.use(express.json());
 instalarAutenticacion(app);
@@ -20,34 +20,15 @@ app.all("/graphql", graphqlHandler);
 app.use("/api_rest/v1/clientes", clientesRoutes);
 app.use("/api_rest/v1/reservas", reservasRoutes);
 
-app.get("/", (req, res) => {
-  res.json({
-    servicio: "API Gateway - Rentar",
-    mensaje: "El Gateway está funcionando"
-  });
-});
+require("./web")(app);
 
 // Comprueba el Gateway, no la disponibilidad de los servicios.
 app.get("/health", (req, res) => {
   res.json({
     estado: "OK",
+    modo: process.env.RENTAR_DEMO === "1" ? "simulado" : "servicios",
     servicio: "api-gateway"
   });
-});
-
-// Recibe la consulta REST y llama al servicio por gRPC.
-app.get("/api_rest/v1/vehiculos/getAll", async (req, res, next) => {
-  try {
-    const respuesta = await llamarRpc(
-      vehiculos,
-      "getAllVehiculos",
-      {}
-    );
-
-    res.json(respuesta.vehiculos);
-  } catch (error) {
-    next(error);
-  }
 });
 
 app.use("/api_rest/v1/vehiculos", vehiculosRoutes);
@@ -75,11 +56,12 @@ app.use((err, req, res, next) => {
     [grpc.status.PERMISSION_DENIED]: [403, "Acceso denegado"],
     [grpc.status.UNAVAILABLE]: [503, "El servicio interno no está disponible"],
     [grpc.status.DEADLINE_EXCEEDED]: [504, "El servicio interno tardó demasiado en responder"],
-    [grpc.status.UNIMPLEMENTED]: [501, "La operación todavía no está implementada en el servicio"]
+    [grpc.status.UNIMPLEMENTED]: [501, "Esta operación requiere completar el contrato o el servicio interno"],
+    [grpc.status.CANCELLED]: [409, "El servicio rechazó la operación"]
   };
 
   const [estado, mensaje] = erroresGrpc[err.code] || [
-    500,
+    err.httpStatus || 500,
     "Error interno del Gateway o del servicio"
   ];
 

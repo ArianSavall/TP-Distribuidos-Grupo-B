@@ -9,8 +9,8 @@ const {
 async function crearReserva(datos) {
   const vehiculo = await llamarRpc(
     vehiculos,
-    "getVehiculoById",
-    { id: datos.idVehiculo }
+    datos.patenteVehiculo ? "getVehiculoByPatente" : "getVehiculoById",
+    datos.patenteVehiculo ? { patente: datos.patenteVehiculo } : { id: datos.idVehiculo }
   );
 
   if (!vehiculo.patente) {

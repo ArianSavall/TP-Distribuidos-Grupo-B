@@ -59,6 +59,10 @@ const reservas = crearCliente(
 // Ejecuta una llamada gRPC con un límite de cinco segundos.
 function llamarRpc(cliente, metodo, datos) {
   return new Promise((resolve, reject) => {
+    if (typeof cliente[metodo] !== "function") {
+      reject(Object.assign(new Error(`RPC no disponible: ${metodo}`), { code: grpc.status.UNIMPLEMENTED }));
+      return;
+    }
     cliente[metodo](
       datos,
       { deadline: new Date(Date.now() + 5000) },

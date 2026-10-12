@@ -1,13 +1,13 @@
 # Estado de integración del Gateway
 
-Revisión del 12/10/2026. Base de Gateway: d18af1b. Servicios revisados:
+Revisión del 12/10/2026. Base de Gateway: f1bb5fd + integración de develop en nuestra rama. Servicios revisados:
 `origin/develop` 335d386 y `origin/Refactor/migracion-BD-cliente` a1bd715.
 No se modifican los servicios Java en esta corrección.
 
 ## Verificado automáticamente
 
 Desde `api-gateway`: `npm ci` y `npm test`.
-Los tests levantan servidores gRPC de prueba en puertos libres y el Gateway HTTP
+Las 16 pruebas automáticas levantan servidores gRPC de prueba en puertos libres y el Gateway HTTP
 real. No necesitan los mocks manuales, MySQL ni credenciales personales.
 Prueban login rechazado/aceptado, sesión, consulta GraphQL de reservas y filtros,
 aislación entre clientes, consulta administrativa, error de servicio, rechazo de
@@ -49,17 +49,32 @@ Hito 1. Se mantienen los IDs como cadenas para no perder precisión de int64.
   usan 9090 y 9091 respectivamente. Confirmar puerto de Clientes y configurar `.env`
   del Gateway para los servicios reales. No publicar credenciales de base de datos.
 
-## Pendientes del Gateway y de la entrega
+## Gateway implementado y límites de esta revisión
 
-- Integrar develop y el contrato de Clientes definitivo sin perder `AutenticarCliente`.
-- Completar gestión de vehículos, modificación de clientes y disponibilidad con los
-  contratos definitivos; conservar las reglas de negocio en Java.
-- Adaptar la interfaz existente (Thymeleaf no se ejecuta en Express) y conectar todos
-  sus formularios/consultas al Gateway. Actualmente `/` devuelve JSON.
-- Revisar permisos de administración de clientes y vehículos.
-- Ejecutar las siete funcionalidades de la consigna con servicios Java y base real,
-  incluyendo rechazos y clientes diferentes; guardar evidencias para el informe.
-- Documentar arranque y arquitectura; crear PR hacia develop para revisión del grupo.
+- REST de clientes: alta, lista, búsquedas, modificación y bajas; sólo ADMIN.
+- REST de vehículos: lista, búsqueda, alta y baja. Actualizar por patente y activar
+  tienen rutas, pero retornan HTTP 501 mientras el contrato no permite identificar
+  el vehículo a actualizar o no ofrece un RPC de reactivación. No se presenta esto
+  como funcionalidad terminada ni se simula éxito.
+- REST de reservas: alta por ID o patente del formulario; ADMIN puede indicar DNI
+  del cliente; CLIENTE usa su sesión. Cancelación con control de propietario.
+- GraphQL: reservas con filtros, disponibilidad delegada a Vehículos, historial y
+  vehículos. La disponibilidad falla explícitamente si recibe vehículos incompletos.
+- Pantallas del Hito 1 adaptadas en `public/`, conservando diseño, formularios y CSS.
+  Los originales permanecen en `resources/`. La interfaz llama solamente al Gateway.
+- Arranque de prueba con `npm run demo`: un proceso, puertos gRPC libres y datos
+  ficticios en memoria. No usa la base real. Pruebas con `npm test`.
 
-Este documento enumera pendientes reales: no declarar finalizada la entrega con
-sólo pruebas contra simuladores.
+## Para cerrar la entrega integrada
+
+1. Acordar/implementar los pendientes de los servicios detallados arriba, incluyendo
+   identificación de vehículo para actualización, reactivación y campos de modificación
+   de cliente. Revisar las rutas del Gateway tras cualquier cambio de contrato.
+2. Integrar el servicio Clientes y su RPC de autenticación sin perder el contrato
+   agregado en esta rama. Verificar identidad ADMIN y CLIENTE proveniente de la BD.
+3. Configurar puertos y levantar Java/MySQL. Ejecutar las siete funcionalidades con
+   datos reales, incluyendo un vehículo inactivo, clientes diferentes y rechazo de
+   reservas superpuestas. Los tests del Gateway no prueban esas reglas de Java.
+4. Guardar capturas de integración y completar el informe grupal de arquitectura,
+   modelo de datos e integrantes. Preparar PR hacia develop para revisión; no hacer merge
+   automático ni declarar finalizada la entrega sólo con simuladores.

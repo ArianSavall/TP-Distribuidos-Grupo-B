@@ -4,6 +4,8 @@ const { vehiculos, llamarRpc } = require("./grpc-clients");
 const { consultarMiHistorial } = require("./historial");
 const { consultarReservasCompletas } = require("./consulta-reservas");
 
+const { consultarDisponibilidad } = require("./disponibilidad");
+
 const schema = buildSchema(`
   type Vehiculo {
     id: ID!
@@ -56,7 +58,21 @@ const schema = buildSchema(`
     estado: String!
   }
 
+  type VehiculoDisponible {
+    id: ID!
+    patente: String!
+    marca: String!
+    modelo: String!
+    anio: Int!
+    color: String
+    tipoVehiculo: TipoVehiculo!
+    precioDiario: Float!
+  }
+
   type Query {
+    vehiculosDisponibles(tipo: TipoVehiculo, marca: String, modelo: String,
+      precioMin: Float, precioMax: Float, fechaInicio: String!, fechaFinal: String!): [VehiculoDisponible!]!
+
     vehiculos: [Vehiculo!]!
     reservas(filtros: FiltroReservasInput): [Reserva!]!
     miHistorialAlquileres: [HistorialAlquiler!]!
@@ -64,6 +80,7 @@ const schema = buildSchema(`
 `);
 
 const rootValue = {
+  vehiculosDisponibles: consultarDisponibilidad,
   vehiculos: async () => {
     try {
       const respuesta = await llamarRpc(
