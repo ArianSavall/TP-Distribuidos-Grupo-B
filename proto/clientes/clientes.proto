@@ -25,9 +25,9 @@ service ClienteService {
 
     rpc BorrarClienteDni (ClienteDniRequest) returns (ClienteResponse);
 
-    rpc VerificarExistenciaDni (ClienteDniRequest) returns (ValidacionResponse);
+    rpc VerificarExistenciaDni (ClienteDniRequest) returns (ClienteResponse);
 
-    rpc VerificarClienteActivo (ClienteIdRequest) returns (ValidacionResponse);
+    rpc VerificarClienteActivo (ClienteIdRequest) returns (ClienteResponse);
 }
 
 message ClienteDTO{
@@ -65,11 +65,7 @@ message MetadatosRequest{
 }
 
 message ClienteResponse {
-    string status = 1;
-    string message = 2;
-    oneof data{
-        ClienteDTO cliente = 3;
-    }   
+    ClienteDTO cliente = 3;
 }
 
 message ModificarClienteIdRequest{
@@ -96,12 +92,5 @@ message ListarClientesRequest{
 }
 
 message ListarClientesResponse{
-    string status = 1;
-    string message = 2;
     repeated ClienteDTO cliente = 3;
-}
-
-message ValidacionResponse {
-    bool esValido = 1;     
-    string mensaje = 2;
 }
