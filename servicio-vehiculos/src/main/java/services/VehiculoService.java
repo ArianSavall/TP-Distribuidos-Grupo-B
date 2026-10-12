@@ -1,75 +1,150 @@
 package services;
 
+import entities.Vehiculo;
+import enums.TipoVehiculo;
 import grpc.*;
+import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
+import jakarta.validation.ConstraintViolationException;
+import mappers.VehiculoMapper;
+import net.devh.boot.grpc.client.inject.GrpcClient;
 import net.devh.boot.grpc.server.service.GrpcService;
+import org.springframework.beans.factory.annotation.Autowired;
+import repositories.IVehiculoRepository;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
 @GrpcService
 public class VehiculoService extends VehiculoServiceGrpc.VehiculoServiceImplBase {
+    @Autowired
+    private IVehiculoRepository vehiculoRepository;
+    // Cliente gRPC para hablar con Reservas
+//    @GrpcClient("servicio-reservas")
+//    private ReservaServiceGrpc.ReservaServiceBlockingStub reservaStub;
+
     @Override
-    public void saveVehiculo(PutVehiculoRequest request, StreamObserver<Vehiculo> responseObserver) {
+    public void createVehiculo(PostVehiculoRequest request, StreamObserver<grpc.Vehiculo> responseObserver ){
+        try{
+        Vehiculo nuevoVehiculo = new Vehiculo();
+        nuevoVehiculo.setMarca(request.getMarca());
+        nuevoVehiculo.setModelo(request.getModelo());
+        nuevoVehiculo.setPatente(request.getPatente());
+        nuevoVehiculo.setTipoVehiculo(TipoVehiculo.valueOf(request.getTipoVehiculo()));
+        nuevoVehiculo.setAnio(request.getAnio());
+        nuevoVehiculo.setColor(request.getColor());
+        nuevoVehiculo.setPrecioDiario(request.getPrecioDiario());
+
+        // 2. Guardamos en la base de datos
+        Vehiculo guardado = vehiculoRepository.save(nuevoVehiculo);
+
+        // 3. Mapeamos la respuesta
+        grpc.Vehiculo grpcResponse = VehiculoMapper.toProto(guardado);
+
+        responseObserver.onNext(grpcResponse);
+        responseObserver.onCompleted();
+
+        }catch(ConstraintViolationException e){
+            responseObserver.onError(
+                    Status.ALREADY_EXISTS
+                            .withDescription("Ya hay un vehículo con esa patente.")
+                            .asRuntimeException()
+            );
+        } catch (Exception e) {
+            responseObserver.onError(
+                    Status.INTERNAL
+                            .withDescription("Error al persistir el vehículo: " + e.getMessage())
+                            .asRuntimeException()
+            );
+        }
+
+    }
+    @Override
+    public void saveVehiculo(PatchVehiculoRequest request, StreamObserver<grpc.Vehiculo> responseObserver) {
         try {
-            // 1. Extraer los datos que envía el API Gateway en el PutVehiculoRequest
-            String marca = request.getMarca();
-            String modelo = request.getModelo();
-            int anio = request.getAnio();
-            String color = request.getColor();
-            String tipoVehiculo = request.getTipoVehiculo();
-            double precioDiario = request.getPrecioDiario(); // Nota: En el request es double
+            // 1. Mapeamos el request gRPC a nuestra entidad JPA
+            Vehiculo nuevoVehiculo = new Vehiculo();
+            nuevoVehiculo.setMarca(request.getMarca());
+            nuevoVehiculo.setModelo(request.getModelo());
+            nuevoVehiculo.setTipoVehiculo(TipoVehiculo.valueOf(request.getTipoVehiculo()));
+            nuevoVehiculo.setAnio(request.getAnio());
+            nuevoVehiculo.setColor(request.getColor());
+            nuevoVehiculo.setPrecioDiario(request.getPrecioDiario());
 
-            // 2. Delegar la persistencia al servicio de base de datos.
-            // Aquí usarías tu cliente gRPC (el stub) para enviar estos datos al servicio-database.
-            // Ejemplo conceptual:
-            // DbVehiculoResponse dbResponse = databaseStub.insertVehiculo(request);
+            // 2. Guardamos en la base de datos
+            Vehiculo guardado = vehiculoRepository.save(nuevoVehiculo);
 
-            // (Para este ejemplo, simulamos los datos autogenerados por la base de datos)
-            long idGeneradoPorBD = 101L;
-            String patenteGenerada = "AG789XYZ"; // Asumiendo que la patente se genera o valida en la BD
+            // 3. Mapeamos la respuesta
+            grpc.Vehiculo grpcResponse = VehiculoMapper.toProto(guardado);
 
-            // 3. Mapear el resultado final al mensaje Vehiculo de Protobuf para responder
-            Vehiculo vehiculoResponse = Vehiculo.newBuilder()
-                    .setId(idGeneradoPorBD)
-                    .setMarca(marca)
-                    .setModelo(modelo)
-                    .setAnio(anio)
-                    .setColor(color)
-                    .setTipoVehiculo(tipoVehiculo)
-                    // Ojo: En tu mensaje Vehiculo definiste precio_diario como string
-                    // por lo que debes convertir el double a String, o corregir el .proto más adelante.
-                    .setPrecioDiario(precioDiario)
-                    .setPatente(patenteGenerada)
-                    .setEstaActivo(true)
-                    .setEstado("DISPONIBLE") // Estado inicial por defecto
-                    .build();
-
-            // 4. Enviar la respuesta a través del flujo de red
-            responseObserver.onNext(vehiculoResponse);
-
-            // 5. Cerrar la comunicación indicando que el proceso fue exitoso
+            responseObserver.onNext(grpcResponse);
             responseObserver.onCompleted();
 
         } catch (Exception e) {
-            // Manejo de excepciones devolviendo un código de estado gRPC adecuado
             responseObserver.onError(
-                    io.grpc.Status.INTERNAL
-                            .withDescription("Error interno al intentar guardar el vehículo: " + e.getMessage())
+                    Status.INTERNAL
+                            .withDescription("Error al persistir el vehículo: " + e.getMessage())
                             .asRuntimeException()
             );
         }
     }
+//    @Override
+//    public void getVehiculosDisponibles(GetVehiculosDisponiblesRequest request, StreamObserver<VehiculoListResponse> responseObserver) {
+//        try {
+//            // 1. Extraer fechas del request (asumiendo que las pasaste a String o LocalDateTime)
+//            // ...
+//
+//            // 2. Preguntar al servicio de reservas qué vehículos están OCUPADOS en esas fechas
+//            FechasRequest fechasRequest = FechasRequest.newBuilder()
+//                    // .setFechaDesde(...) .setFechaHasta(...)
+//                    .build();
+//
+//            VehiculosOcupadosResponse ocupadosResponse = reservaStub.getVehiculosOcupados(fechasRequest);
+//            List<Long> idsOcupados = ocupadosResponse.getVehiculoIdsList();
+//
+//            // 3. Buscar en la base de datos PROPIA de vehículos
+//            List<Vehiculo> vehiculosDisponibles;
+//            if (idsOcupados.isEmpty()) {
+//                vehiculosDisponibles = vehiculoRepository.findAllActivos();
+//            } else {
+//                vehiculosDisponibles = vehiculoRepository.findDisponiblesExcluyendo(idsOcupados);
+//            }
+//
+//            // 4. (Opcional) Filtrar por precioDiarioMin y precioDiarioMax en memoria
+//            // ya que vienen en el GetVehiculosDisponiblesRequest de tu contrato.
+//
+//            // 5. Mapear a Protobuf y devolver al API Gateway
+//            VehiculoListResponse.Builder responseBuilder = VehiculoListResponse.newBuilder();
+//            for (Vehiculo v : vehiculosDisponibles) {
+//                responseBuilder.addVehiculos(
+//                        grpc.Vehiculo.newBuilder().setId(v.getId()).setMarca(v.getMarca()).build() // Setear campos...
+//                );
+//            }
+//
+//            responseObserver.onNext(responseBuilder.build());
+//            responseObserver.onCompleted();
+//
+//        } catch (Exception e) {
+//            responseObserver.onError(Status.INTERNAL.withDescription("Error: " + e.getMessage()).asRuntimeException());
+//        }
+//    }
     @Override
     public void getAllVehiculos(empty request, StreamObserver<VehiculoListResponse> responseObserver) {
+        // 1. Encontrar todos los vehiculos
+        List<Vehiculo> vehiculos = vehiculoRepository.findAll();
 
-        // 1. Llamar al servicio de base de datos para obtener la lista
-        // ...
+
 
         // 2. Crear instancias de Vehiculo (Protobuf)
-        Vehiculo v1 = Vehiculo.newBuilder().setId(1).setMarca("Fiat").setModelo("Cronos").build();
-        Vehiculo v2 = Vehiculo.newBuilder().setId(2).setMarca("Toyota").setModelo("Corolla").build();
+        List<grpc.Vehiculo> vehiculosGrpc = new ArrayList<>();
 
+        for(Vehiculo v : vehiculos){
+            if(v.isEstaActivo())
+                vehiculosGrpc.add(VehiculoMapper.toProto(v));
+        }
         // 3. Ensamblar la respuesta de lista
-        VehiculoListResponse response = VehiculoListResponse.newBuilder()
-                .addVehiculos(v1) // addVehiculos se genera automáticamente por el "repeated"
-                .addVehiculos(v2)
+        VehiculoListResponse response = VehiculoListResponse.newBuilder().addAllVehiculos(vehiculosGrpc) // addVehiculos se genera automáticamente por el "repeated"
                 .build();
 
         // 4. Retornar y completar
@@ -78,38 +153,76 @@ public class VehiculoService extends VehiculoServiceGrpc.VehiculoServiceImplBase
     }
 
     @Override
-    public void getVehiculoById(GetVehiculoIdRequest request, StreamObserver<Vehiculo> responseObserver) {
-        // 1. Obtener el ID que viene en la petición del API Gateway
-        long idBuscado = request.getId();
+    public void getVehiculoById(GetVehiculoIdRequest request, StreamObserver<grpc.Vehiculo> responseObserver) {
+        Optional<Vehiculo> vehiculoOpt = vehiculoRepository.findById(request.getId());
 
-        try {
-            // 2. Aquí llamarías al servicio de base de datos por gRPC
-            // Ejemplo conceptual: DbVehiculoResponse dbData = databaseStub.findById(idBuscado);
+        if (vehiculoOpt.isPresent()) {
+            Vehiculo dbVehiculo = vehiculoOpt.get();
 
-            // 3. Mapear los datos al objeto de Protobuf (usando el patrón Builder)
-            Vehiculo vehiculoResponse = Vehiculo.newBuilder()
-                    .setId(idBuscado) // Usamos el ID buscado a modo de ejemplo
-                    .setMarca("Ford") // Reemplazar con dbData.getMarca()
-                    .setModelo("Focus")
-                    .setPatente("AB123CD")
-                    .setEstaActivo(true)
-                    .build();
-
-            // 4. Enviar la respuesta por la red
-            responseObserver.onNext(vehiculoResponse);
-
-            // 5. Avisar que terminamos de transmitir
-            responseObserver.onCompleted();
-
-        } catch (Exception e) {
-            // Manejo de errores estilo gRPC
+            if(dbVehiculo.isEstaActivo()){
+                // Retornamos por gRPC
+                responseObserver.onNext(VehiculoMapper.toProto(dbVehiculo));
+                responseObserver.onCompleted();
+            }else{
+                responseObserver.onError(
+                        Status.CANCELLED
+                                .withDescription("El vehículo está inactivo")
+                                .asRuntimeException());
+            }
+        } else {
             responseObserver.onError(
-                    io.grpc.Status.INTERNAL
-                            .withDescription("Error al buscar el vehículo: " + e.getMessage())
+                    Status.NOT_FOUND
+                            .withDescription("El vehículo no existe en la base de datos.")
                             .asRuntimeException()
             );
         }
     }
 
+    @Override
+    public void getVehiculoByPatente(GetVehiculoPatenteRequest request, StreamObserver<grpc.Vehiculo> responseObserver) {
+        Optional<Vehiculo> vehiculoOpt = vehiculoRepository.findByPatente(request.getPatente());
 
+        if (vehiculoOpt.isPresent()) {
+            Vehiculo dbVehiculo = vehiculoOpt.get();
+
+            if(dbVehiculo.isEstaActivo()){
+                // Retornamos por gRPC
+                responseObserver.onNext(VehiculoMapper.toProto(dbVehiculo));
+                responseObserver.onCompleted();
+            }else{
+                responseObserver.onError(
+                        Status.CANCELLED
+                            .withDescription("El vehículo está inactivo")
+                            .asRuntimeException());
+            }
+
+        } else {
+            responseObserver.onError(
+                    Status.NOT_FOUND
+                            .withDescription("El vehículo no existe en la base de datos.")
+                            .asRuntimeException()
+            );
+        }
+    }
+    @Override
+    public void deleteVehiculo(GetVehiculoPatenteRequest request, StreamObserver<grpc.Vehiculo> responseObserver){
+
+        if (vehiculoRepository.findByPatente(request.getPatente()).isPresent()) {
+            Vehiculo vehiculo = vehiculoRepository.findByPatente(request.getPatente()).get();
+
+            vehiculo.setEstaActivo(false);
+
+            Vehiculo vehiculoBaja = vehiculoRepository.save(vehiculo);
+
+            responseObserver.onNext(VehiculoMapper.toProto(vehiculoBaja));
+            responseObserver.onCompleted();
+        }else {
+            responseObserver.onError(
+                    Status.NOT_FOUND
+                            .withDescription("El vehículo no existe en la base de datos.")
+                            .asRuntimeException()
+            );
+        }
+
+    }
 }

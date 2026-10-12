@@ -1,18 +1,21 @@
 package repositories;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
+import entities.Vehiculo;
+import enums.TipoVehiculo;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
-import enums.EstadoReserva;
-import enums.TipoVehiculo;
-import entities.Vehiculo;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 
-public interface VehiculoRepository extends JpaRepository<Vehiculo, Long> {
-
+@Repository("VehiculoRepository")
+public interface IVehiculoRepository extends JpaRepository<Vehiculo, Integer>{
+    Optional<Vehiculo> findById(Long id);
+    Optional<Vehiculo> findByPatente(String patente);
+    List<Vehiculo> findAll();
     @Query("""
         SELECT v
         FROM Vehiculo v
@@ -34,13 +37,12 @@ public interface VehiculoRepository extends JpaRepository<Vehiculo, Long> {
         )
     """)
     List<Vehiculo> buscarDisponibles(
-        @Param("tipo") TipoVehiculo tipo,
-        @Param("marca") String marca,
-        @Param("modelo") String modelo,
-        @Param("precioMin") Double precioMin,
-        @Param("precioMax") Double precioMax,
-        @Param("fechaInicio") LocalDateTime fechaInicio,
-        @Param("fechaFinal") LocalDateTime fechaFinal,
-        @Param("estadoConfirmado") EstadoReserva estadoConfirmado
+            @Param("tipo") TipoVehiculo tipo,
+            @Param("marca") String marca,
+            @Param("modelo") String modelo,
+            @Param("precioMin") Double precioMin,
+            @Param("precioMax") Double precioMax,
+            @Param("fechaInicio") LocalDateTime fechaInicio,
+            @Param("fechaFinal") LocalDateTime fechaFinal//,
     );
 }
