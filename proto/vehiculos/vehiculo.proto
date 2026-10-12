@@ -11,7 +11,9 @@
    rpc getVehiculoByPatente(GetVehiculoPatenteRequest) returns (Vehiculo);
    rpc getAllVehiculos(empty) returns (VehiculoListResponse);
    rpc getVehiculosDisponibles(GetVehiculosDisponiblesRequest) returns (VehiculoListResponse);
-   rpc saveVehiculo(PutVehiculoRequest) returns (Vehiculo);
+   rpc createVehiculo(PostVehiculoRequest) returns (Vehiculo);
+   rpc saveVehiculo(PatchVehiculoRequest) returns (Vehiculo);
+   rpc deleteVehiculo(GetVehiculoPatenteRequest) returns (Vehiculo);
  }
 
  message Vehiculo {
@@ -45,7 +47,17 @@
    double precioDiarioMax = 7;
  }
 
- message PutVehiculoRequest{
+ message PostVehiculoRequest{
+   string marca = 1;
+   string modelo = 2;
+   string patente = 3;
+   string tipo_vehiculo = 4;
+   double precio_diario = 5;
+   int32 anio = 6;
+   string color= 7;
+ }
+
+ message PatchVehiculoRequest{
    string marca = 1;
    string modelo = 2;
    int32 anio = 3;

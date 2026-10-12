@@ -12,6 +12,7 @@ service ReservaService {
     rpc ListarReservas (ListarReservasRequest) returns (ListarReservasResponse);
     rpc CancelarReserva (CancelarReservaRequest) returns (CancelarReservaResponse);
     rpc ObtenerMiHistorial (ObtenerHistorialRequest) returns (ObtenerHistorialResponse);
+    rpc GetVehiculosOcupados(FechasRequest) returns (VehiculosOcupadosResponse);
 }
 
 enum EstadoReserva {
@@ -62,6 +63,15 @@ message ObtenerHistorialRequest {
 
 message ObtenerHistorialResponse {
     repeated HistorialItem historial = 1;
+}
+
+message FechasRequest { // Para pedir un rango de fechas
+    string fecha_desde = 1;
+    string fecha_hasta = 2;
+}
+
+message VehiculosOcupadosResponse {
+    repeated int64 vehiculo_ids = 1; // Lista de IDs que ya están reservados
 }
 
 message HistorialItem {

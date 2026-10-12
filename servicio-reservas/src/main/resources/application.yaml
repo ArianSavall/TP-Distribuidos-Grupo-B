@@ -1,0 +1,15 @@
+grpc:
+  server:
+    port: 9091
+
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/reservas_db?createDatabaseIfNotExist=true&serverTimezone=UTC
+    username: root
+    password: Zurlo.123 
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: update 
+    show-sql: true 
