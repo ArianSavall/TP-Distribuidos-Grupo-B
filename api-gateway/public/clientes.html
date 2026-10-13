@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<title>Rentar - Gestión de Clientes</title>
+<link href="/assets/css/app.css" rel="stylesheet"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/></head>
+<body data-page="clientes">
+<nav class="navbar">
+<h2>Rentar - Admin</h2>
+<div class="links">
+<a data-role="ADMIN" hidden="" href="/vehiculos">Vehículos</a>
+<a data-role="ADMIN" hidden="" href="/clientes">Clientes</a>
+<a href="/reservas">Reservas</a>
+</div>
+</nav>
+<div class="container"><p aria-live="polite" class="estado-pagina" hidden="" id="estado-pagina" role="status"></p>
+<div class="top-nav">
+<a class="btn-back" href="/">← Volver al Panel</a>
+</div>
+
+<div class="form-card">
+<h3>Registrar Nuevo Cliente</h3>
+<form action="#" class="grid-form" data-action="clientes-create" method="post">
+<div class="form-group">
+<label for="clientes-campo-0">DNI:</label>
+<input id="clientes-campo-0" name="dni" required="" type="text"/>
+</div>
+<div class="form-group">
+<label for="clientes-campo-1">Nombre:</label>
+<input id="clientes-campo-1" name="nombre" required="" type="text"/>
+</div>
+<div class="form-group">
+<label for="clientes-campo-2">Apellido:</label>
+<input id="clientes-campo-2" name="apellido" required="" type="text"/>
+</div>
+<div class="form-group">
+<label for="clientes-campo-3">Email:</label>
+<input id="clientes-campo-3" name="email" required="" type="email"/>
+</div>
+<div class="form-group">
+<label for="clientes-campo-4">Teléfono:</label>
+<input id="clientes-campo-4" name="telefono" type="text"/>
+</div>
+<div class="form-group">
+<label for="clientes-campo-5">Fecha de Nacimiento:</label>
+<input id="clientes-campo-5" name="fechaNacimiento" type="date"/>
+</div>
+<div class="form-group">
+<label for="clientes-campo-6">Nombre de Usuario:</label>
+<input id="clientes-campo-6" name="metadatos.usuario" required="" type="text"/>
+</div>
+<div class="form-group">
+<label for="clientes-campo-7">Contraseña:</label>
+<input id="clientes-campo-7" name="metadatos.password" required="" type="password"/>
+</div>
+<button class="btn btn-primary" style="grid-column: 1 / -1;" type="submit">Registrar Cliente</button>
+</form>
+</div>
+<div class="form-card search-card">
+<h3>Buscar Cliente por DNI</h3>
+<form action="#" class="search-form" data-action="clientes-search" method="get">
+<div class="form-group">
+<label for="buscarDni">Ingrese DNI:</label>
+<input id="buscarDni" name="dni" placeholder="Ej: 12345678" required="" type="text"/>
+</div>
+<div class="search-buttons">
+<button class="btn btn-primary" type="submit">Buscar</button>
+<a class="btn btn-secondary" href="/clientes">Ver Todos</a>
+</div>
+</form>
+
+</div>
+<h3>Directorio de Clientes</h3>
+<table class="data-table">
+<thead>
+<tr>
+<th>DNI</th>
+<th>Nombre Completo</th>
+<th>Email</th>
+<th>Teléfono</th>
+<th>Usuario</th>
+<th>Estado</th>
+<th>Acciones</th>
+</tr>
+</thead>
+<tbody data-table="clientes"></tbody>
+</table>
+</div>
+<script defer="" src="/assets/app.js"></script></body>
+</html>
