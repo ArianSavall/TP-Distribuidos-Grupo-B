@@ -64,11 +64,15 @@ app.use((err, req, res, next) => {
     err.httpStatus || 500,
     "Error interno del Gateway o del servicio"
   ];
+  const mensajeServicio =
+    typeof err.details === "string" && err.details.trim()
+      ? err.details
+      : mensaje;
 
-  console.error(err.message);
+  console.error(mensajeServicio);
 
   res.status(estado).json({
-    error: mensaje
+    error: mensajeServicio
   });
 });
 

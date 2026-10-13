@@ -45,22 +45,23 @@ public class VehiculoService extends VehiculoServiceGrpc.VehiculoServiceImplBase
         nuevoVehiculo.setColor(request.getColor());
         nuevoVehiculo.setPrecioDiario(request.getPrecioDiario());
 
-        // 2. Guardamos en la base de datos
-        Vehiculo guardado = vehiculoRepository.save(nuevoVehiculo);
+        if(vehiculoRepository.findByPatente(request.getPatente()).isEmpty()){
+            // 2. Guardamos en la base de datos
+            Vehiculo guardado = vehiculoRepository.save(nuevoVehiculo);
 
-        // 3. Mapeamos la respuesta
-        grpc.Vehiculo grpcResponse = VehiculoMapper.toProto(guardado);
+            // 3. Mapeamos la respuesta
+            grpc.Vehiculo grpcResponse = VehiculoMapper.toProto(guardado);
 
-        responseObserver.onNext(grpcResponse);
-        responseObserver.onCompleted();
-
-        }catch(ConstraintViolationException e){
+            responseObserver.onNext(grpcResponse);
+            responseObserver.onCompleted();
+        }else{
             responseObserver.onError(
                     Status.ALREADY_EXISTS
                             .withDescription("Ya hay un vehículo con esa patente.")
                             .asRuntimeException()
             );
-        } catch (Exception e) {
+        }
+        }catch (Exception e) {
             responseObserver.onError(
                     Status.INTERNAL
                             .withDescription("Error al persistir el vehículo: " + e.getMessage())

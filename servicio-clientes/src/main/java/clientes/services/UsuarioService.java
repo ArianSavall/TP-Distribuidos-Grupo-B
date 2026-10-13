@@ -175,13 +175,21 @@ public class UsuarioService extends ClienteServiceGrpc.ClienteServiceImplBase{
                 clientes.enums.Rol.CLIENTE,
                 null
             ));
+            if(usuarioRepository.findByDni(request.getDni()) == null){
+                usuarioRepository.save(u);
 
-            usuarioRepository.save(u);
+                ClienteResponse response = mapearUsuarioAResponse(u, u.getMetadatos());
 
-            ClienteResponse response = mapearUsuarioAResponse(u, u.getMetadatos());
+                responseObserver.onNext(response);
+                responseObserver.onCompleted();
+            }else{
+                responseObserver.onError(
+                        Status.ALREADY_EXISTS
+                                .withDescription("Ya hay un cliente/usuario con ese DNI.")
+                                .asRuntimeException()
+                );
+            }
 
-            responseObserver.onNext(response);
-            responseObserver.onCompleted();
        }
        catch(Exception e){
             responseObserver.onError(

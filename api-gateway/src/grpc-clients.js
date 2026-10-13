@@ -39,21 +39,21 @@ const vehiculos = crearCliente(
   "vehiculos/vehiculo.proto",
   "vehiculos",
   "VehiculoService",
-  process.env.VEHICULOS_GRPC_ADDR || "127.0.0.1:9091"
+  process.env.VEHICULOS_GRPC_ADDR || "127.0.0.1:9090"
 );
 
 const clientes = crearCliente(
   "clientes/clientes.proto",
   "clientes",
   "ClienteService",
-  process.env.CLIENTES_GRPC_ADDR || "127.0.0.1:9092"
+  process.env.CLIENTES_GRPC_ADDR || "127.0.0.1:9091"
 );
 
 const reservas = crearCliente(
   "reservas/reserva.proto",
   "reservas",
   "ReservaService",
-  process.env.RESERVAS_GRPC_ADDR || "127.0.0.1:9093"
+  process.env.RESERVAS_GRPC_ADDR || "127.0.0.1:9092"
 );
 
 // Ejecuta una llamada gRPC con un límite de cinco segundos.
