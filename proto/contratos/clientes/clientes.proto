@@ -26,6 +26,8 @@ service ClienteService {
     rpc VerificarExistenciaDni (ClienteDniRequest) returns (VerificarActivoResponse);
 
     rpc VerificarClienteActivo (ClienteIdRequest) returns (VerificarActivoResponse);
+
+    rpc validarLogin (MetadatosRequest) returns (Metadatos);
 }
 
 message ClienteDTO{
