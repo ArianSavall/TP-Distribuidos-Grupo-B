@@ -1,6 +1,7 @@
 package unla.tp.vehiculos.services;
 
 import unla.tp.vehiculos.entities.Vehiculo;
+import unla.tp.vehiculos.enums.EstadoVehiculo;
 import unla.tp.vehiculos.enums.TipoVehiculo;
 import grpc.*;
 import grpc.FechasRequest;
@@ -38,6 +39,8 @@ public class VehiculoService extends VehiculoServiceGrpc.VehiculoServiceImplBase
         nuevoVehiculo.setModelo(request.getModelo());
         nuevoVehiculo.setPatente(request.getPatente());
         nuevoVehiculo.setTipoVehiculo(TipoVehiculo.valueOf(request.getTipoVehiculo()));
+        nuevoVehiculo.setEstaActivo(true);
+        nuevoVehiculo.setEstado(EstadoVehiculo.DISPONIBLE);
         nuevoVehiculo.setAnio(request.getAnio());
         nuevoVehiculo.setColor(request.getColor());
         nuevoVehiculo.setPrecioDiario(request.getPrecioDiario());
