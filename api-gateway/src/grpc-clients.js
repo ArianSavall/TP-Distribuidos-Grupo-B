@@ -8,7 +8,7 @@ require("dotenv").config({
 });
 
 // Usa los contratos originales del grupo.
-const PROTO_DIR = path.resolve(__dirname, "../../proto");
+const PROTO_DIR = path.resolve(__dirname, "../../proto/contratos");
 
 const opciones = {
   keepCase: false,

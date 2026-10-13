@@ -3,7 +3,7 @@ const grpc = require("@grpc/grpc-js");
 const protoLoader = require("@grpc/proto-loader");
 
 const definicion = protoLoader.loadSync(
-  path.resolve(__dirname, "../../proto/reservas/reserva.proto"),
+  path.resolve(__dirname, "../../proto/contratos/reservas/reserva.proto"),
   {
     keepCase: false,
     longs: String,

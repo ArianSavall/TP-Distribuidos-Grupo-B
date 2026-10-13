@@ -31,7 +31,7 @@ async function iniciarSimuladores() {
     try { cb(null, fn(call.request)); } catch (e) { cb(e.code == null ? error(grpc.status.INTERNAL, 'Error del simulador') : e); }
   };
   async function registrar(archivo, paquete, servicio, metodos) {
-    const proto = grpc.loadPackageDefinition(loader.loadSync(path.resolve(__dirname, '../../proto', archivo), {
+    const proto = grpc.loadPackageDefinition(loader.loadSync(path.resolve(__dirname, '../../proto/contratos', archivo), {
       keepCase: false, longs: String, enums: String, defaults: true, oneofs: true
     }));
     const s = new grpc.Server();
@@ -48,12 +48,13 @@ async function iniciarSimuladores() {
   }
   try {
     const CLIENTES_GRPC_ADDR = await registrar('clientes/clientes.proto', 'clientes', 'ClienteService', {
-      autenticarCliente: d => {
+      validarLogin: d => {
         const c = clientes.find(c => c.metadatos.usuario === d.usuario);
         if (!c || credenciales.get(d.usuario) !== d.password) throw error(grpc.status.UNAUTHENTICATED, 'Credenciales incorrectas');
         if (!c.estaActivo) throw error(grpc.status.PERMISSION_DENIED, 'Usuario inactivo');
-        return { idCliente: c.id, usuario: c.metadatos.usuario, rol: c.metadatos.rol, nombre: c.nombre, apellido: c.apellido };
+        return { ...c.metadatos, password: "hash-ficticio-no-exponer" };
       },
+      listarUsuarios: () => ({ cliente: clientes }),
       listarClientes: () => ({ cliente: clientes.filter(c => c.metadatos.rol === 'CLIENTE') }),
       consultarClienteId: d => ({ cliente: cliente(d.id) }),
       consultarClienteDni: d => ({ cliente: porDni(d.dni) }),

@@ -39,23 +39,32 @@ function instalarAutenticacion(app) {
       }
 
       // La verificación se delega al servicio de clientes.
-      const identidad = await llamarRpc(
+      const metadatos = await llamarRpc(
         clientes,
-        "autenticarCliente",
+        "validarLogin",
         { usuario: usuario.trim(), password }
       );
 
-      const id = String(identidad.idCliente);
-
-      if (
-        !/^[1-9]\d*$/.test(id) ||
-        !["CLIENTE", "ADMIN"].includes(identidad.rol) ||
-        !identidad.usuario
-      ) {
-        return res.status(502).json({
-          error: "El servicio de clientes devolvió una identidad inválida"
-        });
+      // validarLogin devuelve el ID de metadatos, no el ID del cliente.
+      // Resolver la identidad con los RPC existentes, sólo tras validar la clave.
+      if (!/^[1-9]\d*$/.test(String(metadatos.id)) ||
+          metadatos.usuario !== usuario.trim() ||
+          !["CLIENTE", "ADMIN"].includes(metadatos.rol)) {
+        return res.status(502).json({ error: "El servicio de clientes devolvió una identidad inválida" });
       }
+      const respuesta = await llamarRpc(clientes, "listarUsuarios", {});
+      const coincidencias = Array.isArray(respuesta.cliente) ? respuesta.cliente.filter(c =>
+        String(c.metadatos?.id) === String(metadatos.id) &&
+        c.metadatos?.usuario === metadatos.usuario && c.metadatos?.rol === metadatos.rol
+      ) : [];
+      const identidad = coincidencias.length === 1 ? coincidencias[0] : null;
+      if (!identidad || !/^[1-9]\d*$/.test(String(identidad.id))) {
+        return res.status(502).json({ error: "No se pudo identificar al usuario autenticado" });
+      }
+      if (!identidad.estaActivo) {
+        return res.status(403).json({ error: "Usuario inactivo" });
+      }
+      const id = String(identidad.id);
 
       // Genera una sesión nueva después de autenticar.
       await new Promise((resolve, reject) => {
@@ -68,8 +77,8 @@ function instalarAutenticacion(app) {
       // Guarda identidad y rol. Nunca guarda la contraseña.
       req.session.usuario = {
         id,
-        usuario: identidad.usuario,
-        rol: identidad.rol,
+        usuario: metadatos.usuario,
+        rol: metadatos.rol,
         nombre: identidad.nombre,
         apellido: identidad.apellido
       };

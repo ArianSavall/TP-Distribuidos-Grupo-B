@@ -29,7 +29,11 @@ for (const [clave, sufijo] of [['id', 'Id'], ['dni', 'Dni']]) {
     res.json(publico(clienteDeRespuesta(r)));
   });
   router.delete(`/borrar/${clave}/:${clave}`, async (req, res) => {
-    clienteDeRespuesta(await llamarRpc(clientes, `borrarCliente${sufijo}`, { [clave]: req.params[clave] }));
+    // El servicio publicado ofrece baja por ID: resolver el DNI por gRPC.
+    const id = clave === 'id' ? req.params.id : clienteDeRespuesta(
+      await llamarRpc(clientes, 'consultarClienteDni', { dni: req.params.dni })
+    ).id;
+    clienteDeRespuesta(await llamarRpc(clientes, 'borrarClienteId', { id }));
     res.send('Cliente dado de baja correctamente');
   });
 }

@@ -22,7 +22,7 @@ const reservas = [
   { idReserva: '102', idCliente: '2', patenteVehiculo: 'PRUEBA01', fechaHoraInicio: '2026-12-10T10:00:00', fechaHoraFinal: '2026-12-12T10:00:00', estadoReserva: 'CONFIRMADO', importeTotal: 50000 }
 ];
 async function servicio(archivo, paquete, nombre, implementacion) {
-  const proto = grpc.loadPackageDefinition(loader.loadSync(path.resolve(__dirname, '../../proto', archivo), {
+  const proto = grpc.loadPackageDefinition(loader.loadSync(path.resolve(__dirname, '../../proto/contratos', archivo), {
     keepCase: false, longs: String, enums: String, defaults: true, oneofs: true
   }));
   const servidor = new grpc.Server();
@@ -33,10 +33,13 @@ async function servicio(archivo, paquete, nombre, implementacion) {
 }
 before(async () => {
   process.env.CLIENTES_GRPC_ADDR = await servicio('clientes/clientes.proto', 'clientes', 'ClienteService', {
-    autenticarCliente(call, cb) {
+    validarLogin(call, cb) {
       const u = usuarios.find(u => u.id === call.request.usuario);
       if (!u || call.request.password !== 'ficticia') return cb({ code: grpc.status.UNAUTHENTICATED });
-      cb(null, { idCliente: u.id, usuario: u.id, rol: u.rol, nombre: u.nombre, apellido: u.apellido });
+      cb(null, { id: String(100 + Number(u.id)), usuario: u.id, rol: u.rol, password: "hash-ficticio-no-exponer" });
+    },
+    listarUsuarios(call, cb) {
+      cb(null, { cliente: usuarios.map(u => ({ ...u, estaActivo: true, metadatos: { id: String(100 + Number(u.id)), usuario: u.id, rol: u.rol, password: "hash-ficticio-no-exponer" } })) });
     },
     consultarClienteId(call, cb) {
       solicitudesClientes.push(call.request.id);
@@ -143,4 +146,14 @@ test('historial sigue publicado y logout invalida la cookie anterior', async () 
   assert.deepEqual(r.data.data.miHistorialAlquileres, []);
   assert.equal((await request('/auth/logout', { cookie, method: 'POST' })).status, 200);
   assert.equal((await request('/auth/me', { cookie })).status, 401);
+});
+
+test('login usa ID del cliente aunque el ID de metadatos sea distinto y no expone claves', async () => {
+  const cookie = await login('1');
+  const r = await request('/auth/me', { cookie });
+  assert.equal(r.status, 200);
+  assert.equal(r.data.usuario.id, '1');
+  assert.equal(r.data.usuario.rol, 'CLIENTE');
+  assert.equal(r.data.usuario.password, undefined);
+  assert.doesNotMatch(JSON.stringify(r.data), /hash-ficticio/);
 });

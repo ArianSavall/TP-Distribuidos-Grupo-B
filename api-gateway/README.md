@@ -1,7 +1,7 @@
 # API Gateway de Rentar
 
 Node.js + Express recibe REST, GraphQL y la interfaz web. Los clientes gRPC cargan
-los contratos del directorio `../proto`. El Gateway no abre conexiones a bases de
+los contratos del directorio `../proto/contratos`. El Gateway no abre conexiones a bases de
 datos: la persistencia, precios, disponibilidad y validaciones de dominio pertenecen
 a los servicios Java.
 
@@ -43,6 +43,13 @@ contrato real; el simulador no inventa un contrato distinto.
 4. Levantar los servicios Java y sus bases siguiendo las instrucciones de sus autores.
 5. Ejecutar `npm start` desde `api-gateway`. Este comando usa servicios reales y no
    arranca simuladores ni cambia automáticamente a ellos si una conexión falla.
+
+Puertos publicados en develop `73ed674`: Vehículos `127.0.0.1:9090`, Clientes
+`127.0.0.1:9091`, Reservas `127.0.0.1:9092`.
+
+El login usa `validarLogin` de Clientes. Como devuelve el ID de metadatos, se consulta
+`ListarUsuarios` tras validar las credenciales para obtener el ID del cliente correcto.
+El Gateway mantiene la sesión y descarta las contraseñas/hashes recibidos.
 
 `PORT` es opcional (3000 por defecto). `SESSION_SECRET` es opcional en desarrollo;
 si no está definido se genera un secreto al arrancar. Las sesiones se guardan en

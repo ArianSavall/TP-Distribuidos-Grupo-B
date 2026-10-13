@@ -1,13 +1,15 @@
 # Estado de integración del Gateway
 
-Revisión del 12/10/2026. Base de Gateway: f1bb5fd + integración de develop en nuestra rama. Servicios revisados:
-`origin/develop` 335d386 y `origin/Refactor/migracion-BD-cliente` a1bd715.
+Revisión del 12/10/2026. Base de Gateway: 628db36 + integración de develop en nuestra rama. Servicios revisados:
+`origin/develop` 73ed674, que integra Clientes y su validación de login (PR #29).
 No se modifican los servicios Java en esta corrección.
+Se adaptaron Gateway, simuladores y pruebas a los contratos movidos a `proto/contratos`.
+Se usa el contrato de develop sin agregar `AutenticarCliente`: el RPC acordado es `validarLogin`.
 
 ## Verificado automáticamente
 
 Desde `api-gateway`: `npm ci` y `npm test`.
-Las 16 pruebas automáticas levantan servidores gRPC de prueba en puertos libres y el Gateway HTTP
+Las 17 pruebas automáticas levantan servidores gRPC de prueba en puertos libres y el Gateway HTTP
 real. No necesitan los mocks manuales, MySQL ni credenciales personales.
 Prueban login rechazado/aceptado, sesión, consulta GraphQL de reservas y filtros,
 aislación entre clientes, consulta administrativa, error de servicio, rechazo de
@@ -23,31 +25,32 @@ Hito 1. Se mantienen los IDs como cadenas para no perder precisión de int64.
 
 ## Pendientes comprobados en los servicios publicados
 
-- **Clientes:** falta implementar `AutenticarCliente` en Java. El contrato de esta
-  rama ya define usuario/password y una respuesta de identidad (idCliente, usuario,
-  rol, nombre, apellido). La contraseña debe verificarse dentro de Clientes con su
-  almacenamiento actual; el Gateway sólo transporta las credenciales y establece
-  la sesión. No se debe devolver la contraseña. La implementación publicada de
-  Clientes utiliza BCrypt: no reemplazar contraseñas guardadas por texto plano.
-- **Clientes:** la rama de migración a BD aún no está integrada en develop; cambia
-  respuestas a `{ cliente }` sin status. La consulta de reservas ya admite ambos
-  formatos; revisar también las rutas REST al integrar. En esa rama no está
-  implementado `borrarClienteDni`. Los métodos de modificación comparan getters
-  protobuf con null, aunque los campos omitidos devuelven valores predeterminados;
-  corregir presencia de campos antes de probar modificaciones parciales.
+- **Login implementado:** Clientes valida usuario/contraseña con BCrypt mediante
+  `validarLogin`. El Gateway crea y destruye las sesiones. La respuesta contiene el
+  ID de metadatos; el Gateway llama después a `ListarUsuarios` para encontrar el ID
+  real del cliente, comprobando coincidencia única de metadatos, usuario y rol.
+  Sólo guarda y devuelve ID de cliente, usuario, rol, nombre y apellido; nunca claves.
+  Esta consulta adicional se puede reemplazar por un RPC específico o una respuesta
+  de login que incluya idCliente cuando el grupo amplíe el contrato.
+- **Clientes:** ya está integrado el almacenamiento en BD y las respuestas `{ cliente }`
+  sin status. La baja por DNI del Gateway consulta el ID por gRPC y luego invoca
+  `BorrarClienteId`, ya que el contrato no ofrece `BorrarClienteDni`.
+  La modificación Java ahora omite cadenas vacías; no permite vaciar un campo existente.
+  El servicio devuelve hashes de contraseña en metadatos: el Gateway los elimina
+  de las respuestas REST, pero conviene quitarlos del mapeo Java.
 - **Vehículos:** `PatchVehiculoRequest` no identifica el vehículo, y `saveVehiculo`
   crea una entidad nueva. Se necesita un contrato e implementación de actualización
   por patente/ID y una operación para reactivar vehículos.
-- **Vehículos:** `getVehiculosDisponibles` envía fechas vacías a Reservas, no aplica
-  aún todos los filtros y devuelve sólo ID/marca. Debe devolver el vehículo completo.
+- **Vehículos:** `getVehiculosDisponibles` ya envía fechas y consume patentes ocupadas,
+  pero no aplica aún todos los filtros y devuelve sólo ID/marca. Debe devolver el vehículo completo.
   Las consultas por patente rechazan vehículos inactivos: acordar cómo recuperar
   datos de vehículos dados de baja para reservas históricas.
-- **Reservas:** alta conserva un precio fijo de prueba y validaciones entre servicios
-  marcadas TODO. El RPC `GetVehiculosOcupados` está en el contrato pero sin implementar
-  en el servicio revisado. El historial devuelve un nombre de vehículo provisional.
-- **Puertos:** los mocks usan 9091/9092/9093; los YAML publicados de Vehículos y Reservas
-  usan 9090 y 9091 respectivamente. Confirmar puerto de Clientes y configurar `.env`
-  del Gateway para los servicios reales. No publicar credenciales de base de datos.
+- **Reservas:** el alta ya consulta el precio real a Vehículos y `GetVehiculosOcupados`
+  está implementado. Falta verificar cliente activo y superposición al crear reservas.
+  El historial todavía devuelve un nombre de vehículo provisional.
+- **Puertos reales:** Vehículos 9090, Clientes 9091, Reservas 9092 según los YAML
+  publicados. Configurar el `.env` local; los mocks manuales mantienen 9091/9092/9093.
+  `npm run demo` usa puertos libres y no necesita cambiar `.env`.
 
 ## Gateway implementado y límites de esta revisión
 
@@ -61,7 +64,7 @@ Hito 1. Se mantienen los IDs como cadenas para no perder precisión de int64.
 - GraphQL: reservas con filtros, disponibilidad delegada a Vehículos, historial y
   vehículos. La disponibilidad falla explícitamente si recibe vehículos incompletos.
 - Pantallas del Hito 1 adaptadas en `public/`, conservando diseño, formularios y CSS.
-  Los originales permanecen en `resources/`. La interfaz llama solamente al Gateway.
+  La interfaz llama solamente al Gateway; develop eliminó el antiguo módulo monolítico.
 - Arranque de prueba con `npm run demo`: un proceso, puertos gRPC libres y datos
   ficticios en memoria. No usa la base real. Pruebas con `npm test`.
 
@@ -70,8 +73,8 @@ Hito 1. Se mantienen los IDs como cadenas para no perder precisión de int64.
 1. Acordar/implementar los pendientes de los servicios detallados arriba, incluyendo
    identificación de vehículo para actualización, reactivación y campos de modificación
    de cliente. Revisar las rutas del Gateway tras cualquier cambio de contrato.
-2. Integrar el servicio Clientes y su RPC de autenticación sin perder el contrato
-   agregado en esta rama. Verificar identidad ADMIN y CLIENTE proveniente de la BD.
+2. Verificar login ADMIN y CLIENTE con credenciales de la BD real, clave incorrecta,
+   usuario inactivo, ID de cliente correcto y cierre de sesión.
 3. Configurar puertos y levantar Java/MySQL. Ejecutar las siete funcionalidades con
    datos reales, incluyendo un vehículo inactivo, clientes diferentes y rechazo de
    reservas superpuestas. Los tests del Gateway no prueban esas reglas de Java.

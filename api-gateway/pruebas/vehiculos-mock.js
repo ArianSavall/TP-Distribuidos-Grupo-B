@@ -5,7 +5,7 @@ const protoLoader = require("@grpc/proto-loader");
 // Usa el mismo contrato que el servicio Java.
 const archivoProto = path.resolve(
   __dirname,
-  "../../proto/vehiculos/vehiculo.proto"
+  "../../proto/contratos/vehiculos/vehiculo.proto"
 );
 
 const definicion = protoLoader.loadSync(archivoProto, {

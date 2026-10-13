@@ -3,7 +3,7 @@ const grpc = require("@grpc/grpc-js");
 const protoLoader = require("@grpc/proto-loader");
 
 const definicion = protoLoader.loadSync(
-  path.resolve(__dirname, "../../proto/clientes/clientes.proto"),
+  path.resolve(__dirname, "../../proto/contratos/clientes/clientes.proto"),
   {
     keepCase: false,
     longs: String,
@@ -65,8 +65,8 @@ function darDeBaja(cliente, responder) {
 }
 
 servidor.addService(contrato.clientes.ClienteService.service, {
-  autenticarCliente: (llamada, responder) => {
-    console.log("gRPC: autenticarCliente");
+  validarLogin: (llamada, responder) => {
+    console.log("gRPC: validarLogin");
 
     const { usuario, password } = llamada.request;
 
@@ -92,13 +92,14 @@ servidor.addService(contrato.clientes.ClienteService.service, {
     }
 
     responder(null, {
-      idCliente: cliente.id,
+      id: cliente.metadatos.id,
       usuario: cliente.metadatos.usuario,
       rol: cliente.metadatos.rol,
       nombre: cliente.nombre,
       apellido: cliente.apellido
     });
   },
+  listarUsuarios: (llamada, responder) => responder(null, { cliente: clientes }),
   listarClientes: (llamada, responder) => {
     console.log("gRPC: listarClientes");
 

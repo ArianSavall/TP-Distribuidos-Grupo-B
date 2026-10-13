@@ -324,15 +324,15 @@ src/
 │   │   ├── configuration/     Configuración de seguridad
 │   │   ├── controllers/       Controladores web, REST y GraphQL
 │   │   ├── dtos/              Objetos de transferencia
-│   │   ├── enums/             Enumeraciones del dominio
-│   │   ├── entities/            Entidades JPA
-│   │   ├── repositories/      Repositorios de persistencia
+│   │   ├── clientes.enums/             Enumeraciones del dominio
+│   │   ├── clientes.entities/            Entidades JPA
+│   │   ├── clientes.repositories/      Repositorios de persistencia
 │   │   └── services/          Lógica de negocio
 │   └── resources/
 │       ├── graphql/            Esquemas GraphQL
 │       ├── static/             CSS y recursos estáticos
 │       ├── templates/          Vistas Thymeleaf
-│       └── application.yaml   Configuración de la aplicación
+│       └── clientes.application.yaml   Configuración de la aplicación
 └── test/
     └── java/                   Pruebas automatizadas
 ```
