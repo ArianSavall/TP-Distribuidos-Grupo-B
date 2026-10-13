@@ -3,8 +3,7 @@ package clientes.services;
 import java.time.LocalDate;
 import java.util.List;
 
-import org.springframework.security.crypto.password.PasswordEncoder;
-
+import org.mindrot.jbcrypt.BCrypt;
 import clientes.entities.Usuario;
 import clientes.entities.UsuarioMetaDatos;
 import grpc.*;
@@ -20,9 +19,6 @@ public class UsuarioService extends ClienteServiceGrpc.ClienteServiceImplBase{
 
     private IUsuarioRepository usuarioRepository;
 
-    private PasswordEncoder passwordEncoder() {
-        return new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder();
-    }
 
     public UsuarioService(IUsuarioRepository usuarioRepository) {
         this.usuarioRepository = usuarioRepository;
@@ -175,7 +171,7 @@ public class UsuarioService extends ClienteServiceGrpc.ClienteServiceImplBase{
             u.setMetadatos(new clientes.entities.UsuarioMetaDatos(
                 null,
                 request.getMetadatos().getUsuario(),
-                passwordEncoder().encode(request.getMetadatos().getPassword()),
+                BCrypt.hashpw(request.getMetadatos().getPassword(), BCrypt.gensalt()),
                 clientes.enums.Rol.CLIENTE,
                 null
             ));
@@ -214,27 +210,27 @@ public class UsuarioService extends ClienteServiceGrpc.ClienteServiceImplBase{
                 return;
             }
 
-            if (request.getNombre().isBlank() == false) {
+            if (!request.getNombre().isBlank()) {
                 usuario.setNombre(request.getNombre());
             }
-            if (request.getApellido().isBlank() == false) {
+            if (!request.getApellido().isBlank()) {
                 usuario.setApellido(request.getApellido());
             }
-            if (request.getFechaNacimiento().isBlank() == false) {
+            if (!request.getFechaNacimiento().isBlank()) {
                 usuario.setFechaNacimiento(LocalDate.parse(request.getFechaNacimiento()));
             }
-            if(request.getEmail().isBlank() == false) {
+            if(!request.getEmail().isBlank()) {
                 usuario.setEmail(request.getEmail());
             }
-            if( request.getTelefono().isBlank() == false) {
+            if(!request.getTelefono().isBlank()) {
                 usuario.setTelefono(request.getTelefono());
             }
-            if( request.getMetadatos().isInitialized() == true) {
-                if (request.getMetadatos().getUsuario().isBlank() == false) {
+            if(request.getMetadatos().isInitialized()) {
+                if (!request.getMetadatos().getUsuario().isBlank()) {
                     usuario.getMetadatos().setUsuario(request.getMetadatos().getUsuario());
                 }
-                if (request.getMetadatos().getPassword().isBlank() == false) {
-                    usuario.getMetadatos().setPassword(passwordEncoder().encode(request.getMetadatos().getPassword()));
+                if (!request.getMetadatos().getPassword().isBlank()) {
+                    usuario.getMetadatos().setPassword(BCrypt.hashpw(request.getMetadatos().getPassword(), BCrypt.gensalt()));
                 }
             }
 
@@ -293,7 +289,7 @@ public class UsuarioService extends ClienteServiceGrpc.ClienteServiceImplBase{
                     usuario.getMetadatos().setUsuario(request.getMetadatos().getUsuario());
                 }
                 if (request.getMetadatos().getPassword().isBlank() == false) {
-                    usuario.getMetadatos().setPassword(passwordEncoder().encode(request.getMetadatos().getPassword()));
+                    usuario.getMetadatos().setPassword(BCrypt.hashpw(request.getMetadatos().getPassword(), BCrypt.gensalt()));
                 }
             }
 
@@ -427,6 +423,61 @@ public class UsuarioService extends ClienteServiceGrpc.ClienteServiceImplBase{
             responseObserver.onError(
                 Status.INTERNAL
                     .withDescription("Error al verificar si el cliente está activo: " + e.getMessage())
+                    .asRuntimeException()
+            );
+        }
+    }
+
+    @Override
+    public void validarLogin(MetadatosRequest request, StreamObserver<Metadatos> response){
+        try {
+            if (request.getUsuario().isBlank() || request.getPassword().isBlank()) {
+                response.onError(
+                    Status.INVALID_ARGUMENT
+                        .withDescription("El usuario y la contraseña son obligatorios.")
+                        .asRuntimeException()
+                );
+                return;
+            }
+
+            Usuario usuario = usuarioRepository.findByMetadatos_Usuario(request.getUsuario());
+
+            if (usuario == null
+                    || usuario.getMetadatos() == null
+                    || !BCrypt.checkpw(
+                            request.getPassword(),
+                            usuario.getMetadatos().getPassword())) {
+                response.onError(
+                    Status.UNAUTHENTICATED
+                        .withDescription("Usuario o contraseña incorrectos.")
+                        .asRuntimeException()
+                );
+                return;
+            }
+
+            if (!Boolean.TRUE.equals(usuario.getEstaActivo())) {
+                response.onError(
+                    Status.PERMISSION_DENIED
+                        .withDescription("El usuario está inactivo.")
+                        .asRuntimeException()
+                );
+                return;
+            }
+
+            UsuarioMetaDatos metadatos = usuario.getMetadatos();
+            Metadatos loginResponse = Metadatos.newBuilder()
+                    .setId(metadatos.getId())
+                    .setUsuario(metadatos.getUsuario())
+                    .setPassword(metadatos.getPassword())
+                    .setRol(metadatos.getRol().name())
+                    .build();
+
+            response.onNext(loginResponse);
+            response.onCompleted();
+        } catch (Exception e) {
+            response.onError(
+                Status.INTERNAL
+                    .withDescription("Error al validar las credenciales: " + e.getMessage())
                     .asRuntimeException()
             );
         }

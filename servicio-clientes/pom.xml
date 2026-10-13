@@ -15,6 +15,12 @@
             <version>2.15.0.RELEASE</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.mindrot</groupId>
+            <artifactId>jbcrypt</artifactId>
+            <version>0.4</version>
+        </dependency>
+
         <!-- Cliente gRPC (Para hablar con el servicio de vehículos) -->
         <dependency>
             <groupId>net.devh</groupId>
