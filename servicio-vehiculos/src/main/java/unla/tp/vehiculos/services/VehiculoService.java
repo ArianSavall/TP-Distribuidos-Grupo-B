@@ -125,15 +125,26 @@ public class VehiculoService extends VehiculoServiceGrpc.VehiculoServiceImplBase
             } else {
                 vehiculosDisponibles = vehiculoRepository.findDisponiblesExcluyendo(patentesOcupadas);
             }
-
-            // 4. (Opcional) Filtrar por precioDiarioMin y precioDiarioMax en memoria
-            // ya que vienen en el GetVehiculosDisponiblesRequest de tu contrato.
+            // 4. Aplicamos filtros por precioDiarioMin y precioDiarioMax, marca y modelo
+            System.out.println(request.getTipoVehiculo());
+            List<Vehiculo> filtradoVehiculos = new ArrayList<>();
+            for(Vehiculo v : vehiculosDisponibles){
+                boolean coincideTipo = (request.getTipoVehiculo().equals(v.getTipoVehiculo().toString()) || request.getTipoVehiculo().isEmpty());
+                boolean coincideMarca = (request.getMarca().isEmpty()) || v.getMarca().equals(request.getMarca());
+                boolean coincideModelo = (request.getModelo().isEmpty()) || v.getModelo().equals(request.getModelo());
+                boolean estaEntrePrecios =(v.getPrecioDiario()<=request.getPrecioDiarioMax() || request.getPrecioDiarioMax() == 0)
+                                            &&
+                                            (v.getPrecioDiario()>=request.getPrecioDiarioMin() || request.getPrecioDiarioMin() == 0);
+                if(coincideTipo && coincideMarca && coincideModelo && estaEntrePrecios) {
+                    filtradoVehiculos.add(v);
+                }
+            }
 
             // 5. Mapear a Protobuf y devolver al API Gateway
             VehiculoListResponse.Builder responseBuilder = VehiculoListResponse.newBuilder();
-            for (Vehiculo v : vehiculosDisponibles) {
+            for (Vehiculo v : filtradoVehiculos) {
                 responseBuilder.addVehiculos(
-                        grpc.Vehiculo.newBuilder().setId(v.getId()).setMarca(v.getMarca()).build() // Setear campos...
+                        VehiculoMapper.toProto(v)
                 );
             }
 
