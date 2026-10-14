@@ -37,3 +37,5 @@ build/
 .vscode/
 
 /proto/src/
+/servicio-clientes/src/main/java/grpc/
+/servicio-clientes/.env
