@@ -47,4 +47,20 @@ public class Vehiculo {
 
     @Column(nullable = false)
     private boolean estaActivo;
+
+    @Override
+    public String toString() {
+        return "Vehiculo{" +
+                "id=" + id +
+                ", patente='" + patente + '\'' +
+                ", marca='" + marca + '\'' +
+                ", modelo='" + modelo + '\'' +
+                ", anio=" + anio +
+                ", color='" + color + '\'' +
+                ", tipoVehiculo=" + tipoVehiculo +
+                ", precioDiario=" + precioDiario +
+                ", estado=" + estado +
+                ", estaActivo=" + estaActivo +
+                '}';
+    }
 }
