@@ -176,16 +176,34 @@ public class UsuarioService extends ClienteServiceGrpc.ClienteServiceImplBase{
                 null
             ));
             if(usuarioRepository.findByDni(request.getDni()) == null){
-                usuarioRepository.save(u);
-
-                ClienteResponse response = mapearUsuarioAResponse(u, u.getMetadatos());
-
-                responseObserver.onNext(response);
-                responseObserver.onCompleted();
+                if(usuarioRepository.findByMetadatos_Usuario(request.getMetadatos().getUsuario()) == null){
+                    if(usuarioRepository.findByEmail(request.getEmail()) == null){
+                        usuarioRepository.save(u);
+                        ClienteResponse response = mapearUsuarioAResponse(u, u.getMetadatos());
+                        responseObserver.onNext(response);
+                        responseObserver.onCompleted();
+                    }
+                    else{
+                        responseObserver.onError(
+                            Status.ALREADY_EXISTS
+                                    .withDescription("Ya hay un cliente con ese email.")
+                                    .asRuntimeException()
+                        );
+                        return;
+                    }
+                }
+                else{
+                    responseObserver.onError(
+                        Status.ALREADY_EXISTS
+                                .withDescription("Ya hay un cliente con ese nombre de usuario.")
+                                .asRuntimeException()
+                    );
+                    return;
+                }
             }else{
                 responseObserver.onError(
                         Status.ALREADY_EXISTS
-                                .withDescription("Ya hay un cliente/usuario con ese DNI.")
+                                .withDescription("Ya hay un cliente con ese DNI.")
                                 .asRuntimeException()
                 );
             }
@@ -204,15 +222,15 @@ public class UsuarioService extends ClienteServiceGrpc.ClienteServiceImplBase{
     
     //Modifica solo los campos que no sean nulos segun el usuario pasado por DNI
    @Override
-    public void modificarClienteDni(ClienteRequest request, StreamObserver<ClienteResponse> response){
+    public void modificarClienteDni(ClienteRequest request, StreamObserver<ClienteResponse> responseObserver){
 
         try{
             Usuario usuario = usuarioRepository.findByDni(request.getDni());
 
             if (usuario == null) {
-                response.onError(
+                responseObserver.onError(
                     Status.NOT_FOUND
-                        .withDescription("No se encontró un usuario con el DNI proporcionado.")
+                        .withDescription("No se encontró un cliente con el DNI proporcionado.")
                         .asRuntimeException()
                 );
                 return;
@@ -242,14 +260,41 @@ public class UsuarioService extends ClienteServiceGrpc.ClienteServiceImplBase{
                 }
             }
 
-            usuarioRepository.save(usuario);
-
-            ClienteResponse responseCliente = mapearUsuarioAResponse(usuario, usuario.getMetadatos());
-            response.onNext(responseCliente);
-            response.onCompleted();
+            if(usuarioRepository.findByDni(usuario.getDni()) == null || usuarioRepository.findByDni(usuario.getDni()).getId().equals(usuario.getId())){
+                if(usuarioRepository.findByMetadatos_Usuario(usuario.getMetadatos().getUsuario()) == null || usuarioRepository.findByMetadatos_Usuario(usuario.getMetadatos().getUsuario()).getId().equals(usuario.getId())){
+                    if(usuarioRepository.findByEmail(usuario.getEmail()) == null || usuarioRepository.findByEmail(usuario.getEmail()).getId().equals(usuario.getId())){
+                        usuarioRepository.save(usuario);
+                        ClienteResponse response = mapearUsuarioAResponse(usuario, usuario.getMetadatos());
+                        responseObserver.onNext(response);
+                        responseObserver.onCompleted();
+                    }
+                    else{
+                        responseObserver.onError(
+                            Status.ALREADY_EXISTS
+                                    .withDescription("Ya hay un cliente con ese email.")
+                                    .asRuntimeException()
+                        );
+                        return;
+                    }
+                }
+                else{
+                    responseObserver.onError(
+                        Status.ALREADY_EXISTS
+                                .withDescription("Ya hay un cliente con ese nombre de usuario.")
+                                .asRuntimeException()
+                    );
+                    return;
+                }
+            }else{
+                responseObserver.onError(
+                        Status.ALREADY_EXISTS
+                                .withDescription("Ya hay un cliente con ese DNI.")
+                                .asRuntimeException()
+                );
+            }
         }
         catch(Exception e){
-            response.onError(
+            responseObserver.onError(
                 Status.ALREADY_EXISTS
                     .withDescription("Error al modificar el cliente: " + e.getMessage())
                     .asRuntimeException()
@@ -267,7 +312,7 @@ public class UsuarioService extends ClienteServiceGrpc.ClienteServiceImplBase{
             if (usuario == null) {
                 responseObserver.onError(
                     Status.NOT_FOUND
-                        .withDescription("No se encontró un usuario con el ID proporcionado.")
+                        .withDescription("No se encontró un cliente con el ID proporcionado.")
                         .asRuntimeException()
                 );
                 return;
@@ -301,11 +346,41 @@ public class UsuarioService extends ClienteServiceGrpc.ClienteServiceImplBase{
                 }
             }
 
-            usuarioRepository.save(usuario);
 
-            ClienteResponse responseCliente = mapearUsuarioAResponse(usuario, usuario.getMetadatos());
-            responseObserver.onNext(responseCliente);
-            responseObserver.onCompleted();
+
+            if(usuarioRepository.findByDni(usuario.getDni()) == null || usuarioRepository.findByDni(usuario.getDni()).getId().equals(usuario.getId())){
+                if(usuarioRepository.findByMetadatos_Usuario(usuario.getMetadatos().getUsuario()) == null || usuarioRepository.findByMetadatos_Usuario(usuario.getMetadatos().getUsuario()).getId().equals(usuario.getId())){
+                    if(usuarioRepository.findByEmail(usuario.getEmail()) == null || usuarioRepository.findByEmail(usuario.getEmail()).getId().equals(usuario.getId())){
+                        usuarioRepository.save(usuario);
+                        ClienteResponse response = mapearUsuarioAResponse(usuario, usuario.getMetadatos());
+                        responseObserver.onNext(response);
+                        responseObserver.onCompleted();
+                    }
+                    else{
+                        responseObserver.onError(
+                            Status.ALREADY_EXISTS
+                                    .withDescription("Ya hay un cliente con ese email.")
+                                    .asRuntimeException()
+                        );
+                        return;
+                    }
+                }
+                else{
+                    responseObserver.onError(
+                        Status.ALREADY_EXISTS
+                                .withDescription("Ya hay un cliente con ese nombre de usuario.")
+                                .asRuntimeException()
+                    );
+                    return;
+                }
+            }else{
+                responseObserver.onError(
+                        Status.ALREADY_EXISTS
+                                .withDescription("Ya hay un cliente con ese DNI.")
+                                .asRuntimeException()
+                );
+            }
+
         } catch(Exception e){
             responseObserver.onError(
                 Status.ALREADY_EXISTS

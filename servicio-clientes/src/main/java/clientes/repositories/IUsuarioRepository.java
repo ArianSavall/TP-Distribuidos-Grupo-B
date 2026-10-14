@@ -29,7 +29,7 @@ public interface IUsuarioRepository extends JpaRepository<Usuario, Serializable>
     public abstract Usuario findByTelefono(String telefono);
 
     @EntityGraph(attributePaths = "metadatos")
-    @Query("SELECT u FROM Usuario u WHERE u.metadatos.rol = 'CLIENTE' AND u.estaActivo = true")
+    @Query("SELECT u FROM Usuario u WHERE u.metadatos.rol = 'CLIENTE'")
     public abstract List<Usuario> findAllClientes();
 
     @EntityGraph(attributePaths = "metadatos")
