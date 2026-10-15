@@ -1,23 +1,12 @@
-<<<<<<<< HEAD:servicio-reservas/src/main/java/reservas/repositories/IReservaRepository.java
 package reservas.repositories;
-========
-package unla.tp.tp_distribuidos.repositories;
->>>>>>>> master:src/main/java/unla/tp/tp_distribuidos/repositories/IReservaRepository.java
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-<<<<<<<< HEAD:servicio-reservas/src/main/java/reservas/repositories/IReservaRepository.java
 import reservas.models.Reserva;
 import reservas.enums.EstadoReserva;
-========
-import unla.tp.tp_distribuidos.models.Reserva;
-import unla.tp.tp_distribuidos.enums.EstadoReserva;
-import unla.tp.tp_distribuidos.enums.TipoVehiculo;
->>>>>>>> master:src/main/java/unla/tp/tp_distribuidos/repositories/IReservaRepository.java
-
 import java.time.LocalDateTime;
 import java.util.List;
 @Repository("reservaRepository")
@@ -60,13 +49,8 @@ public interface IReservaRepository extends JpaRepository<Reserva, Long> {
               )
             ORDER BY r.fechaHoraInicio DESC, r.id DESC
             """)
-<<<<<<<< HEAD:servicio-reservas/src/main/java/reservas/repositories/IReservaRepository.java
     List<Reserva> buscarHistorial(
             @Param("idCliente") Long idCliente,
-========
-    java.util.List<Reserva> buscarHistorial(
-            @Param("usuario") String usuario,
->>>>>>>> master:src/main/java/unla/tp/tp_distribuidos/repositories/IReservaRepository.java
             @Param("cancelado") EstadoReserva cancelado,
             @Param("confirmado") EstadoReserva confirmado,
             @Param("ahora") LocalDateTime ahora);
