@@ -135,7 +135,7 @@ public class VehiculoService extends VehiculoServiceGrpc.VehiculoServiceImplBase
                 boolean estaEntrePrecios =(v.getPrecioDiario()<=request.getPrecioDiarioMax() || request.getPrecioDiarioMax() == 0)
                                             &&
                                             (v.getPrecioDiario()>=request.getPrecioDiarioMin() || request.getPrecioDiarioMin() == 0);
-                if(coincideTipo && coincideMarca && coincideModelo && estaEntrePrecios) {
+                if(coincideTipo && coincideMarca && coincideModelo && estaEntrePrecios && v.isEstaActivo()) {
                     filtradoVehiculos.add(v);
                 }
             }
@@ -185,16 +185,9 @@ public class VehiculoService extends VehiculoServiceGrpc.VehiculoServiceImplBase
         if (vehiculoOpt.isPresent()) {
             Vehiculo dbVehiculo = vehiculoOpt.get();
 
-            if(dbVehiculo.isEstaActivo()){
                 // Retornamos por gRPC
-                responseObserver.onNext(VehiculoMapper.toProto(dbVehiculo));
+            responseObserver.onNext(VehiculoMapper.toProto(dbVehiculo));
                 responseObserver.onCompleted();
-            }else{
-                responseObserver.onError(
-                        Status.CANCELLED
-                                .withDescription("El vehículo está inactivo")
-                                .asRuntimeException());
-            }
         } else {
             responseObserver.onError(
                     Status.NOT_FOUND
@@ -211,16 +204,10 @@ public class VehiculoService extends VehiculoServiceGrpc.VehiculoServiceImplBase
         if (vehiculoOpt.isPresent()) {
             Vehiculo dbVehiculo = vehiculoOpt.get();
 
-            if(dbVehiculo.isEstaActivo()){
-                // Retornamos por gRPC
-                responseObserver.onNext(VehiculoMapper.toProto(dbVehiculo));
-                responseObserver.onCompleted();
-            }else{
-                responseObserver.onError(
-                        Status.CANCELLED
-                            .withDescription("El vehículo está inactivo")
-                            .asRuntimeException());
-            }
+            // Las consultas de datos también deben poder recuperar vehículos
+            // inactivos para mostrar reservas históricas.
+            responseObserver.onNext(VehiculoMapper.toProto(dbVehiculo));
+            responseObserver.onCompleted();
 
         } else {
             responseObserver.onError(
