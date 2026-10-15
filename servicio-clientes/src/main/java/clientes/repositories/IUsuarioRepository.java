@@ -1,4 +1,8 @@
+<<<<<<<< HEAD:servicio-clientes/src/main/java/clientes/repositories/IUsuarioRepository.java
 package clientes.repositories;
+========
+package unla.tp.tp_distribuidos.repositories;
+>>>>>>>> master:src/main/java/unla/tp/tp_distribuidos/repositories/IUsuarioRepository.java
 
 import java.io.Serializable;
 import java.util.List;
