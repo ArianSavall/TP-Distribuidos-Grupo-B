@@ -18,6 +18,7 @@
 		<module>servicio-clientes</module>
 		<module>servicio-reservas</module>
 		<module>proto</module>
+		<module>servicio-operaciones-externas</module>
 	</modules>
 
 	<properties>
