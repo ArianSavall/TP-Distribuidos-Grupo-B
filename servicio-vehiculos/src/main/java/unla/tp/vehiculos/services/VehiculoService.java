@@ -1,7 +1,12 @@
 package unla.tp.vehiculos.services;
 
+import lombok.RequiredArgsConstructor;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import unla.tp.vehiculos.config.RabbitMQConfig;
+import unla.tp.vehiculos.dtos.EventosVehiculoDTOs;
 import unla.tp.vehiculos.entities.Vehiculo;
 import unla.tp.vehiculos.enums.EstadoVehiculo;
+import unla.tp.vehiculos.enums.ResultadoVerificacion;
 import unla.tp.vehiculos.enums.TipoVehiculo;
 import grpc.*;
 import grpc.FechasRequest;
@@ -23,6 +28,7 @@ import java.util.List;
 import java.util.Optional;
 
 @GrpcService
+@RequiredArgsConstructor
 public class VehiculoService extends VehiculoServiceGrpc.VehiculoServiceImplBase {
     @Autowired
     private IVehiculoRepository vehiculoRepository;
@@ -30,6 +36,8 @@ public class VehiculoService extends VehiculoServiceGrpc.VehiculoServiceImplBase
     // Cliente gRPC para hablar con Reservas
     @GrpcClient("servicio-reservas")
     private ReservaServiceGrpc.ReservaServiceBlockingStub reservaStub;
+
+    private final RabbitTemplate rabbitTemplate;
 
     @Override
     public void createVehiculo(PostVehiculoRequest request, StreamObserver<grpc.Vehiculo> responseObserver ){
@@ -44,10 +52,19 @@ public class VehiculoService extends VehiculoServiceGrpc.VehiculoServiceImplBase
         nuevoVehiculo.setAnio(request.getAnio());
         nuevoVehiculo.setColor(request.getColor());
         nuevoVehiculo.setPrecioDiario(request.getPrecioDiario());
+        nuevoVehiculo.setResultadoVerificacion(ResultadoVerificacion.PENDIENTE);
+        nuevoVehiculo.setHabilitado(false);
+
 
         if(vehiculoRepository.findByPatente(request.getPatente()).isEmpty()){
             // 2. Guardamos en la base de datos
             Vehiculo guardado = vehiculoRepository.save(nuevoVehiculo);
+
+            rabbitTemplate.convertAndSend(
+                    RabbitMQConfig.EXCHANGE,
+                    RabbitMQConfig.RK_VERIFICACION_SOLICITADA,
+                    new EventosVehiculoDTOs.VerificacionSolicitadaEvent(guardado.getId(), guardado.getPatente())
+            );
 
             // 3. Mapeamos la respuesta
             grpc.Vehiculo grpcResponse = VehiculoMapper.toProto(guardado);
@@ -82,6 +99,11 @@ public class VehiculoService extends VehiculoServiceGrpc.VehiculoServiceImplBase
             nuevoVehiculo.setColor(request.getColor());
             nuevoVehiculo.setPrecioDiario(request.getPrecioDiario());
 
+            if (!nuevoVehiculo.isHabilitado()) {
+                throw new IllegalStateException("El vehículo no está habilitado para operar (Estado verificación: "
+                        + nuevoVehiculo.getResultadoVerificacion() + ")");
+            }
+
             // 2. Guardamos en la base de datos
             Vehiculo guardado = vehiculoRepository.save(nuevoVehiculo);
 
@@ -91,7 +113,8 @@ public class VehiculoService extends VehiculoServiceGrpc.VehiculoServiceImplBase
             responseObserver.onNext(grpcResponse);
             responseObserver.onCompleted();
 
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             responseObserver.onError(
                     Status.INTERNAL
                             .withDescription("Error al persistir el vehículo: " + e.getMessage())
@@ -135,7 +158,7 @@ public class VehiculoService extends VehiculoServiceGrpc.VehiculoServiceImplBase
                 boolean estaEntrePrecios =(v.getPrecioDiario()<=request.getPrecioDiarioMax() || request.getPrecioDiarioMax() == 0)
                                             &&
                                             (v.getPrecioDiario()>=request.getPrecioDiarioMin() || request.getPrecioDiarioMin() == 0);
-                if(coincideTipo && coincideMarca && coincideModelo && estaEntrePrecios && v.isEstaActivo()) {
+                if(coincideTipo && coincideMarca && coincideModelo && estaEntrePrecios && v.isEstaActivo() && v.isHabilitado()) {
                     filtradoVehiculos.add(v);
                 }
             }
