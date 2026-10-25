@@ -1,6 +1,7 @@
 package unla.tp.vehiculos.entities;
 
 import unla.tp.vehiculos.enums.EstadoVehiculo;
+import unla.tp.vehiculos.enums.ResultadoVerificacion;
 import unla.tp.vehiculos.enums.TipoVehiculo;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -47,6 +48,18 @@ public class Vehiculo {
 
     @Column(nullable = false)
     private boolean estaActivo;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ResultadoVerificacion resultadoVerificacion = ResultadoVerificacion.PENDIENTE;
+
+    @Column(nullable = false)
+    private boolean habilitado = false;
+
+    // --- Campos para Vehículos Externos y Validaciones ---
+    private Long clienteId; // null si es de la flota propia de Rentar; con ID si es de propietario externo
+
+    private String validacionTitularidad; // null (F1) | PENDIENTE, VALIDADO, RECHAZADO (F2)
 
     @Override
     public String toString() {

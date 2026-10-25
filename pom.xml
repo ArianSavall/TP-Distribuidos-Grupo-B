@@ -18,6 +18,7 @@
 		<module>servicio-clientes</module>
 		<module>servicio-reservas</module>
 		<module>proto</module>
+		<module>servicio-operaciones-externas</module>
 	</modules>
 
 	<properties>
@@ -91,13 +92,6 @@
 			<groupId>me.paulschwarz</groupId>
 			<artifactId>spring-dotenv</artifactId>
 			<version>4.0.0</version>
-		</dependency>
-		<!-- Source: https://mvnrepository.com/artifact/net.devh/grpc-spring-boot-starter -->
-		<dependency>
-			<groupId>net.devh</groupId>
-			<artifactId>grpc-spring-boot-starter</artifactId>
-			<version>3.1.0.RELEASE</version>
-			<scope>compile</scope>
 		</dependency>
 		<!-- Source: https://mvnrepository.com/artifact/jakarta.persistence/jakarta.persistence-api -->
 		<dependency>
