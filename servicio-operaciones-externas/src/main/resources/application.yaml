@@ -35,3 +35,5 @@ logging:
 grpc:
   server:
     port: 9093
+mantenimiento:
+  delay-ms: 5000
