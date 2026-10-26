@@ -29,6 +29,7 @@ message Reserva {
     string fechaHoraFinal = 5;
     EstadoReserva estadoReserva = 6;
     double importeTotal = 7;
+    string estadoMantenimiento = 8;
 }
 
 message CrearReservaRequest {

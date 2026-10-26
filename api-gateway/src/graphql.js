@@ -46,6 +46,7 @@ const schema = buildSchema(`
     precioDiario: Float!
     importeTotal: Float!
     estado: EstadoReserva!
+    estadoMantenimiento: String!
   }
 
   type HistorialAlquiler {
