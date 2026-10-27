@@ -59,6 +59,20 @@ public class ReservaService extends ReservaServiceGrpc.ReservaServiceImplBase {
                         .asRuntimeException());
                 return;
             }
+            
+             long solapadas = reservaRepository.countReservasSolapadas(
+                    request.getPatenteVehiculo(),
+                    EstadoReserva.CONFIRMADO,
+                    fechaInicio,
+                    fechaFin
+            );
+
+            if (solapadas > 0) {
+                responseObserver.onError(Status.FAILED_PRECONDITION
+                        .withDescription("El vehículo ya está reservado en ese período.")
+                        .asRuntimeException());
+                return;
+            }
 
             long diasAlquiler = Math.max(1, ChronoUnit.DAYS.between(fechaInicio, fechaFin));
             double importeTotal = diasAlquiler * vehiculoResponse.getPrecioDiario();
@@ -143,6 +157,13 @@ public class ReservaService extends ReservaServiceGrpc.ReservaServiceImplBase {
             if (reserva.getEstadoReserva() == EstadoReserva.CANCELADO) {
                 responseObserver.onError(Status.FAILED_PRECONDITION
                         .withDescription("La reserva ya se encuentra cancelada.")
+                        .asRuntimeException());
+                return;
+            }
+        
+             if (!reserva.getFechaHoraInicio().isAfter(LocalDateTime.now())) {
+                responseObserver.onError(Status.FAILED_PRECONDITION
+                        .withDescription("No se puede cancelar una reserva cuyo período ya comenzó.")
                         .asRuntimeException());
                 return;
             }
