@@ -6,6 +6,10 @@ import io.grpc.stub.StreamObserver;
 import net.devh.boot.grpc.client.inject.GrpcClient;
 import net.devh.boot.grpc.server.service.GrpcService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import reservas.config.RabbitMQConfig;
+import reservas.dtos.ReservaConfirmadaEvent;
+
 import reservas.models.Reserva;
 import reservas.enums.EstadoReserva;
 import reservas.repositories.IReservaRepository;
@@ -17,7 +21,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @GrpcService
 public class ReservaService extends ReservaServiceGrpc.ReservaServiceImplBase {
@@ -27,6 +30,9 @@ public class ReservaService extends ReservaServiceGrpc.ReservaServiceImplBase {
 
     @GrpcClient("servicio-vehiculos")
     private VehiculoServiceGrpc.VehiculoServiceBlockingStub vehiculoStub;
+
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
 
     @Override
     public void crearReserva(CrearReservaRequest request, StreamObserver<grpc.Reserva> responseObserver) {
@@ -66,6 +72,16 @@ public class ReservaService extends ReservaServiceGrpc.ReservaServiceImplBase {
             nuevaReserva.setPrecioTotal(importeTotal);
 
             Reserva guardada = reservaRepository.save(nuevaReserva);
+
+            ReservaConfirmadaEvent evento = new ReservaConfirmadaEvent(
+                guardada.getId(),
+                vehiculoResponse.getId(),
+                guardada.getFechaHoraInicio().toString(),
+                guardada.getFechaHoraFinal().toString()
+            );
+
+            rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE, RabbitMQConfig.RK_RESERVA_CONFIRMADA,evento);
+
             grpc.Reserva grpcResponse = ReservaMapper.toProto(guardada);
 
             responseObserver.onNext(grpcResponse);

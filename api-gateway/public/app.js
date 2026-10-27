@@ -65,7 +65,12 @@ function tabla(nombre, rows, columnas, acciones) {
   }
   for (const row of rows) {
     const tr = body.insertRow();
-    for (const valor of columnas) tr.insertCell().textContent = typeof valor === 'function' ? valor(row) : (row[valor] ?? '');
+        for (const valor of columnas) {
+      const celda = tr.insertCell();
+      const contenido = typeof valor === 'function' ? valor(row) : (row[valor] ?? '');
+      if (contenido instanceof Node) celda.append(contenido);
+      else celda.textContent = contenido;
+    }
     if (acciones) { const td = tr.insertCell();for (const nodo of acciones(row)) td.append(nodo); }
   }
 }
@@ -94,20 +99,39 @@ async function cargarClientes(dni) {
     }, 'btn-danger')] : [])
   ]);
 }
+function badgeMantenimiento(valor) {
+  const span = document.createElement('span');
+  span.textContent = valor;
+  const colores = {
+    REALIZADO: ['#d1e7dd', '#0f5132'],
+    NO_REALIZADO: ['#f8d7da', '#842029'],
+    PENDIENTE: ['#fff3cd', '#664d03']
+  };
+  const [fondo, texto] = colores[valor] || colores.PENDIENTE;
+  span.style.cssText = `background:${fondo};color:${texto};padding:3px 10px;border-radius:12px;font-size:0.85em;font-weight:600;`;
+  return span;
+}
+
+let refrescoReservas;
 async function cargarReservas(f = {}) {
   const filtros = Object.fromEntries(Object.entries(f).filter(([,v]) => v !== ''));
   if (filtros.fechaDesde?.length === 10) filtros.fechaDesde += 'T00:00:00';
   if (filtros.fechaHasta?.length === 10) filtros.fechaHasta += 'T23:59:59';
   const r = await graphql(`query($f: FiltroReservasInput) { reservas(filtros: $f) {
-    id cliente vehiculo patente fechaInicio fechaFinalizacion importeTotal estado
+    id cliente vehiculo patente fechaInicio fechaFinalizacion importeTotal estado estadoMantenimiento
   } }`, { f: filtros });
-  tabla('reservas', r.reservas, ['cliente', r => `${r.vehiculo} (${r.patente})`, 'fechaInicio', 'fechaFinalizacion', r => dinero(r.importeTotal), 'estado'], r =>
+  tabla('reservas', r.reservas, ['cliente', r => `${r.vehiculo} (${r.patente})`, 'fechaInicio', 'fechaFinalizacion', r => dinero(r.importeTotal), 'estado', r => badgeMantenimiento(r.estadoMantenimiento)], r =>
     r.estado === 'CANCELADO' ? [] : [boton('Cancelar', async () => {
       if (!confirm(`¿Cancelar la reserva ${r.id}?`)) return;
       await api(`/api_rest/v1/reservas/${encodeURIComponent(r.id)}`, 'PUT');
       await cargarReservas();mensaje('Reserva cancelada.');
     }, 'btn-danger')]
   );
+  // Refresco automático mientras haya mantenimientos pendientes
+  clearTimeout(refrescoReservas);
+  if (r.reservas.some(x => x.estadoMantenimiento === 'PENDIENTE' && x.estado !== 'CANCELADO')) {
+    refrescoReservas = setTimeout(() => cargarReservas(f).catch(() => {}), 5000);
+  }
 }
 async function disponibilidad(d) {
   const variables = { inicio: d.fechaInicioDisp, fin: d.fechaFinalDisp,
