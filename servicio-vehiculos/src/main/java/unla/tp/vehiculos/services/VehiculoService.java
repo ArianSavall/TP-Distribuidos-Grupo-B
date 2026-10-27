@@ -5,13 +5,12 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import unla.tp.vehiculos.config.RabbitMQConfig;
 import unla.tp.vehiculos.dtos.EventosVehiculoDTOs;
 import unla.tp.vehiculos.entities.Vehiculo;
+import unla.tp.vehiculos.enums.EstadoIncorporacion;
 import unla.tp.vehiculos.enums.EstadoVehiculo;
+import unla.tp.vehiculos.enums.ResultadoValidacionExterna;
 import unla.tp.vehiculos.enums.ResultadoVerificacion;
 import unla.tp.vehiculos.enums.TipoVehiculo;
 import grpc.*;
-import grpc.FechasRequest;
-import grpc.ReservaServiceGrpc;
-import grpc.VehiculosOcupadosResponse;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import jakarta.validation.ConstraintViolationException;
@@ -26,6 +25,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 @GrpcService
 @RequiredArgsConstructor
@@ -260,5 +260,74 @@ public class VehiculoService extends VehiculoServiceGrpc.VehiculoServiceImplBase
             );
         }
 
+    }
+
+    @Override
+    public void registrarVehiculoExterno(RegistrarVehiculoExternoRequest request,StreamObserver<grpc.VehiculoExterno> observer){
+        try{
+            String patente = request.getPatente().trim().toUpperCase();
+
+            if(vehiculoRepository.findByPatente(patente).isPresent()){
+                observer.onError(Status.ALREADY_EXISTS.withDescription("Ya existe un vehículo con esa patente.").asRuntimeException());
+                return;
+            }
+
+            Vehiculo vehiculo = new Vehiculo();
+            vehiculo.setPatente(patente);
+            vehiculo.setMarca(request.getMarca());
+            vehiculo.setModelo(request.getModelo());
+            vehiculo.setAnio(request.getAnio());
+            vehiculo.setColor(request.getColor());
+            vehiculo.setTipoVehiculo(TipoVehiculo.valueOf(request.getTipoVehiculo()));
+            vehiculo.setPrecioDiario(request.getPrecioDiario());
+            vehiculo.setClienteId(request.getClienteId());
+
+            vehiculo.setEstado(EstadoVehiculo.DISPONIBLE);
+            vehiculo.setEstaActivo(false);
+            vehiculo.setHabilitado(false);
+
+            vehiculo.setResultadoVerificacion(ResultadoVerificacion.VALIDADO);
+            vehiculo.setResultadoValidacionPatente(ResultadoValidacionExterna.PENDIENTE);
+            vehiculo.setResultadoValidacionTitular(ResultadoValidacionExterna.PENDIENTE);
+
+            Vehiculo guardado = vehiculoRepository.save(vehiculo);
+
+            rabbitTemplate.convertAndSend(
+                    RabbitMQConfig.EXCHANGE,
+                    RabbitMQConfig.RK_EXTERNOS_REGISTRADOS,
+                    new EventosVehiculoDTOs.VehiculoExternoRegistradoEvent(
+                            guardado.getId(),
+                            guardado.getClienteId(),
+                            guardado.getPatente()
+                    )
+            );
+
+            observer.onNext(grpc.VehiculoExterno.newBuilder()
+                    .setId(guardado.getId())
+                    .setMarca(guardado.getMarca())
+                    .setModelo(guardado.getModelo())
+                    .setPatente(guardado.getPatente())
+                    .setTipoVehiculo(guardado.getTipoVehiculo().name())
+                    .setPrecioDiario(guardado.getPrecioDiario())
+                    .setAnio(guardado.getAnio())
+                    .setColor(guardado.getColor() == null ? "" : guardado.getColor())
+                    .setEstado(guardado.getEstado().name())
+                    .setEstaActivo(guardado.isEstaActivo())
+                    .setResultadoValidacionPatente(guardado.getResultadoValidacionPatente().name())
+                    .setValidacionTitularidad(guardado.getResultadoValidacionTitular().name())
+                    .setHabilitado(guardado.isHabilitado())
+                    .setClienteId(guardado.getClienteId())
+                    .build());
+            observer.onCompleted();
+            
+        }catch (IllegalArgumentException e) {
+            observer.onError(Status.INVALID_ARGUMENT
+                    .withDescription("Tipo de vehiculo invalido.")
+                    .asRuntimeException());
+        } catch (Exception e) {
+            observer.onError(Status.INTERNAL
+                    .withDescription("Error al iniciar la incorporación: " + e.getMessage())
+                    .asRuntimeException());
+        }
     }
 }

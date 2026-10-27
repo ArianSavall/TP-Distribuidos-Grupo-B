@@ -18,6 +18,7 @@ public final class ReservaMapper {
                 .setFechaHoraFinal(dbReserva.getFechaHoraFinal().toString())
                 .setImporteTotal(dbReserva.getPrecioTotal())
                 .setEstadoReserva(estadoGrpc)
+                .setEstadoMantenimiento(dbReserva.getEstadoMantenimiento() != null ? dbReserva.getEstadoMantenimiento() : "PENDIENTE")
                 .build();
     }
 }

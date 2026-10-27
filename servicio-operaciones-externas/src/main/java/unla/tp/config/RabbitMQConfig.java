@@ -20,6 +20,7 @@ public class RabbitMQConfig {
     public static final String Q_VERIFICACION_INTERNA = "q.policial.verificacion.solicitada";
     public static final String Q_VERIFICACION_EXTERNA = "q.policial.externos.registrados";
     public static final String Q_MANTENIMIENTO = "q.mantenimiento.reserva.confirmada";
+    public static final String Q_TITULARIDAD_EXTERNA ="q.policial.externos.titularidad";
 
     // 3. Routing Keys de ENTRADA (Eventos que escuchamos)
     public static final String RK_VERIFICACION_SOLICITADA = "vehiculos.verificacion.solicitada";
@@ -29,6 +30,7 @@ public class RabbitMQConfig {
     // 4. Routing Keys de SALIDA (Eventos que publicamos según la consigna)
     public static final String RK_VERIFICACION_RESULTADO = "vehiculos.verificacion.resultado";
     public static final String RK_EXTERNOS_VALIDACION_PATENTE = "vehiculos.externos.validacion.patente";
+    public static final String RK_EXTERNOS_VALIDACION_TITULARIDAD = "vehiculos.externos.validacion.titularidad";
     public static final String RK_MANTENIMIENTO_RESULTADO = "mantenimiento.resultado";
 
     // --- Declaración del Exchange ---
@@ -53,6 +55,10 @@ public class RabbitMQConfig {
         return QueueBuilder.durable(Q_MANTENIMIENTO).build();
     }
 
+    @Bean Queue titularidadExternaQueue(){
+        return QueueBuilder.durable(Q_TITULARIDAD_EXTERNA).build();
+    }
+
     // --- Bindings (Unión de cada Cola al Exchange con su Routing Key exacta) ---
     @Bean
     public Binding bindVerificacionInterna(Queue verificacionInternaQueue, TopicExchange rentarExchange) {
@@ -73,6 +79,12 @@ public class RabbitMQConfig {
         return BindingBuilder.bind(mantenimientoQueue)
                 .to(rentarExchange)
                 .with(RK_RESERVA_CONFIRMADA);
+    }
+
+    @Bean Binding bindTitularidadExterna(Queue titularidadExternaQueue, TopicExchange rentarExchange){
+        return BindingBuilder.bind(titularidadExternaQueue)
+                .to(rentarExchange)
+                .with(RK_EXTERNOS_REGISTRADOS);
     }
 
     // --- Serialización JSON para desacoplar paquetes entre microservicios ---

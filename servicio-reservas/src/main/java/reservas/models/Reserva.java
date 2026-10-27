@@ -33,4 +33,7 @@ public class Reserva {
 
     @Column(name = "precio_total", nullable = false)
     private Double precioTotal;
+
+    @Column(name = "estado_mantenimiento")
+    private String estadoMantenimiento = "PENDIENTE";
 }

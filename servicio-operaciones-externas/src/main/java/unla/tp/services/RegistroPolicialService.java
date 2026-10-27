@@ -4,6 +4,7 @@ import unla.tp.config.RabbitMQConfig;
 import unla.tp.dtos.*;
 import unla.tp.enums.ResultadoVerificacion;
 import unla.tp.repositories.IDenunciaPolicialRepository;
+import unla.tp.repositories.ITitularidadVehiculoRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -16,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class RegistroPolicialService {
 
     private final IDenunciaPolicialRepository denunciaRepository;
+    private final ITitularidadVehiculoRepository titularidadRepository;
     private final RabbitTemplate rabbitTemplate;
 
     @Transactional(readOnly = true)
@@ -67,6 +69,36 @@ public class RegistroPolicialService {
                 RabbitMQConfig.EXCHANGE,
                 RabbitMQConfig.RK_EXTERNOS_VALIDACION_PATENTE,
                 respuesta
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public void verificarTitularidadExterna(VehiculoExternoRegistradoEvent evento){
+        String patente = evento.patente().trim().toUpperCase();
+
+        var titular = titularidadRepository.findByPatenteIgnoreCase(patente)
+            .orElse(null);
+
+        boolean coincide = titular != null
+            && titular.getClienteId().equals(evento.clienteId());
+
+
+        String resultado = coincide ? "VALIDADO" : "RECHAZADO";
+        String documento = titular == null ? "" : titular.getDocumento();
+
+        log.info("[TITULARIDAD] Solicitud Externa ID: {} | Patente: {} y DNI: {} -> Resultado: {}", 
+                evento.vehiculoExternoId(), patente, titular.getDocumento(), resultado);
+
+        rabbitTemplate.convertAndSend(
+                RabbitMQConfig.EXCHANGE,
+                RabbitMQConfig.RK_EXTERNOS_VALIDACION_TITULARIDAD,
+                new unla.tp.dtos.ValidacionTitularidadExternaEvent(
+                        evento.vehiculoExternoId(),
+                        evento.clienteId(),
+                        documento,
+                        evento.patente(),
+                        resultado
+                )
         );
     }
 }

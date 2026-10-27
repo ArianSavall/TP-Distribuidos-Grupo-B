@@ -82,7 +82,8 @@ async function consultarReservasCompletas(usuario, filtros = {}) {
           fechaFinalizacion: r.fechaHoraFinal,
           precioDiario: v.precioDiario,
           importeTotal: r.importeTotal,
-          estado: r.estadoReserva
+          estado: r.estadoReserva,
+          estadoMantenimiento: r.estadoMantenimiento || "PENDIENTE"
         };
       });
   } catch (error) {
