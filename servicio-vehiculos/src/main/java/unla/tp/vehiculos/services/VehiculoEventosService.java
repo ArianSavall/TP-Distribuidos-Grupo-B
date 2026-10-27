@@ -26,10 +26,10 @@ public class VehiculoEventosService {
     // --- FEATURE 1: Verificación de vehículo propio ---
     @Transactional
     public void actualizarVerificacionVehiculo(VerificacionResultadoEvent evento) {
-        Optional<Vehiculo> optVehiculo = vehiculoRepository.findById(evento.vehiculoId());
+        Optional<Vehiculo> optVehiculo = vehiculoRepository.findByPatente(evento.patente());
 
         if (optVehiculo.isEmpty()) {
-            log.error("[ERROR] Se descartó el evento porque no existe el vehículo con ID: {}", evento.vehiculoId());
+            log.error("[ERROR] Se descartó el evento porque no existe el vehículo con patente: {}", evento.patente());
             return; // Termina normalmente -> RabbitMQ saca el mensaje de la cola y no hace bucle
         }
 
@@ -37,6 +37,7 @@ public class VehiculoEventosService {
         vehiculo.setResultadoVerificacion(ResultadoVerificacion.valueOf(evento.resultado())); // "VALIDADO" o "ROBADO"
         // Si es ROBADO, no cambia EstadoVehiculo pero queda inhabilitado para operar
         vehiculo.setHabilitado("VALIDADO".equalsIgnoreCase(evento.resultado()));
+        vehiculo.setEstaActivo("VALIDADO".equalsIgnoreCase(evento.resultado()));
         vehiculoRepository.save(vehiculo);
     }
 
@@ -46,7 +47,7 @@ public class VehiculoEventosService {
         Optional<Vehiculo> optVehiculo = vehiculoRepository.findByIdForUpdate(evento.vehiculoExternoId());
 
         if (optVehiculo.isEmpty()) {
-            log.error("[ERROR] Se descartó el evento porque no existe el vehículo con ID: {}", evento.vehiculoExternoId());
+            log.error("[ERROR] Se descartó el evento porque no existe el vehículo con patente: {}", evento.patente());
             return; // Termina normalmente -> RabbitMQ saca el mensaje de la cola y no hace bucle
         }
 
@@ -68,7 +69,7 @@ public class VehiculoEventosService {
         Optional<Vehiculo> optVehiculo = vehiculoRepository.findByIdForUpdate(evento.vehiculoExternoId());
 
         if (optVehiculo.isEmpty()) {
-            log.error("[ERROR] Se descartó el evento porque no existe el vehículo con ID: {}", evento.vehiculoExternoId());
+            log.error("[ERROR] Se descartó el evento porque no existe el vehículo con patente: {}", evento.patente());
             return; // Termina normalmente -> RabbitMQ saca el mensaje de la cola y no hace bucle
         }
 
