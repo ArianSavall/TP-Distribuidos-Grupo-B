@@ -18,4 +18,5 @@ module.exports = app => {
   app.get('/vehiculos/editar/:patente', sesion, exigirRol('ADMIN'), pagina('vehiculosUpdate'));
   app.get(['/reservas', '/disponibilidad', '/ui/disponibilidad'], sesion, pagina('reservas'));
   app.get('/historial', sesion, exigirRol('CLIENTE'), pagina('historial'));
+  app.get('/vehiculos/externos/nuevo', sesion,exigirRol('CLIENTE'), pagina('vehiculoExternoNuevo'));
 };

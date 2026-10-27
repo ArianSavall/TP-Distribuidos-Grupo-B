@@ -14,6 +14,8 @@
    rpc createVehiculo(PostVehiculoRequest) returns (Vehiculo);
    rpc saveVehiculo(PatchVehiculoRequest) returns (Vehiculo);
    rpc deleteVehiculo(GetVehiculoPatenteRequest) returns (Vehiculo);
+
+   rpc registrarVehiculoExterno(RegistrarVehiculoExternoRequest) returns (VehiculoExterno);
  }
 
  message Vehiculo {
@@ -79,3 +81,33 @@
    int32 minutes = 5;
  }
  message empty{}
+
+ message RegistrarVehiculoExternoRequest {
+    int64 clienteId=1;
+    string documento = 2;
+    string patente = 3;
+    string marca = 4;
+    string modelo = 5;
+    string tipoVehiculo = 6;
+    double precioDiario = 7;
+    int32 anio = 8;
+    string color = 9;
+ }
+
+ message VehiculoExterno {
+    int64 id = 1;
+    string marca = 2;
+    string modelo = 3;
+    string patente = 4;
+    string tipo_vehiculo = 5;
+    double precio_diario = 6;
+    bool esta_activo = 7;
+    string estado = 8;
+    int32 anio = 9;
+    string color= 10;
+    string estadoIncorporacion = 11;
+    string resultadoValidacionPatente = 12;
+    string validacionTitularidad = 13;
+    bool habilitado = 14;
+    int64 clienteId = 15;
+ }

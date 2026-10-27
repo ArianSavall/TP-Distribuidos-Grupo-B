@@ -11,6 +11,7 @@ import unla.tp.vehiculos.entities.Vehiculo;
 import unla.tp.vehiculos.enums.EstadoVehiculo;
 import unla.tp.vehiculos.enums.ResultadoVerificacion;
 import unla.tp.vehiculos.repositories.IVehiculoRepository;
+import unla.tp.vehiculos.enums.ResultadoValidacionExterna;
 
 import java.util.Optional;
 
@@ -42,7 +43,7 @@ public class VehiculoEventosService {
     // --- FEATURE 2: Correlación sobre la misma entidad Vehiculo ---
     @Transactional
     public void procesarValidacionPatenteExterna(ValidacionPatenteExternaEvent evento) {
-        Optional<Vehiculo> optVehiculo = vehiculoRepository.findById(evento.vehiculoExternoId());
+        Optional<Vehiculo> optVehiculo = vehiculoRepository.findByIdForUpdate(evento.vehiculoExternoId());
 
         if (optVehiculo.isEmpty()) {
             log.error("[ERROR] Se descartó el evento porque no existe el vehículo con ID: {}", evento.vehiculoExternoId());
@@ -50,13 +51,21 @@ public class VehiculoEventosService {
         }
 
         Vehiculo vehiculo = optVehiculo.get();
-        vehiculo.setResultadoVerificacion(ResultadoVerificacion.valueOf(evento.resultado().toUpperCase()));
+
+        if (!esVehiculoExternoPendiente(vehiculo)
+                || !vehiculo.getPatente().equalsIgnoreCase(evento.patente())) {
+            log.warn("Se ignoró una validación de patente inconsistente para el vehículo {}",
+                    evento.vehiculoExternoId());
+            return;
+        }
+
+        vehiculo.setResultadoValidacionPatente(leerResultadoExterno(evento.resultado()));
         evaluarCorrelacion(vehiculo);
     }
 
     @Transactional
     public void procesarValidacionTitularidadExterna(ValidacionTitularidadExternaEvent evento) {
-        Optional<Vehiculo> optVehiculo = vehiculoRepository.findById(evento.vehiculoExternoId());
+        Optional<Vehiculo> optVehiculo = vehiculoRepository.findByIdForUpdate(evento.vehiculoExternoId());
 
         if (optVehiculo.isEmpty()) {
             log.error("[ERROR] Se descartó el evento porque no existe el vehículo con ID: {}", evento.vehiculoExternoId());
@@ -64,34 +73,56 @@ public class VehiculoEventosService {
         }
 
         Vehiculo vehiculo = optVehiculo.get();
-        vehiculo.setValidacionTitularidad(evento.resultado().toUpperCase());
+
+        if(!esVehiculoExternoPendiente(vehiculo)
+                || !vehiculo.getClienteId().equals(evento.clienteId())
+                || !vehiculo.getPatente().equalsIgnoreCase(evento.patente())){
+            log.warn("Se ignoró una validación de titularidad inconsistente para el vehículo {}", evento.vehiculoExternoId());
+            return;
+        }
+
+
+        vehiculo.setResultadoValidacionTitular(leerResultadoExterno(evento.resultado()));
         evaluarCorrelacion(vehiculo);
     }
 
     private void evaluarCorrelacion(Vehiculo vehiculo) {
+
+        ResultadoValidacionExterna patente = vehiculo.getResultadoValidacionPatente();
+        ResultadoValidacionExterna titular = vehiculo.getResultadoValidacionTitular();
+
         // Esperamos hasta que ambas validaciones dejen de estar en PENDIENTE
-        if ("PENDIENTE".equals(vehiculo.getResultadoVerificacion().name()) ||
-                "PENDIENTE".equals(vehiculo.getValidacionTitularidad())) {
+        if (patente == null || titular == null ||
+                "PENDIENTE".equals(patente.name()) || "PENDIENTE".equals(titular.name())) {
             vehiculoRepository.save(vehiculo);
             return;
         }
 
-        boolean patenteOk = "VALIDADO".equals(vehiculo.getResultadoVerificacion().name());
-        boolean titularidadOk = "VALIDADO".equals(vehiculo.getValidacionTitularidad());
+        if( "RECHAZADO".equals(patente.name()) || "RECHAZADO".equals(titular.name())){
+            vehiculoRepository.delete(vehiculo);
+            log.warn("Vehículo externo {} rechazado.", vehiculo.getId());
+            return;
+        }else{
 
-        if (patenteOk && titularidadOk) {
-            vehiculoRepository.save(vehiculo);
-            // Publicamos el evento final de completitud
-            rabbitTemplate.convertAndSend(
-                    RabbitMQConfig.EXCHANGE,
-                    RabbitMQConfig.RK_EXTERNOS_VALIDACION_COMPLETADA,
-                    new ValidacionExternaCompletadaEvent(vehiculo.getId())
-            );
-        } else {
-            // Si alguna falla, no se incorpora (queda inhabilitado en PENDIENTE o se elimina físicamente)
-            vehiculo.setHabilitado(false);
-            vehiculoRepository.save(vehiculo);
-            log.warn("Vehículo externo ID {} rechazado. No se incorpora a la flota activa.", vehiculo.getId());
+            boolean patenteOk = "VALIDADO".equals(vehiculo.getResultadoValidacionPatente().name());
+            boolean titularidadOk = "VALIDADO".equals(vehiculo.getResultadoValidacionTitular().name());
+
+            if (patenteOk && titularidadOk) {
+                vehiculo.setHabilitado(true);
+                vehiculo.setEstaActivo(true);
+                vehiculoRepository.save(vehiculo);
+                // Publicamos el evento final de completitud
+                rabbitTemplate.convertAndSend(
+                        RabbitMQConfig.EXCHANGE,
+                        RabbitMQConfig.RK_EXTERNOS_VALIDACION_COMPLETADA,
+                        new ValidacionExternaCompletadaEvent(vehiculo.getId())
+                );
+            } else {
+                // Si alguna falla, no se incorpora (queda inhabilitado en PENDIENTE o se elimina físicamente)
+                vehiculo.setHabilitado(false);
+                vehiculoRepository.save(vehiculo);
+                log.warn("Vehículo externo ID {} rechazado. No se incorpora a la flota activa.", vehiculo.getId());
+            }
         }
     }
 
@@ -105,7 +136,15 @@ public class VehiculoEventosService {
         }
 
         Vehiculo vehiculo = optVehiculo.get();
+
+        if(!esVehiculoExternoPendiente(vehiculo) 
+                || vehiculo.getResultadoValidacionPatente() != ResultadoValidacionExterna.VALIDADO
+                || vehiculo.getResultadoValidacionTitular() != ResultadoValidacionExterna.VALIDADO){
+            return;
+        }
+
         vehiculo.setEstado(EstadoVehiculo.DISPONIBLE);
+        vehiculo.setEstaActivo(true);
         vehiculo.setHabilitado(true);
         vehiculoRepository.save(vehiculo);
         log.info("Vehículo externo ID {} incorporado exitosamente como DISPONIBLE.", vehiculo.getId());
@@ -114,5 +153,24 @@ public class VehiculoEventosService {
     private Vehiculo buscarVehiculo(Long id) {
         return vehiculoRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Vehículo no encontrado con ID: " + id));
+    }
+
+    private boolean esVehiculoExternoPendiente(Vehiculo vehiculo){
+        return vehiculo.getClienteId() != null 
+                && !vehiculo.isHabilitado()
+                && (vehiculo.getResultadoValidacionPatente()
+                        == ResultadoValidacionExterna.PENDIENTE
+                || vehiculo.getResultadoValidacionTitular()
+                        == ResultadoValidacionExterna.PENDIENTE);
+    }
+
+    private ResultadoValidacionExterna leerResultadoExterno(String resultado){
+        ResultadoValidacionExterna valor = ResultadoValidacionExterna.valueOf(resultado.trim().toUpperCase());
+
+        if (valor == ResultadoValidacionExterna.PENDIENTE){
+            throw new IllegalArgumentException(
+                    "La respuesta de validación debe ser VALIDADO o RECHAZADO");
+        }
+        return valor;
     }
 }

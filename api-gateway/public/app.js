@@ -144,6 +144,12 @@ async function accion(form) {
       await api('/api_rest/v1/reservas', 'POST', d); form.reset(); await cargarReservas(); mensaje('Reserva registrada.'); break;
     case 'reservas-search': await cargarReservas(d); break;
     case 'disponibilidad': await disponibilidad(d); break;
+    case 'vehiculos-external-create': {
+      const respuesta = await api('/api_rest/v1/vehiculos/externos', 'POST', d);
+      form.reset();
+      mensaje(`Solicitud recibida. Estado: ${respuesta.estado || 'PENDIENTE'}.`);
+      break;
+    }
   }
 }
 for (const form of document.querySelectorAll('form[data-action]')) {
