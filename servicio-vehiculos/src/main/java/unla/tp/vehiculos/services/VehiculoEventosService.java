@@ -36,6 +36,7 @@ public class VehiculoEventosService {
         vehiculo.setResultadoVerificacion(ResultadoVerificacion.valueOf(evento.resultado())); // "VALIDADO" o "ROBADO"
         // Si es ROBADO, no cambia EstadoVehiculo pero queda inhabilitado para operar
         vehiculo.setHabilitado("VALIDADO".equalsIgnoreCase(evento.resultado()));
+        vehiculo.setEstaActivo("VALIDADO".equalsIgnoreCase(evento.resultado()));
         vehiculoRepository.save(vehiculo);
     }
 
@@ -90,6 +91,7 @@ public class VehiculoEventosService {
         } else {
             // Si alguna falla, no se incorpora (queda inhabilitado en PENDIENTE o se elimina físicamente)
             vehiculo.setHabilitado(false);
+            vehiculo.setEstaActivo(false);
             vehiculoRepository.save(vehiculo);
             log.warn("Vehículo externo ID {} rechazado. No se incorpora a la flota activa.", vehiculo.getId());
         }
