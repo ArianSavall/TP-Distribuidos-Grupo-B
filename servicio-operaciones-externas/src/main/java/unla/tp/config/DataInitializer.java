@@ -44,13 +44,13 @@ public class DataInitializer implements CommandLineRunner {
             titularidadRepository.saveAll(List.of(
                 TitularidadVehiculo.builder()
                             .patente("ROB999")
-                            .clienteId(9L)
+                            .clienteId(2L)
                             .documento("12345678")
                             .build(),
                     TitularidadVehiculo.builder()
                             .patente("EXT456")
-                            .clienteId(14L)
-                            .documento("44888666")
+                            .clienteId(3L)
+                            .documento("98765432")
                             .build()
             ));
             log.info("Cargadas titularidades de prueba: ROB999, EXT456");
