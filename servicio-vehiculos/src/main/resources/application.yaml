@@ -32,7 +32,7 @@ spring:
         default-requeue-rejected: false # Si falla, NO vuelve a meter el mensaje en la cola en bucle
         retry:
           enabled: true
-          max-attempts: 3               # Intenta hasta 3 veces
+          max-retries: 3               # Intenta hasta 3 veces
           initial-interval: 2000ms      # Espera 2 segundos entre intentos
 
 logging:

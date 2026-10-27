@@ -23,4 +23,9 @@ public class RegistroPolicialListener {
     public void onVehiculoExternoRegistrado(VehiculoExternoRegistradoEvent evento) {
         policialService.verificarVehiculoExterno(evento);
     }
+
+    @RabbitListener(queues = RabbitMQConfig.Q_TITULARIDAD_EXTERNA)
+    public void onTitularidadExterna(VehiculoExternoRegistradoEvent evento) {
+        policialService.verificarTitularidadExterna(evento);
+    }
 }
