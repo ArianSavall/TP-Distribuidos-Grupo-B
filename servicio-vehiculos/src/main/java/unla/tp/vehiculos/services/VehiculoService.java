@@ -5,7 +5,6 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import unla.tp.vehiculos.config.RabbitMQConfig;
 import unla.tp.vehiculos.dtos.EventosVehiculoDTOs;
 import unla.tp.vehiculos.entities.Vehiculo;
-import unla.tp.vehiculos.enums.EstadoIncorporacion;
 import unla.tp.vehiculos.enums.EstadoVehiculo;
 import unla.tp.vehiculos.enums.ResultadoValidacionExterna;
 import unla.tp.vehiculos.enums.ResultadoVerificacion;
@@ -13,19 +12,17 @@ import unla.tp.vehiculos.enums.TipoVehiculo;
 import grpc.*;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
-import jakarta.validation.ConstraintViolationException;
 import unla.tp.vehiculos.mappers.VehiculoMapper;
 import net.devh.boot.grpc.client.inject.GrpcClient;
 import net.devh.boot.grpc.server.service.GrpcService;
 import org.springframework.beans.factory.annotation.Autowired;
 import unla.tp.vehiculos.repositories.IVehiculoRepository;
-import java.time.format.DateTimeFormatter;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
+
 
 @GrpcService
 @RequiredArgsConstructor
