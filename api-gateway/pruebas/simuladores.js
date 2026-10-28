@@ -16,10 +16,11 @@ async function iniciarSimuladores() {
     { id: '2', marca: 'Toyota', modelo: 'Corolla', patente: 'PRUEBA02', tipoVehiculo: 'SEDAN', precioDiario: 35000, estaActivo: true, estado: 'DISPONIBLE', anio: 2023, color: 'Gris' }
   ];
   const fecha = dias => new Date(Date.now() + dias * 86400000).toISOString().slice(0, 10) + 'T10:00:00';
+  const CONFIRMADO = 'ESTADO_RESERVA_CONFIRMADO', CANCELADO = 'ESTADO_RESERVA_CANCELADO';
   const reservas = [
-    { idReserva: '90', idCliente: '1', patenteVehiculo: 'PRUEBA01', fechaHoraInicio: fecha(-10), fechaHoraFinal: fecha(-8), estadoReserva: 'CONFIRMADO', importeTotal: 50000 },
-    { idReserva: '100', idCliente: '1', patenteVehiculo: 'PRUEBA01', fechaHoraInicio: fecha(10), fechaHoraFinal: fecha(12), estadoReserva: 'CONFIRMADO', importeTotal: 50000 },
-    { idReserva: '101', idCliente: '2', patenteVehiculo: 'PRUEBA02', fechaHoraInicio: fecha(10), fechaHoraFinal: fecha(12), estadoReserva: 'CONFIRMADO', importeTotal: 70000 }
+    { idReserva: '90', idCliente: '1', patenteVehiculo: 'PRUEBA01', fechaHoraInicio: fecha(-10), fechaHoraFinal: fecha(-8), estadoReserva: CONFIRMADO, importeTotal: 50000 },
+    { idReserva: '100', idCliente: '1', patenteVehiculo: 'PRUEBA01', fechaHoraInicio: fecha(10), fechaHoraFinal: fecha(12), estadoReserva: CONFIRMADO, importeTotal: 50000 },
+    { idReserva: '101', idCliente: '2', patenteVehiculo: 'PRUEBA02', fechaHoraInicio: fecha(10), fechaHoraFinal: fecha(12), estadoReserva: CONFIRMADO, importeTotal: 70000 }
   ];
   const error = (code, details) => Object.assign(new Error(details), { code, details });
   const existe = (dato, nombre) => { if (!dato) throw error(grpc.status.NOT_FOUND, `${nombre} no encontrado`); return dato; };
@@ -88,29 +89,30 @@ async function iniciarSimuladores() {
         return { vehiculos: vehiculos.filter(v => v.estaActivo &&
           (!d.marca || v.marca === d.marca) && (!d.modelo || v.modelo === d.modelo) &&
           (!d.tipoVehiculo || v.tipoVehiculo === d.tipoVehiculo) && v.precioDiario >= d.precioDiarioMin && v.precioDiario <= d.precioDiarioMax &&
-          !reservas.some(r => r.patenteVehiculo === v.patente && r.estadoReserva === 'CONFIRMADO' && r.fechaHoraInicio < hasta && r.fechaHoraFinal > desde)) };
+          !reservas.some(r => r.patenteVehiculo === v.patente && r.estadoReserva === CONFIRMADO && r.fechaHoraInicio < hasta && r.fechaHoraFinal > desde)) };
       }
     });
     const RESERVAS_GRPC_ADDR = await registrar('reservas/reserva.proto', 'reservas', 'ReservaService', {
       listarReservas: () => ({ reservas }),
-      obtenerReserva: d => reserva(d.id),
+      obtenerReserva: d => ({ reserva: reserva(d.id) }),
       crearReserva: d => {
         if (!cliente(d.idCliente).estaActivo || !vehiculo(d.patenteVehiculo).estaActivo) throw error(grpc.status.FAILED_PRECONDITION, 'Cliente o vehículo inactivo');
         if (!d.fechaHoraInicio || d.fechaHoraFinal <= d.fechaHoraInicio) throw error(grpc.status.INVALID_ARGUMENT, 'Período inválido');
-        const r = { ...d, idReserva: String(102 + reservas.length), estadoReserva: 'CONFIRMADO', importeTotal: 50000 };
-        reservas.push(r);return r;
+        const r = { ...d, idReserva: String(102 + reservas.length), estadoReserva: CONFIRMADO, importeTotal: 50000 };
+        reservas.push(r);return { reserva: r };
       },
       cancelarReserva: d => {
         const r = reserva(d.id);
-        if (r.estadoReserva === 'CANCELADO') throw error(grpc.status.FAILED_PRECONDITION, 'Ya cancelada');
-        r.estadoReserva = 'CANCELADO';return { exito: true, estadoReserva: 'CANCELADO' };
+        if (r.estadoReserva === CANCELADO) throw error(grpc.status.FAILED_PRECONDITION, 'Ya cancelada');
+        r.estadoReserva = CANCELADO;return { exito: true, estadoReserva: CANCELADO };
       },
       obtenerMiHistorial: d => ({ historial: reservas.filter(r => r.idCliente === d.idCliente &&
-        (r.estadoReserva === 'CANCELADO' || r.fechaHoraFinal < new Date().toISOString().slice(0,19)))
+        (r.estadoReserva === CANCELADO || r.fechaHoraFinal < new Date().toISOString().slice(0,19)))
         .sort((a,b) => b.fechaHoraInicio.localeCompare(a.fechaHoraInicio)).map(r => ({
           vehiculo: `${vehiculo(r.patenteVehiculo).marca} ${vehiculo(r.patenteVehiculo).modelo}`,
           patente: r.patenteVehiculo, fechaHoraInicio: r.fechaHoraInicio, fechaHoraFinal: r.fechaHoraFinal,
-          dias: 2, importeTotal: r.importeTotal, estado: r.estadoReserva === 'CANCELADO' ? 'CANCELADO' : 'FINALIZADO'
+          dias: 2, importeTotal: r.importeTotal,
+          estado: r.estadoReserva === CANCELADO ? 'ESTADO_HISTORIAL_CANCELADO' : 'ESTADO_HISTORIAL_FINALIZADO'
         })) })
     });
     return { direcciones: { CLIENTES_GRPC_ADDR, VEHICULOS_GRPC_ADDR, RESERVAS_GRPC_ADDR }, cerrar: () => servidores.forEach(s => s.forceShutdown()) };

@@ -87,13 +87,15 @@ router.put("/:id", async (req, res, next) => {
     const usuario = req.session.usuario;
 
     // Consulta la reserva antes de autorizar su cancelación.
-    const reserva = await llamarRpc(
+    const respuesta = await llamarRpc(
       reservas,
       "obtenerReserva",
       { id: req.params.id }
     );
+    const reserva = respuesta.reserva;
 
     if (
+      !reserva ||
       String(reserva.idReserva) !== req.params.id ||
       !idValido(reserva.idCliente)
     ) {

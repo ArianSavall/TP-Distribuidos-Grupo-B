@@ -35,7 +35,7 @@ public class ReservaService extends ReservaServiceGrpc.ReservaServiceImplBase {
     private RabbitTemplate rabbitTemplate;
 
     @Override
-    public void crearReserva(CrearReservaRequest request, StreamObserver<grpc.Reserva> responseObserver) {
+    public void crearReserva(CrearReservaRequest request, StreamObserver<CrearReservaResponse> responseObserver) {
         try {
             LocalDateTime fechaInicio = Parsers.fechaHora(request.getFechaHoraInicio(), "fechaHoraInicio");
             LocalDateTime fechaFin = Parsers.fechaHora(request.getFechaHoraFinal(), "fechaHoraFinal");
@@ -94,11 +94,11 @@ public class ReservaService extends ReservaServiceGrpc.ReservaServiceImplBase {
                 guardada.getFechaHoraFinal().toString()
             );
 
-            rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE, RabbitMQConfig.RK_RESERVA_CONFIRMADA,evento);
+            rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE, RabbitMQConfig.RK_RESERVA_CONFIRMADA, evento);
 
-            grpc.Reserva grpcResponse = ReservaMapper.toProto(guardada);
-
-            responseObserver.onNext(grpcResponse);
+            responseObserver.onNext(CrearReservaResponse.newBuilder()
+                    .setReserva(ReservaMapper.toProto(guardada))
+                    .build());
             responseObserver.onCompleted();
 
         } catch (io.grpc.StatusRuntimeException e) {
@@ -111,11 +111,13 @@ public class ReservaService extends ReservaServiceGrpc.ReservaServiceImplBase {
     }
 
     @Override
-    public void obtenerReserva(ObtenerReservaRequest request, StreamObserver<grpc.Reserva> responseObserver) {
+    public void obtenerReserva(ObtenerReservaRequest request, StreamObserver<ObtenerReservaResponse> responseObserver) {
         Optional<Reserva> reservaOpt = reservaRepository.findById(request.getId());
 
         if (reservaOpt.isPresent()) {
-            responseObserver.onNext(ReservaMapper.toProto(reservaOpt.get()));
+            responseObserver.onNext(ObtenerReservaResponse.newBuilder()
+                    .setReserva(ReservaMapper.toProto(reservaOpt.get()))
+                    .build());
             responseObserver.onCompleted();
         } else {
             responseObserver.onError(Status.NOT_FOUND
@@ -167,13 +169,12 @@ public class ReservaService extends ReservaServiceGrpc.ReservaServiceImplBase {
                         .asRuntimeException());
                 return;
             }
-
             reserva.setEstadoReserva(EstadoReserva.CANCELADO);
             reservaRepository.save(reserva);
 
             CancelarReservaResponse response = CancelarReservaResponse.newBuilder()
                     .setExito(true)
-                    .setEstadoReserva(grpc.EstadoReserva.CANCELADO)
+                    .setEstadoReserva(grpc.EstadoReserva.ESTADO_RESERVA_CANCELADO)
                     .build();
 
             responseObserver.onNext(response);
@@ -185,8 +186,8 @@ public class ReservaService extends ReservaServiceGrpc.ReservaServiceImplBase {
         }
     }
 
-@Override
-    public void obtenerMiHistorial(ObtenerHistorialRequest request, StreamObserver<ObtenerHistorialResponse> responseObserver) {
+    @Override
+    public void obtenerMiHistorial(ObtenerMiHistorialRequest request, StreamObserver<ObtenerMiHistorialResponse> responseObserver) {
         try {
             List<reservas.models.Reserva> historialDb = reservaRepository.buscarHistorial(
                     request.getIdCliente(),
@@ -195,20 +196,22 @@ public class ReservaService extends ReservaServiceGrpc.ReservaServiceImplBase {
                     LocalDateTime.now()
             );
 
-            ObtenerHistorialResponse.Builder responseBuilder = ObtenerHistorialResponse.newBuilder();
+            ObtenerMiHistorialResponse.Builder responseBuilder = ObtenerMiHistorialResponse.newBuilder();
 
             for (reservas.models.Reserva cruda : historialDb) {
                 long dias = Math.max(1, ChronoUnit.DAYS.between(cruda.getFechaHoraInicio(), cruda.getFechaHoraFinal()));
-                String estadoStr = cruda.getEstadoReserva() == reservas.enums.EstadoReserva.CANCELADO ? "CANCELADO" : "FINALIZADO";
+                EstadoHistorial estado = cruda.getEstadoReserva() == reservas.enums.EstadoReserva.CANCELADO
+                        ? EstadoHistorial.ESTADO_HISTORIAL_CANCELADO
+                        : EstadoHistorial.ESTADO_HISTORIAL_FINALIZADO;
 
                 HistorialItem item = HistorialItem.newBuilder()
-                        .setVehiculo("Vehículo " + cruda.getPatenteVehiculo()) 
+                        .setVehiculo("Vehículo " + cruda.getPatenteVehiculo())
                         .setPatente(cruda.getPatenteVehiculo())
                         .setFechaHoraInicio(cruda.getFechaHoraInicio().toString())
                         .setFechaHoraFinal(cruda.getFechaHoraFinal().toString())
                         .setDias(Math.toIntExact(dias))
                         .setImporteTotal(cruda.getPrecioTotal())
-                        .setEstado(estadoStr)
+                        .setEstado(estado)
                         .build();
 
                 responseBuilder.addHistorial(item);
@@ -224,8 +227,8 @@ public class ReservaService extends ReservaServiceGrpc.ReservaServiceImplBase {
         }
     }
 
-@Override
-    public void getVehiculosOcupados(FechasRequest request, StreamObserver<VehiculosOcupadosResponse> responseObserver) {
+    @Override
+    public void getVehiculosOcupados(GetVehiculosOcupadosRequest request, StreamObserver<GetVehiculosOcupadosResponse> responseObserver) {
         try {
             LocalDateTime fechaDesde = Parsers.fechaHora(request.getFechaDesde(), "fecha_desde");
             LocalDateTime fechaHasta = Parsers.fechaHora(request.getFechaHasta(), "fecha_hasta");
@@ -236,7 +239,7 @@ public class ReservaService extends ReservaServiceGrpc.ReservaServiceImplBase {
                     reservas.enums.EstadoReserva.CANCELADO
             );
 
-            VehiculosOcupadosResponse response = VehiculosOcupadosResponse.newBuilder()
+            GetVehiculosOcupadosResponse response = GetVehiculosOcupadosResponse.newBuilder()
                     .addAllPatentes(patentesOcupadas)
                     .build();
 
