@@ -6,85 +6,214 @@ option java_multiple_files = true;
 option java_package = "grpc";
 option java_outer_classname = "ClientesProto";
 
+//Operaciones relacionadas con los clientes: Crear, consultar y administrar clientes
 service ClienteService {
-    rpc CrearCliente (ClienteRequest) returns (ClienteResponse);
+    //Registra un nuevo cliente y lo añade a la base de datos
+    //Envia los datos del cliente
+    //Devuelve el cliente creado. Si el DNI, email o usuario ya existe devuelve ALREADY_EXISTS 
+    rpc CrearCliente (CrearClienteRequest) returns (CrearClienteResponse);
 
-    rpc ModificarClienteId (ModificarClienteIdRequest) returns (ClienteResponse);
+    //Actualiza los campos informados del cliente identificado con su id
+    //Los campos vacios se conservan sin cambios
+    //Devuelve el cliente modificado
+    rpc ModificarClienteId (ModificarClienteIdRequest) returns (ModificarClienteIdResponse);
 
-    rpc ModificarClienteDni (ClienteRequest) returns (ClienteResponse);
+    //Actualiza los campos informados del cliente identificado con su id
+    //Los campos vacios se conservan sin cambios
+    //Devuelve el cliente modificado
+    rpc ModificarClienteDni (ModificarClienteDniRequest) returns (ModificarClienteDniResponse);
 
-    rpc ConsultarClienteId (ClienteIdRequest) returns (ClienteResponse);
+    //Obtiene un cliente por su id
+    //Devuelve NOT_FOUND si no existe
+    rpc ConsultarClienteId (ConsultarClienteIdRequest) returns (ConsultarClienteIdResponse);
 
-    rpc ConsultarClienteDni (ClienteDniRequest) returns (ClienteResponse);
+    //Obtiene un cliente por su DNI
+    //Devuelve NOT_FOUND si no existe
+    rpc ConsultarClienteDni (ConsultarClienteDniRequest) returns (ConsultarClienteDniResponse);
 
-    rpc ListarUsuarios (ListarClientesRequest) returns (ListarClientesResponse);
+    // Devuelve todos los usuarios registrados, tanto clientes como administradores
+    rpc ListarUsuarios (ListarUsuariosRequest) returns (ListarUsuariosResponse);
 
+    //Devuelve todos los usuarios que esten registrados como clientes
     rpc ListarClientes (ListarClientesRequest) returns (ListarClientesResponse);
 
-    rpc BorrarClienteId (ClienteIdRequest) returns (ClienteResponse);
+    //Realiza una baja logica del cliente identificado por id
+    //Devuelve el cliente dado de baja
+    rpc BorrarClienteId (BorrarClienteIdRequest) returns (BorrarClienteIdResponse);
 
-    rpc VerificarExistenciaDni (ClienteDniRequest) returns (VerificarActivoResponse);
+    //Comprueba si el cliente identificado por su DNI existe
+    rpc VerificarExistenciaDni (VerificarExistenciaDniRequest) returns (VerificarExistenciaDniResponse);
 
-    rpc VerificarClienteActivo (ClienteIdRequest) returns (VerificarActivoResponse);
+    //Comprueba si el cliente identificado por su id se encuentra activo
+    rpc VerificarClienteActivo (VerificarClienteActivoRequest) returns (VerificarClienteActivoResponse);
 
-    rpc validarLogin (MetadatosRequest) returns (Metadatos);
+    //Valida las credenciales y devuelve metadatos del usuario autenticado
+    rpc ValidarLogin (ValidarLoginRequest) returns (ValidarLoginResponse);
 }
 
 message ClienteDTO{
+    //Identificador unico
     int64 id = 1;
+
+    //Documento nacional de identidad
     string dni = 2;
+
+    //Nombre del cliente
     string nombre = 3;
+
+    //Apellido del cliente
     string apellido = 4;
+
+    //Correo electronico del cliente
     string email = 5;
+
+    //Numero telefonico del cliente
     string telefono = 6;
-    string fechaNacimiento = 7;
-    bool estaActivo = 8;
+
+    //Fecha de nacimiento con formato DD-MM-YYYY
+    string fecha_nacimiento = 7;
+
+    //Indica si el cliente puede operar el sistema
+    bool esta_activo = 8;
+
+    //Credenciales y rol de la cuenta
     Metadatos metadatos = 9;
 }
 
 message Metadatos{
+    //Identificador unico
     int64 id = 1;
+
+    //Usuario de la cuenta del cliente
     string usuario = 2;
+
+    //Contraseña de la cuenta del cliente
     string password = 3;
+
+    //Rol del cliente en el sistema: ADMIN o CLIENTE
     string rol = 4;
 }
 
-message ClienteRequest{
+message CrearClienteRequest {
+    //Documento nacional de identidad
     string dni = 1;
+
+    //Nombre del cliente
     string nombre = 2;
+
+    //Apellido del cliente
     string apellido = 3;
+
+    //Correo electronico del cliente
     string email = 4;
+
+    //Numero telefonico del cliente
     string telefono = 5;
-    string fechaNacimiento = 6;
+
+    //Fecha de nacimiento en formato DD-MM-YYYY
+    string fecha_nacimiento = 6;
+
+    //Credenciales del cliente
     MetadatosRequest metadatos= 7;
 }
 
-message MetadatosRequest{
-    string usuario = 1;
-    string password = 2;
-}
-
-message ClienteResponse {
+message CrearClienteResponse {
+    //Objeto cliente
     ClienteDTO cliente = 1;
 }
 
+message MetadatosRequest{
+    //Usuario de la cuenta del cliente
+    string usuario = 1;
+
+    //Contraseña de la cuenta del cliente
+    string password = 2;
+}
+
 message ModificarClienteIdRequest{
+    //Identificador unico
     int64 id = 1;
+
+    //Documento nacional de identidad
     string dni = 2;
+
+    //Nombre del cliente
     string nombre = 3;
+
+    //Apellido del cliente
     string apellido = 4;
+
+    //Correo electronico del cliente
     string email = 5;
+
+    //Numero telefonico del cliente
     string telefono = 6;
-    string fechaNacimiento = 7;
-    MetadatosRequest metadatos = 8;
+
+    //Fecha de nacimiento con formato DD-MM-YYYY
+    string fecha_nacimiento = 7;
+
+    //Credenciales y rol de la cuenta
+    Metadatos metadatos = 8;
 }
 
-message ClienteIdRequest{
+message ModificarClienteIdResponse{
+    //Objeto cliente
+    ClienteDTO cliente = 1;
+}
+
+message ModificarClienteDniRequest{
+    //Documento nacional de identidad
+    string dni = 1;
+
+    //Nombre del cliente
+    string nombre = 2;
+
+    //Apellido del cliente
+    string apellido = 3;
+
+    //Correo electronico del cliente
+    string email = 4;
+
+    //Numero telefonico del cliente
+    string telefono = 5;
+
+    //Fecha de nacimiento con formato DD-MM-YYYY
+    string fecha_nacimiento = 6;
+
+    //Credenciales y rol de la cuenta
+    Metadatos metadatos = 7;
+}
+
+message ModificarClienteDniResponse {
+    //Objeto cliente
+    ClienteDTO cliente = 1;
+}
+
+message ConsultarClienteIdRequest{
+    //Identificador unico del cliente
     int64 id = 1;
 }
 
-message ClienteDniRequest{
+message ConsultarClienteIdResponse {
+    //Objeto cliente
+    ClienteDTO cliente = 1;
+}
+
+message ConsultarClienteDniRequest{
+    //Documento nacional identidad del cliente
     string dni = 1;
+}
+
+message ConsultarClienteDniResponse{
+    //Objeto cliente
+    ClienteDTO cliente = 1;
+}
+
+message ListarUsuariosRequest{}
+
+message ListarUsuariosResponse{
+    //Repeticion de objeto cliente
+    repeated ClienteDTO cliente = 1;
 }
 
 message ListarClientesRequest{
@@ -92,9 +221,46 @@ message ListarClientesRequest{
 }
 
 message ListarClientesResponse{
-    repeated ClienteDTO cliente = 3;
+    //Repeticion de objeto cliente
+    repeated ClienteDTO cliente = 1;
 }
 
-message VerificarActivoResponse{
+message BorrarClienteIdRequest{
+    //Identificador unico del cliente
+    int64 id = 1;
+}
+
+message BorrarClienteIdResponse{
+    //Objeto cliente
+    ClienteDTO cliente = 1;
+}
+
+message VerificarExistenciaDniRequest {
+    //Documento nacional de identidad del cliente
+    string dni = 1;
+}
+
+message VerificarClienteActivoRequest {
+    //Identificador unico del cliente
+    int64 id = 1;
+}
+
+message VerificarExistenciaDniResponse{
+    //Mensaje de respuesta segun resultado de la verificacion
     string mensaje = 1;
+}
+
+message VerificarClienteActivoResponse{
+    //Mensaje de respuesta segun resultado de la verificacion
+    string mensaje = 1;
+}
+
+message ValidarLoginRequest{
+    //Objeto metadatos sin rol
+    MetadatosRequest metadatos = 1;
+}
+
+message ValidarLoginResponse{
+    //Objeto metadatos
+    Metadatos metadatos = 1;
 }
