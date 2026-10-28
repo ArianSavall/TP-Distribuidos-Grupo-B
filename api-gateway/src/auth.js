@@ -39,11 +39,18 @@ function instalarAutenticacion(app) {
       }
 
       // La verificación se delega al servicio de clientes.
-      const metadatos = await llamarRpc(
+      const respuestaLogin = await llamarRpc(
         clientes,
         "validarLogin",
-        { usuario: usuario.trim(), password }
+        { 
+          metadatos:  {
+            usuario : usuario.trim(),
+            password
+          }
+        }
       );
+
+      const metadatos = respuestaLogin.metadatos;
 
       // validarLogin devuelve el ID de metadatos, no el ID del cliente.
       // Resolver la identidad con los RPC existentes, sólo tras validar la clave.

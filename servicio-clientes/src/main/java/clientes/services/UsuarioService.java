@@ -25,13 +25,13 @@ public class UsuarioService extends ClienteServiceGrpc.ClienteServiceImplBase{
     }
 
     @Override
-    public void listarUsuarios(ListarClientesRequest request, StreamObserver<ListarClientesResponse> responseObserver) {
+    public void listarUsuarios(ListarUsuariosRequest request, StreamObserver<ListarUsuariosResponse> responseObserver) {
         try {
             //Logica para obtener la lista de usuarios desde la base de datos
             List<Usuario> usuarios = usuarioRepository.findAllWithMetadatos();
             
              
-            ListarClientesResponse.Builder responseBuilder = ListarClientesResponse.newBuilder();
+            ListarUsuariosResponse.Builder responseBuilder = ListarUsuariosResponse.newBuilder();
 
             
             for (Usuario u : usuarios) {
@@ -125,7 +125,7 @@ public class UsuarioService extends ClienteServiceGrpc.ClienteServiceImplBase{
 
 
     @Override
-    public void borrarClienteId(ClienteIdRequest request, StreamObserver<ClienteResponse> responseObserver) {
+    public void borrarClienteId(BorrarClienteIdRequest request, StreamObserver<BorrarClienteIdResponse> responseObserver) {
         try {
             // Buscamos el usuario por el ID que viene en la petición gRPC
             Usuario u = usuarioRepository.findById(request.getId());
@@ -135,7 +135,8 @@ public class UsuarioService extends ClienteServiceGrpc.ClienteServiceImplBase{
                 usuarioRepository.save(u);
 
 
-                ClienteResponse response = mapearUsuarioAResponse(u, u.getMetadatos());
+                ClienteDTO cliente = mapearUsuarioAResponse(u, u.getMetadatos());
+                BorrarClienteIdResponse response = BorrarClienteIdResponse.newBuilder().setCliente(cliente).build();
                 responseObserver.onNext(response);
             } else {
                 responseObserver.onError(
@@ -157,7 +158,7 @@ public class UsuarioService extends ClienteServiceGrpc.ClienteServiceImplBase{
     }
 
     @Override
-    public void crearCliente(ClienteRequest request, StreamObserver<ClienteResponse> responseObserver) {
+    public void crearCliente(CrearClienteRequest request, StreamObserver<CrearClienteResponse> responseObserver) {
        
        try{
             Usuario u = new Usuario();
@@ -179,7 +180,8 @@ public class UsuarioService extends ClienteServiceGrpc.ClienteServiceImplBase{
                 if(usuarioRepository.findByMetadatos_Usuario(request.getMetadatos().getUsuario()) == null){
                     if(usuarioRepository.findByEmail(request.getEmail()) == null){
                         usuarioRepository.save(u);
-                        ClienteResponse response = mapearUsuarioAResponse(u, u.getMetadatos());
+                        ClienteDTO cliente = mapearUsuarioAResponse(u, u.getMetadatos());
+                        CrearClienteResponse response = CrearClienteResponse.newBuilder().setCliente(cliente).build();
                         responseObserver.onNext(response);
                         responseObserver.onCompleted();
                     }
@@ -222,7 +224,7 @@ public class UsuarioService extends ClienteServiceGrpc.ClienteServiceImplBase{
     
     //Modifica solo los campos que no sean nulos segun el usuario pasado por DNI
    @Override
-    public void modificarClienteDni(ClienteRequest request, StreamObserver<ClienteResponse> responseObserver){
+    public void modificarClienteDni(ModificarClienteDniRequest request, StreamObserver<ModificarClienteDniResponse> responseObserver){
 
         try{
             Usuario usuario = usuarioRepository.findByDni(request.getDni());
@@ -264,7 +266,8 @@ public class UsuarioService extends ClienteServiceGrpc.ClienteServiceImplBase{
                 if(usuarioRepository.findByMetadatos_Usuario(usuario.getMetadatos().getUsuario()) == null || usuarioRepository.findByMetadatos_Usuario(usuario.getMetadatos().getUsuario()).getId().equals(usuario.getId())){
                     if(usuarioRepository.findByEmail(usuario.getEmail()) == null || usuarioRepository.findByEmail(usuario.getEmail()).getId().equals(usuario.getId())){
                         usuarioRepository.save(usuario);
-                        ClienteResponse response = mapearUsuarioAResponse(usuario, usuario.getMetadatos());
+                        ClienteDTO cliente = mapearUsuarioAResponse(usuario, usuario.getMetadatos());
+                        ModificarClienteDniResponse response = ModificarClienteDniResponse.newBuilder().setCliente(cliente).build();
                         responseObserver.onNext(response);
                         responseObserver.onCompleted();
                     }
@@ -305,7 +308,7 @@ public class UsuarioService extends ClienteServiceGrpc.ClienteServiceImplBase{
 
     //Modifica solo los campos que no sean nulos segun el usuario pasado por ID
     @Override
-    public void modificarClienteId(ModificarClienteIdRequest request, StreamObserver<ClienteResponse> responseObserver) {
+    public void modificarClienteId(ModificarClienteIdRequest request, StreamObserver<ModificarClienteIdResponse> responseObserver) {
         try {
             Usuario usuario = usuarioRepository.findById(request.getId());
 
@@ -352,7 +355,8 @@ public class UsuarioService extends ClienteServiceGrpc.ClienteServiceImplBase{
                 if(usuarioRepository.findByMetadatos_Usuario(usuario.getMetadatos().getUsuario()) == null || usuarioRepository.findByMetadatos_Usuario(usuario.getMetadatos().getUsuario()).getId().equals(usuario.getId())){
                     if(usuarioRepository.findByEmail(usuario.getEmail()) == null || usuarioRepository.findByEmail(usuario.getEmail()).getId().equals(usuario.getId())){
                         usuarioRepository.save(usuario);
-                        ClienteResponse response = mapearUsuarioAResponse(usuario, usuario.getMetadatos());
+                        ClienteDTO cliente = mapearUsuarioAResponse(usuario, usuario.getMetadatos());
+                        ModificarClienteIdResponse response = ModificarClienteIdResponse.newBuilder().setCliente(cliente).build();
                         responseObserver.onNext(response);
                         responseObserver.onCompleted();
                     }
@@ -392,13 +396,14 @@ public class UsuarioService extends ClienteServiceGrpc.ClienteServiceImplBase{
 
 
     @Override
-    public void consultarClienteId(ClienteIdRequest request, StreamObserver<ClienteResponse> responseObserver) {
+    public void consultarClienteId(ConsultarClienteIdRequest request, StreamObserver<ConsultarClienteIdResponse> responseObserver) {
         try {
             //Busqueda en la base de datos
             Usuario usuario = usuarioRepository.findById(request.getId());
             
             if (usuario != null) {
-                ClienteResponse response = mapearUsuarioAResponse(usuario, usuario.getMetadatos());
+                ClienteDTO cliente = mapearUsuarioAResponse(usuario, usuario.getMetadatos());
+                ConsultarClienteIdResponse response = ConsultarClienteIdResponse.newBuilder().setCliente(cliente).build();
                 responseObserver.onNext(response);
                 responseObserver.onCompleted();
             } else {
@@ -418,13 +423,14 @@ public class UsuarioService extends ClienteServiceGrpc.ClienteServiceImplBase{
     }
 
     @Override
-    public void consultarClienteDni(ClienteDniRequest request, StreamObserver<ClienteResponse> responseObserver) {
+    public void consultarClienteDni(ConsultarClienteDniRequest request, StreamObserver<ConsultarClienteDniResponse> responseObserver) {
         try {
             //Busqueda en la base de datos
             Usuario usuario = usuarioRepository.findByDni(request.getDni());
             
             if (usuario != null) {
-                ClienteResponse response = mapearUsuarioAResponse(usuario, usuario.getMetadatos());
+                ClienteDTO cliente = mapearUsuarioAResponse(usuario, usuario.getMetadatos());
+                ConsultarClienteDniResponse response = ConsultarClienteDniResponse.newBuilder().setCliente(cliente).build();
                 responseObserver.onNext(response);
                 responseObserver.onCompleted();
             } else {
@@ -445,14 +451,14 @@ public class UsuarioService extends ClienteServiceGrpc.ClienteServiceImplBase{
 
 
     @Override
-    public void verificarExistenciaDni(ClienteDniRequest request, StreamObserver<VerificarActivoResponse> responseObserver) {
+    public void verificarExistenciaDni(VerificarExistenciaDniRequest request, StreamObserver<VerificarExistenciaDniResponse> responseObserver) {
         try {
             // Buscamos al usuario por su DNI
              Usuario usuario = usuarioRepository.findByDni(request.getDni());
             
             
             if (usuario != null) {
-                VerificarActivoResponse response = VerificarActivoResponse.newBuilder()
+                VerificarExistenciaDniResponse response = VerificarExistenciaDniResponse.newBuilder()
                         .setMensaje("El cliente existe.")
                         .build();
                 responseObserver.onNext(response);
@@ -474,7 +480,7 @@ public class UsuarioService extends ClienteServiceGrpc.ClienteServiceImplBase{
     }
 
     @Override
-    public void verificarClienteActivo(ClienteIdRequest request, StreamObserver<VerificarActivoResponse> responseObserver) {
+    public void verificarClienteActivo(VerificarClienteActivoRequest request, StreamObserver<VerificarClienteActivoResponse> responseObserver) {
         try {
             // Buscamos al usuario por su ID
              Usuario usuario = usuarioRepository.findById(request.getId());
@@ -489,13 +495,13 @@ public class UsuarioService extends ClienteServiceGrpc.ClienteServiceImplBase{
             }
 
             if (usuario.getEstaActivo() == true) {
-                VerificarActivoResponse response = VerificarActivoResponse.newBuilder()
+                VerificarClienteActivoResponse response = VerificarClienteActivoResponse.newBuilder()
                         .setMensaje("El cliente está activo.")
                         .build();
                 responseObserver.onNext(response);
                 responseObserver.onCompleted();
             } else {
-                VerificarActivoResponse response = VerificarActivoResponse.newBuilder()
+                VerificarClienteActivoResponse response = VerificarClienteActivoResponse.newBuilder()
                         .setMensaje("El cliente no está activo.")
                         .build();
                 responseObserver.onNext(response);
@@ -512,9 +518,9 @@ public class UsuarioService extends ClienteServiceGrpc.ClienteServiceImplBase{
     }
 
     @Override
-    public void validarLogin(MetadatosRequest request, StreamObserver<Metadatos> response){
+    public void validarLogin(ValidarLoginRequest request, StreamObserver<ValidarLoginResponse> response){
         try {
-            if (request.getUsuario().isBlank() || request.getPassword().isBlank()) {
+            if (request.getMetadatos().getUsuario().isBlank() || request.getMetadatos().getPassword().isBlank()) {
                 response.onError(
                     Status.INVALID_ARGUMENT
                         .withDescription("El usuario y la contraseña son obligatorios.")
@@ -523,12 +529,12 @@ public class UsuarioService extends ClienteServiceGrpc.ClienteServiceImplBase{
                 return;
             }
 
-            Usuario usuario = usuarioRepository.findByMetadatos_Usuario(request.getUsuario());
+            Usuario usuario = usuarioRepository.findByMetadatos_Usuario(request.getMetadatos().getUsuario());
 
             if (usuario == null
                     || usuario.getMetadatos() == null
                     || !BCrypt.checkpw(
-                            request.getPassword(),
+                            request.getMetadatos().getPassword(),
                             usuario.getMetadatos().getPassword())) {
                 response.onError(
                     Status.UNAUTHENTICATED
@@ -555,7 +561,9 @@ public class UsuarioService extends ClienteServiceGrpc.ClienteServiceImplBase{
                     .setRol(metadatos.getRol().name())
                     .build();
 
-            response.onNext(loginResponse);
+
+            ValidarLoginResponse responseValidacion = ValidarLoginResponse.newBuilder().setMetadatos(loginResponse).build();
+            response.onNext(responseValidacion);
             response.onCompleted();
         } catch (Exception e) {
             response.onError(
@@ -568,7 +576,7 @@ public class UsuarioService extends ClienteServiceGrpc.ClienteServiceImplBase{
         
 
 
-    private ClienteResponse mapearUsuarioAResponse(Usuario usuario, UsuarioMetaDatos metadatos) {
+    private ClienteDTO mapearUsuarioAResponse(Usuario usuario, UsuarioMetaDatos metadatos) {
 
        
         ClienteDTO clienteDto = ClienteDTO.newBuilder()
@@ -589,8 +597,6 @@ public class UsuarioService extends ClienteServiceGrpc.ClienteServiceImplBase{
                 .build();
 
        
-        return ClienteResponse.newBuilder()
-                .setCliente(clienteDto)
-                .build();
+        return clienteDto;
     }
 }   

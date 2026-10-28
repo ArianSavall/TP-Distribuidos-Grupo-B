@@ -68,7 +68,7 @@ servidor.addService(contrato.clientes.ClienteService.service, {
   validarLogin: (llamada, responder) => {
     console.log("gRPC: validarLogin");
 
-    const { usuario, password } = llamada.request;
+    const { usuario, password } = llamada.request.metadatos;
 
     // Credenciales ficticias, exclusivamente para esta prueba.
     if (usuario !== "cliente_prueba" || password !== "clave-prueba") {
