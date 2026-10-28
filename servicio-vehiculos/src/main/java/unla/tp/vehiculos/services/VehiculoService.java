@@ -131,11 +131,11 @@ public class VehiculoService extends VehiculoServiceGrpc.VehiculoServiceImplBase
                     request.getFechaHasta().getMinutes());
 
             // 2. Preguntar al servicio de reservas qué vehículos están OCUPADOS en esas fechas
-            FechasRequest fechasRequest = FechasRequest.newBuilder()
+            GetVehiculosOcupadosRequest fechasRequest = GetVehiculosOcupadosRequest.newBuilder()
                     .setFechaDesde(fechaDesde.toString()).setFechaHasta(fechaHasta.toString())
                     .build();
 
-            VehiculosOcupadosResponse ocupadosResponse = reservaStub.getVehiculosOcupados(fechasRequest);
+            GetVehiculosOcupadosResponse ocupadosResponse = reservaStub.getVehiculosOcupados(fechasRequest);
             List<String> patentesOcupadas = ocupadosResponse.getPatentesList();
 
             // 3. Buscar en la base de datos PROPIA de vehículos

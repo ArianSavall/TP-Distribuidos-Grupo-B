@@ -1,5 +1,6 @@
 const { GraphQLError } = require("graphql");
 const { reservas, clientes, vehiculos, llamarRpc } = require("./grpc-clients");
+const { estadoReserva, estadoMantenimiento } = require("./enums");
 
 function fallo(mensaje, code) {
   return new GraphQLError(mensaje, { extensions: { code } });
@@ -39,7 +40,7 @@ async function consultarReservasCompletas(usuario, filtros = {}) {
     const permitidas = respuesta.reservas.filter(r =>
       (usuario.rol === "ADMIN" || String(r.idCliente) === String(usuario.id)) &&
       (!filtros.patenteVehiculo || r.patenteVehiculo === filtros.patenteVehiculo) &&
-      (!filtros.estado || r.estadoReserva === filtros.estado) &&
+      (!filtros.estado || estadoReserva(r.estadoReserva) === filtros.estado) &&
       (!desde || fechaLocal(r.fechaHoraFinal) >= desde) &&
       (!hasta || fechaLocal(r.fechaHoraInicio) <= hasta)
     );
@@ -82,8 +83,8 @@ async function consultarReservasCompletas(usuario, filtros = {}) {
           fechaFinalizacion: r.fechaHoraFinal,
           precioDiario: v.precioDiario,
           importeTotal: r.importeTotal,
-          estado: r.estadoReserva,
-          estadoMantenimiento: r.estadoMantenimiento || "PENDIENTE"
+          estado: estadoReserva(r.estadoReserva),
+          estadoMantenimiento: estadoMantenimiento(r.estadoMantenimiento)
         };
       });
   } catch (error) {

@@ -18,8 +18,8 @@ const usuarios = [
 const vehiculo = { id: '1', marca: 'Fiat', modelo: 'Cronos', patente: 'PRUEBA01',
   tipoVehiculo: 'SEDAN', precioDiario: 25000, estaActivo: true, estado: 'DISPONIBLE', anio: 2024, color: 'Blanco' };
 const reservas = [
-  { idReserva: '101', idCliente: '1', patenteVehiculo: 'PRUEBA01', fechaHoraInicio: '2026-11-10T10:00:00', fechaHoraFinal: '2026-11-12T10:00:00', estadoReserva: 'CONFIRMADO', importeTotal: 50000 },
-  { idReserva: '102', idCliente: '2', patenteVehiculo: 'PRUEBA01', fechaHoraInicio: '2026-12-10T10:00:00', fechaHoraFinal: '2026-12-12T10:00:00', estadoReserva: 'CONFIRMADO', importeTotal: 50000 }
+  { idReserva: '101', idCliente: '1', patenteVehiculo: 'PRUEBA01', fechaHoraInicio: '2026-11-10T10:00:00', fechaHoraFinal: '2026-11-12T10:00:00', estadoReserva: 'ESTADO_RESERVA_CONFIRMADO', importeTotal: 50000 },
+  { idReserva: '102', idCliente: '2', patenteVehiculo: 'PRUEBA01', fechaHoraInicio: '2026-12-10T10:00:00', fechaHoraFinal: '2026-12-12T10:00:00', estadoReserva: 'ESTADO_RESERVA_CONFIRMADO', importeTotal: 50000 }
 ];
 async function servicio(archivo, paquete, nombre, implementacion) {
   const proto = grpc.loadPackageDefinition(loader.loadSync(path.resolve(__dirname, '../../proto/contratos', archivo), {
@@ -55,10 +55,11 @@ before(async () => {
   process.env.RESERVAS_GRPC_ADDR = await servicio('reservas/reserva.proto', 'reservas', 'ReservaService', {
     listarReservas(call, cb) { reservasCaidas ? cb({ code: grpc.status.UNAVAILABLE }) : cb(null, { reservas }); },
     obtenerReserva(call, cb) {
-      const r = reservas.find(r => r.idReserva === call.request.id);
-      r ? cb(null, r) : cb({ code: grpc.status.NOT_FOUND });
+      const reserva = reservas.find(r => r.idReserva === call.request.id);
+      if (!reserva) return cb({ code: grpc.status.NOT_FOUND, details: 'Reserva no encontrada' });
+      cb(null, { reserva });
     },
-    cancelarReserva(call, cb) { cb(null, { exito: true, estadoReserva: 'CANCELADO' }); },
+    cancelarReserva(call, cb) { cb(null, { exito: true, estadoReserva: 'ESTADO_RESERVA_CANCELADO' }); },
     obtenerMiHistorial(call, cb) { cb(null, { historial: [] }); }
   });
   const app = require('../src/server');

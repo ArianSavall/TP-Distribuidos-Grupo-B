@@ -5,7 +5,7 @@ import unla.tp.vehiculos.enums.EstadoVehiculo;
 import unla.tp.vehiculos.enums.TipoVehiculo;
 import grpc.*;
 import grpc.ReservaServiceGrpc;
-import grpc.VehiculosOcupadosResponse;
+import grpc.GetVehiculosOcupadosResponse;
 import unla.tp.vehiculos.repositories.IVehiculoRepository;
 import io.grpc.stub.StreamObserver;
 import io.grpc.StatusRuntimeException;
@@ -155,7 +155,7 @@ class VehiculoServiceTest {
         GetVehiculosDisponiblesRequest request = GetVehiculosDisponiblesRequest.newBuilder().build();
 
         // 1. Simulamos que el servicio de reservas responde que no hay vehículos ocupados
-        VehiculosOcupadosResponse ocupadosMock = VehiculosOcupadosResponse.newBuilder().build(); // Lista vacía
+        GetVehiculosOcupadosResponse ocupadosMock = GetVehiculosOcupadosResponse.newBuilder().build(); // Lista vacía
         when(reservaStub.getVehiculosOcupados(any())).thenReturn(ocupadosMock);
 
         // 2. Simulamos que la base de datos propia devuelve 2 vehículos activos
@@ -187,7 +187,7 @@ class VehiculoServiceTest {
         GetVehiculosDisponiblesRequest request = GetVehiculosDisponiblesRequest.newBuilder().build();
 
         // 1. Simulamos que el servicio de reservas indica que el ID 2 está ocupado
-        VehiculosOcupadosResponse ocupadosMock = VehiculosOcupadosResponse.newBuilder()
+        GetVehiculosOcupadosResponse ocupadosMock = GetVehiculosOcupadosResponse.newBuilder()
                 .addPatentes("AB123CD")
                 .build();
         when(reservaStub.getVehiculosOcupados(any())).thenReturn(ocupadosMock);

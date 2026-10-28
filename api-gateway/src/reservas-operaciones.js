@@ -3,6 +3,7 @@ const {
   vehiculos,
   llamarRpc
 } = require("./grpc-clients");
+const { estadoReserva } = require("./enums");
 
 // Recibe los campos del formulario original.
 // Consulta la patente antes de llamar al servicio de reservas.
@@ -17,7 +18,7 @@ async function crearReserva(datos) {
     throw new Error("El servicio de vehículos no devolvió la patente");
   }
 
-  const reserva = await llamarRpc(
+  const respuesta = await llamarRpc(
     reservas,
     "crearReserva",
     {
@@ -28,13 +29,19 @@ async function crearReserva(datos) {
     }
   );
 
+  // Desde el contrato nuevo la reserva viene dentro de un mensaje de respuesta propio.
+  const reserva = respuesta.reserva;
+  if (!reserva) {
+    throw new Error("El servicio de reservas no devolvió la reserva creada");
+  }
+
   // Conserva los campos del DTO de respuesta original.
   return {
     idReserva: reserva.idReserva,
     fechaHoraInicio: reserva.fechaHoraInicio,
     fechaHoraFinal: reserva.fechaHoraFinal,
     importeTotal: reserva.importeTotal,
-    estadoReserva: reserva.estadoReserva
+    estadoReserva: estadoReserva(reserva.estadoReserva)
   };
 }
 
