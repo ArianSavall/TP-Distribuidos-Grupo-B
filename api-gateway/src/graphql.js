@@ -5,6 +5,7 @@ const { consultarMiHistorial } = require("./historial");
 const { consultarReservasCompletas } = require("./consulta-reservas");
 
 const { consultarDisponibilidad } = require("./disponibilidad");
+const { respuestaVehiculosParaFrontend } = require("./vehiculo-enums");
 
 const schema = buildSchema(`
   type Vehiculo {
@@ -90,7 +91,7 @@ const rootValue = {
         {}
       );
 
-      return respuesta.vehiculos;
+      return respuestaVehiculosParaFrontend(respuesta.vehiculos);
     } catch (error) {
       console.error("Error gRPC al consultar vehículos:", error.message);
 
