@@ -109,6 +109,18 @@ SERVER_PORT=8080
 
 La aplicación utiliza Hibernate con la configuración `ddl-auto: update`, por lo que las tablas se actualizan automáticamente al iniciar.
 
+Al ejecutar el proyecto con Docker Compose, MySQL monta
+`docker/mysql/001-mock-data.sql` y carga estos datos mock automáticamente al crear
+el volumen por primera vez. Para volver a ejecutar la carga desde cero, hay que
+eliminar el volumen de datos:
+
+```bash
+docker compose down -v
+docker compose up -d --build
+```
+
+La eliminación del volumen borra los datos persistidos de MySQL.
+
 > No incluir el archivo `.env` en el repositorio. Las credenciales deben mantenerse privadas.
 
 ## Ejecución

@@ -1,13 +1,16 @@
 services:
   mysql:
     image: mysql:8.4
+    networks:
+      - tp-distribuidos
     environment:
       MYSQL_DATABASE: tp_distribuidos
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-root}
     ports:
-      - "3306:3306"
+      - "3305:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+      - ./docker/mysql/001-mock-data.sql:/docker-entrypoint-initdb.d/001-mock-data.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$${MYSQL_ROOT_PASSWORD} --silent"]
       interval: 5s
@@ -17,6 +20,8 @@ services:
 
   rabbitmq:
     image: rabbitmq:3-management
+    networks:
+      - tp-distribuidos
     environment:
       RABBITMQ_DEFAULT_USER: rentar
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:-rentar_dev}
@@ -36,6 +41,8 @@ services:
     build:
       context: .
       dockerfile: servicio-vehiculos/Dockerfile
+    networks:
+      - tp-distribuidos
     environment:
       DB_URL: "jdbc:mysql://mysql:3306/tp_distribuidos?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true"
       DB_USERNAME: root
@@ -58,6 +65,8 @@ services:
     build:
       context: .
       dockerfile: servicio-clientes/Dockerfile
+    networks:
+      - tp-distribuidos
     environment:
       DB_URL: "jdbc:mysql://mysql:3306/tp_distribuidos?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true"
       DB_USERNAME: root
@@ -79,6 +88,8 @@ services:
     build:
       context: .
       dockerfile: servicio-reservas/Dockerfile
+    networks:
+      - tp-distribuidos
     environment:
       DB_URL: "jdbc:mysql://mysql:3306/tp_distribuidos?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true"
       DB_USERNAME: root
@@ -101,6 +112,8 @@ services:
     build:
       context: .
       dockerfile: servicio-operaciones-externas/Dockerfile
+    networks:
+      - tp-distribuidos
     environment:
       DB_URL: "jdbc:mysql://mysql:3306/tp_distribuidos?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true"
       DB_USERNAME: root
@@ -120,8 +133,11 @@ services:
     build:
       context: .
       dockerfile: api-gateway/Dockerfile
+    networks:
+      - tp-distribuidos
     environment:
       PORT: 3000
+      HOST: "0.0.0.0"
       VEHICULOS_GRPC_ADDR: "servicio-vehiculos:9090"
       CLIENTES_GRPC_ADDR: "servicio-clientes:9091"
       RESERVAS_GRPC_ADDR: "servicio-reservas:9092"
@@ -137,3 +153,7 @@ services:
 volumes:
   mysql_data:
   rabbitmq_data:
+
+networks:
+  tp-distribuidos:
+    driver: bridge
