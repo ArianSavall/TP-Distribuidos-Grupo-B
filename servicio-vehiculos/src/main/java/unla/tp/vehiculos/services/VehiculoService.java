@@ -37,13 +37,13 @@ public class VehiculoService extends VehiculoServiceGrpc.VehiculoServiceImplBase
     private final RabbitTemplate rabbitTemplate;
 
     @Override
-    public void createVehiculo(PostVehiculoRequest request, StreamObserver<grpc.Vehiculo> responseObserver ){
+    public void createVehiculo(CreateVehiculoRequest request, StreamObserver<grpc.CreateVehiculoResponse> responseObserver ){
         try{
         Vehiculo nuevoVehiculo = new Vehiculo();
         nuevoVehiculo.setMarca(request.getMarca());
         nuevoVehiculo.setModelo(request.getModelo());
         nuevoVehiculo.setPatente(request.getPatente());
-        nuevoVehiculo.setTipoVehiculo(TipoVehiculo.valueOf(request.getTipoVehiculo()));
+        nuevoVehiculo.setTipoVehiculo(VehiculoMapper.toDomain(request.getTipoVehiculo()));
         nuevoVehiculo.setEstaActivo(true);
         nuevoVehiculo.setEstado(EstadoVehiculo.DISPONIBLE);
         nuevoVehiculo.setAnio(request.getAnio());
@@ -64,7 +64,7 @@ public class VehiculoService extends VehiculoServiceGrpc.VehiculoServiceImplBase
             );
 
             // 3. Mapeamos la respuesta
-            grpc.Vehiculo grpcResponse = VehiculoMapper.toProto(guardado);
+            grpc.CreateVehiculoResponse grpcResponse = VehiculoMapper.toProtoCreateVehiculoResponse(guardado);
 
             responseObserver.onNext(grpcResponse);
             responseObserver.onCompleted();
@@ -85,13 +85,13 @@ public class VehiculoService extends VehiculoServiceGrpc.VehiculoServiceImplBase
 
     }
     @Override
-    public void saveVehiculo(PatchVehiculoRequest request, StreamObserver<grpc.Vehiculo> responseObserver) {
+    public void saveVehiculo(SaveVehiculoRequest request, StreamObserver<grpc.SaveVehiculoResponse> responseObserver) {
         try {
             // 1. Mapeamos el request gRPC a nuestra entidad JPA
-            Vehiculo nuevoVehiculo = new Vehiculo();
+            Vehiculo nuevoVehiculo = vehiculoRepository.findByPatente(request.getPatente()).get();
             nuevoVehiculo.setMarca(request.getMarca());
             nuevoVehiculo.setModelo(request.getModelo());
-            nuevoVehiculo.setTipoVehiculo(TipoVehiculo.valueOf(request.getTipoVehiculo()));
+            nuevoVehiculo.setTipoVehiculo(VehiculoMapper.toDomain(request.getTipoVehiculo()));
             nuevoVehiculo.setAnio(request.getAnio());
             nuevoVehiculo.setColor(request.getColor());
             nuevoVehiculo.setPrecioDiario(request.getPrecioDiario());
@@ -105,7 +105,7 @@ public class VehiculoService extends VehiculoServiceGrpc.VehiculoServiceImplBase
             Vehiculo guardado = vehiculoRepository.save(nuevoVehiculo);
 
             // 3. Mapeamos la respuesta
-            grpc.Vehiculo grpcResponse = VehiculoMapper.toProto(guardado);
+            grpc.SaveVehiculoResponse grpcResponse = VehiculoMapper.toProtoSaveVehiculoResponse(guardado);
 
             responseObserver.onNext(grpcResponse);
             responseObserver.onCompleted();
@@ -120,15 +120,12 @@ public class VehiculoService extends VehiculoServiceGrpc.VehiculoServiceImplBase
         }
     }
     @Override
-    public void getVehiculosDisponibles(GetVehiculosDisponiblesRequest request, StreamObserver<VehiculoListResponse> responseObserver) {
+    public void getVehiculosDisponibles(GetVehiculosDisponiblesRequest request, StreamObserver<GetVehiculosDisponiblesResponse> responseObserver) {
         try {
             // 1. Extraer fechas del request (asumiendo que las pasaste a String o LocalDateTime)2026-10-20T10:00:00
-            LocalDateTime fechaDesde = LocalDateTime.of(request.getFechaDesde().getYear(),request.getFechaDesde().getMonth(),
-                    request.getFechaDesde().getDay(), request.getFechaDesde().getHours(), request.getFechaDesde().getMinutes());
+            LocalDateTime fechaDesde = LocalDateTime.parse(request.getFechaDesde());
 
-            LocalDateTime fechaHasta = LocalDateTime.of(request.getFechaHasta().getYear(), request.getFechaHasta().getMonth(),
-                    request.getFechaHasta().getDay(), request.getFechaHasta().getHours(),
-                    request.getFechaHasta().getMinutes());
+            LocalDateTime fechaHasta = LocalDateTime.parse(request.getFechaHasta());
 
             // 2. Preguntar al servicio de reservas qué vehículos están OCUPADOS en esas fechas
             GetVehiculosOcupadosRequest fechasRequest = GetVehiculosOcupadosRequest.newBuilder()
@@ -146,10 +143,10 @@ public class VehiculoService extends VehiculoServiceGrpc.VehiculoServiceImplBase
                 vehiculosDisponibles = vehiculoRepository.findDisponiblesExcluyendo(patentesOcupadas);
             }
             // 4. Aplicamos filtros por precioDiarioMin y precioDiarioMax, marca y modelo
-            System.out.println(request.getTipoVehiculo());
             List<Vehiculo> filtradoVehiculos = new ArrayList<>();
             for(Vehiculo v : vehiculosDisponibles){
-                boolean coincideTipo = (request.getTipoVehiculo().equals(v.getTipoVehiculo().toString()) || request.getTipoVehiculo().isEmpty());
+                boolean coincideTipo = request.getTipoVehiculo() == grpc.TipoVehiculo.TIPO_VEHICULO_UNSPECIFIED
+                        || request.getTipoVehiculo().name().equals(v.getTipoVehiculo().name());
                 boolean coincideMarca = (request.getMarca().isEmpty()) || v.getMarca().equals(request.getMarca());
                 boolean coincideModelo = (request.getModelo().isEmpty()) || v.getModelo().equals(request.getModelo());
                 boolean estaEntrePrecios =(v.getPrecioDiario()<=request.getPrecioDiarioMax() || request.getPrecioDiarioMax() == 0)
@@ -161,7 +158,7 @@ public class VehiculoService extends VehiculoServiceGrpc.VehiculoServiceImplBase
             }
 
             // 5. Mapear a Protobuf y devolver al API Gateway
-            VehiculoListResponse.Builder responseBuilder = VehiculoListResponse.newBuilder();
+            GetVehiculosDisponiblesResponse.Builder responseBuilder = GetVehiculosDisponiblesResponse.newBuilder();
             for (Vehiculo v : filtradoVehiculos) {
                 responseBuilder.addVehiculos(
                         VehiculoMapper.toProto(v)
@@ -176,7 +173,7 @@ public class VehiculoService extends VehiculoServiceGrpc.VehiculoServiceImplBase
         }
     }
     @Override
-    public void getAllVehiculos(empty request, StreamObserver<VehiculoListResponse> responseObserver) {
+    public void getAllVehiculos(GetAllVehiculosRequest request, StreamObserver<GetAllVehiculosResponse> responseObserver) {
         // 1. Encontrar todos los vehiculos
         List<Vehiculo> vehiculos = vehiculoRepository.findAll();
 
@@ -190,7 +187,7 @@ public class VehiculoService extends VehiculoServiceGrpc.VehiculoServiceImplBase
                 vehiculosGrpc.add(VehiculoMapper.toProto(v));
         }
         // 3. Ensamblar la respuesta de lista
-        VehiculoListResponse response = VehiculoListResponse.newBuilder().addAllVehiculos(vehiculosGrpc) // addVehiculos se genera automáticamente por el "repeated"
+        GetAllVehiculosResponse response = GetAllVehiculosResponse.newBuilder().addAllVehiculos(vehiculosGrpc) // addVehiculos se genera automáticamente por el "repeated"
                 .build();
 
         // 4. Retornar y completar
@@ -199,14 +196,14 @@ public class VehiculoService extends VehiculoServiceGrpc.VehiculoServiceImplBase
     }
 
     @Override
-    public void getVehiculoById(GetVehiculoIdRequest request, StreamObserver<grpc.Vehiculo> responseObserver) {
+    public void getVehiculoById(GetVehiculoByIdRequest request, StreamObserver<grpc.GetVehiculoByIdResponse> responseObserver) {
         Optional<Vehiculo> vehiculoOpt = vehiculoRepository.findById(request.getId());
 
         if (vehiculoOpt.isPresent()) {
             Vehiculo dbVehiculo = vehiculoOpt.get();
 
                 // Retornamos por gRPC
-            responseObserver.onNext(VehiculoMapper.toProto(dbVehiculo));
+            responseObserver.onNext(VehiculoMapper.toProtoGetVehiculoByIdResponse(dbVehiculo));
                 responseObserver.onCompleted();
         } else {
             responseObserver.onError(
@@ -218,7 +215,7 @@ public class VehiculoService extends VehiculoServiceGrpc.VehiculoServiceImplBase
     }
 
     @Override
-    public void getVehiculoByPatente(GetVehiculoPatenteRequest request, StreamObserver<grpc.Vehiculo> responseObserver) {
+    public void getVehiculoByPatente(GetVehiculoByPatenteRequest request, StreamObserver<grpc.GetVehiculoByPatenteResponse> responseObserver) {
         Optional<Vehiculo> vehiculoOpt = vehiculoRepository.findByPatente(request.getPatente());
 
         if (vehiculoOpt.isPresent()) {
@@ -226,7 +223,7 @@ public class VehiculoService extends VehiculoServiceGrpc.VehiculoServiceImplBase
 
             // Las consultas de datos también deben poder recuperar vehículos
             // inactivos para mostrar reservas históricas.
-            responseObserver.onNext(VehiculoMapper.toProto(dbVehiculo));
+            responseObserver.onNext(VehiculoMapper.toProtoGetVehiculoByPatenteResponse(dbVehiculo));
             responseObserver.onCompleted();
 
         } else {
@@ -238,7 +235,7 @@ public class VehiculoService extends VehiculoServiceGrpc.VehiculoServiceImplBase
         }
     }
     @Override
-    public void deleteVehiculo(GetVehiculoPatenteRequest request, StreamObserver<grpc.Vehiculo> responseObserver){
+    public void deleteVehiculo(DeleteVehiculoRequest request, StreamObserver<grpc.DeleteVehiculoResponse> responseObserver){
 
         if (vehiculoRepository.findByPatente(request.getPatente()).isPresent()) {
             Vehiculo vehiculo = vehiculoRepository.findByPatente(request.getPatente()).get();
@@ -247,7 +244,7 @@ public class VehiculoService extends VehiculoServiceGrpc.VehiculoServiceImplBase
 
             Vehiculo vehiculoBaja = vehiculoRepository.save(vehiculo);
 
-            responseObserver.onNext(VehiculoMapper.toProto(vehiculoBaja));
+            responseObserver.onNext(VehiculoMapper.toProtoDeleteVehiculoResponse(vehiculoBaja));
             responseObserver.onCompleted();
         }else {
             responseObserver.onError(
@@ -260,7 +257,7 @@ public class VehiculoService extends VehiculoServiceGrpc.VehiculoServiceImplBase
     }
 
     @Override
-    public void registrarVehiculoExterno(RegistrarVehiculoExternoRequest request,StreamObserver<grpc.VehiculoExterno> observer){
+    public void registrarVehiculoExterno(RegistrarVehiculoExternoRequest request,StreamObserver<grpc.RegistrarVehiculoExternoResponse> observer){
         try{
             String patente = request.getPatente().trim().toUpperCase();
 
@@ -275,7 +272,7 @@ public class VehiculoService extends VehiculoServiceGrpc.VehiculoServiceImplBase
             vehiculo.setModelo(request.getModelo());
             vehiculo.setAnio(request.getAnio());
             vehiculo.setColor(request.getColor());
-            vehiculo.setTipoVehiculo(TipoVehiculo.valueOf(request.getTipoVehiculo()));
+            vehiculo.setTipoVehiculo(VehiculoMapper.toDomain(request.getTipoVehiculo()));
             vehiculo.setPrecioDiario(request.getPrecioDiario());
             vehiculo.setClienteId(request.getClienteId());
 
@@ -299,22 +296,8 @@ public class VehiculoService extends VehiculoServiceGrpc.VehiculoServiceImplBase
                     )
             );
 
-            observer.onNext(grpc.VehiculoExterno.newBuilder()
-                    .setId(guardado.getId())
-                    .setMarca(guardado.getMarca())
-                    .setModelo(guardado.getModelo())
-                    .setPatente(guardado.getPatente())
-                    .setTipoVehiculo(guardado.getTipoVehiculo().name())
-                    .setPrecioDiario(guardado.getPrecioDiario())
-                    .setAnio(guardado.getAnio())
-                    .setColor(guardado.getColor() == null ? "" : guardado.getColor())
-                    .setEstado(guardado.getEstado().name())
-                    .setEstaActivo(guardado.isEstaActivo())
-                    .setResultadoValidacionPatente(guardado.getResultadoValidacionPatente().name())
-                    .setValidacionTitularidad(guardado.getResultadoValidacionTitular().name())
-                    .setHabilitado(guardado.isHabilitado())
-                    .setClienteId(guardado.getClienteId())
-                    .build());
+            observer.onNext(VehiculoMapper.toProtoRegistrarVehiculoExternoResponse(
+                    guardado, "PENDIENTE"));
             observer.onCompleted();
             
         }catch (IllegalArgumentException e) {

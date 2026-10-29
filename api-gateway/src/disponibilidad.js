@@ -1,5 +1,6 @@
 const { GraphQLError } = require('graphql');
 const { vehiculos, llamarRpc } = require('./grpc-clients');
+const { respuestaVehiculosParaFrontend, vehiculoParaGrpc } = require('./vehiculo-enums');
 
 // El contrato date_time tiene precisión de minutos. No descartar segundos silenciosamente.
 function fechaProto(valor) {
@@ -15,7 +16,7 @@ function fechaProto(valor) {
 async function consultarDisponibilidad(args) {
   const solicitud = {
     fechaDesde: fechaProto(args.fechaInicio), fechaHasta: fechaProto(args.fechaFinal),
-    marca: args.marca || '', modelo: args.modelo || '', tipoVehiculo: args.tipo || '',
+    marca: args.marca || '', modelo: args.modelo || '',     tipoVehiculo: vehiculoParaGrpc({ tipoVehiculo: args.tipo || '' }).tipoVehiculo,
     precioDiarioMin: args.precioMin ?? 0,
     // Protobuf no distingue ausencia del cero en estos campos. Límite abierto explícito.
     precioDiarioMax: args.precioMax ?? Number.MAX_VALUE
@@ -25,7 +26,7 @@ async function consultarDisponibilidad(args) {
     if (!Array.isArray(r.vehiculos) || r.vehiculos.some(v => !v.patente || !v.tipoVehiculo)) {
       throw new Error('Respuesta de disponibilidad incompleta');
     }
-    return r.vehiculos;
+    return respuestaVehiculosParaFrontend(r.vehiculos);
   } catch (e) {
     const code = e.code === 3 ? 'BAD_USER_INPUT' : e.code === 12 ? 'NOT_IMPLEMENTED' : 'SERVICIO_VEHICULOS_ERROR';
     throw new GraphQLError('No se pudo consultar la disponibilidad de vehículos', { extensions: { code } });

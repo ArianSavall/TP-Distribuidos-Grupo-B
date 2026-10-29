@@ -47,13 +47,13 @@ public class ReservaService extends ReservaServiceGrpc.ReservaServiceImplBase {
                 return;
             }
 
-            GetVehiculoPatenteRequest vehiculoReq = GetVehiculoPatenteRequest.newBuilder()
+            GetVehiculoByPatenteRequest vehiculoReq = GetVehiculoByPatenteRequest.newBuilder()
                     .setPatente(request.getPatenteVehiculo())
                     .build();
 
-            grpc.Vehiculo vehiculoResponse = vehiculoStub.getVehiculoByPatente(vehiculoReq);
+            grpc.GetVehiculoByPatenteResponse vehiculoResponse = vehiculoStub.getVehiculoByPatente(vehiculoReq);
 
-            if (!vehiculoResponse.getEstado().equalsIgnoreCase("DISPONIBLE") || !vehiculoResponse.getEstaActivo()) {
+            if (!vehiculoResponse.getEstado().name().equalsIgnoreCase("DISPONIBLE") || !vehiculoResponse.getEstaActivo()) {
                 responseObserver.onError(Status.FAILED_PRECONDITION
                         .withDescription("El vehículo no está disponible o está inactivo.")
                         .asRuntimeException());
