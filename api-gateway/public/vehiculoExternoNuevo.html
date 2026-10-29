@@ -1,84 +1,84 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Registrar vehículo propio | Rentar</title>
-  <link href="/assets/css/app.css" rel="stylesheet">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Registrar vehículo propio | Rentar</title>
+    <link href="/assets/css/app.css" rel="stylesheet">
 </head>
 <body data-page="vehiculoExternoNuevo">
-  <nav class="navbar">
+<nav class="navbar">
     <h2>Rentar</h2>
     <div class="links">
-      <a href="/">Inicio</a>
-      <a href="/reservas">Reservas</a>
-      <a href="/historial">Mi historial</a>
+        <a href="/">Inicio</a>
+        <a href="/reservas">Reservas</a>
+        <a href="/historial">Mi historial</a>
     </div>
-  </nav>
+</nav>
 
-  <main class="container">
+<main class="container">
     <p aria-live="polite" class="estado-pagina" hidden id="estado-pagina" role="status"></p>
 
     <div class="top-nav">
-      <a class="btn-back" href="/">Volver al panel</a>
+        <a class="btn-back" href="/">Volver al panel</a>
     </div>
 
     <section class="form-container">
-      <h1 class="form-section-title">Incorporar mi vehículo</h1>
-      <p class="historial-description">
-        Completá los datos del vehículo. La solicitud quedará pendiente mientras
-        se validan la patente y la titularidad.
-      </p>
+        <h1 class="form-section-title">Incorporar mi vehículo</h1>
+        <p class="historial-description">
+            Completá los datos del vehículo. La solicitud quedará pendiente mientras
+            se validan la patente y la titularidad.
+        </p>
 
-      <form data-action="vehiculos-external-create" method="post">
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label" for="patente">Patente</label>
-            <input class="form-input" id="patente" name="patente"
-                   maxlength="15" required>
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="marca">Marca</label>
-            <input class="form-input" id="marca" name="marca" required>
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="modelo">Modelo</label>
-            <input class="form-input" id="modelo" name="modelo" required>
-          </div>
-        </div>
+        <form data-action="vehiculos-external-create" method="post">
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="patente">Patente</label>
+                    <input class="form-input" id="patente" name="patente"
+                           maxlength="15" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="marca">Marca</label>
+                    <input class="form-input" id="marca" name="marca" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="modelo">Modelo</label>
+                    <input class="form-input" id="modelo" name="modelo" required>
+                </div>
+            </div>
 
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label" for="tipoVehiculo">Tipo</label>
-            <select class="form-input" id="tipoVehiculo" name="tipoVehiculo" required>
-              <option value="SEDAN">Sedán</option>
-              <option value="HATCHBACK">Hatchback</option>
-              <option value="SUV">SUV</option>
-              <option value="PICKUP">Pickup</option>
-              <option value="COUPE">Coupé</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="anio">Año</label>
-            <input class="form-input" id="anio" name="anio"
-                   type="number" min="1900" required>
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="color">Color</label>
-            <input class="form-input" id="color" name="color">
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="precioDiario">Precio diario</label>
-            <input class="form-input" id="precioDiario" name="precioDiario"
-                   type="number" min="0" step="0.01" required>
-          </div>
-        </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="tipoVehiculo">Tipo</label>
+                    <select class="form-input" id="tipoVehiculo" name="tipoVehiculo" required>
+                        <option value="SEDAN">Sedán</option>
+                        <option value="HATCHBACK">Hatchback</option>
+                        <option value="SUV">SUV</option>
+                        <option value="PICKUP">Pickup</option>
+                        <option value="COUPE">Coupé</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="anio">Año</label>
+                    <input class="form-input" id="anio" name="anio"
+                           type="number" min="1900" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="color">Color</label>
+                    <input class="form-input" id="color" name="color">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="precioDiario">Precio diario</label>
+                    <input class="form-input" id="precioDiario" name="precioDiario"
+                           type="number" min="0" step="0.01" required>
+                </div>
+            </div>
 
-        <button class="btn-primary" type="submit">Enviar solicitud</button>
-      </form>
+            <button class="btn-primary" type="submit">Enviar solicitud</button>
+        </form>
     </section>
-  </main>
+</main>
 
-  <script defer src="/assets/app.js"></script>
+<script defer src="/assets/app.js"></script>
 </body>
 </html>
