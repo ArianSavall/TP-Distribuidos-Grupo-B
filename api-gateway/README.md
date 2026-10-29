@@ -76,6 +76,10 @@ El historial personal requiere CLIENTE.
 
 ## REST
 
+La documentación interactiva OpenAPI/Swagger está disponible en
+`http://localhost:3000/api-docs`. El documento JSON se puede consultar en
+`http://localhost:3000/api-docs/swagger.json`.
+
 Todas las API salvo login/health requieren la cookie de sesión.
 
 | Método | Ruta | Uso |

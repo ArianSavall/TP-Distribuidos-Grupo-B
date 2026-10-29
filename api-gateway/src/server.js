@@ -1,6 +1,8 @@
 const reservasRoutes = require("./reservas-routes");
 const { instalarAutenticacion } = require("./auth");
 const express = require("express");
+const swaggerUi = require("swagger-ui-express");
+const openapi = require("./openapi");
 const graphqlHandler = require("./graphql");
 const clientesRoutes = require("./clientes-routes");
 const vehiculosRoutes = require("./vehiculos-routes");
@@ -13,6 +15,8 @@ const app = express();
 const PORT = Number(process.env.PORT || 3000);
 
 app.use(express.json());
+app.get("/api-docs/swagger.json", (req, res) => res.json(openapi));
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(openapi));
 instalarAutenticacion(app);
 app.all("/graphql", graphqlHandler);
 
