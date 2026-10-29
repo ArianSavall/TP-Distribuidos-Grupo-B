@@ -196,7 +196,7 @@ Operaciones disponibles:
 | GET | `/api_rest/v1/vehiculos/getAll` | Listar vehículos |
 | GET | `/api_rest/v1/vehiculos/{patente}` | Buscar vehículo por patente |
 | POST | `/api_rest/v1/vehiculos/create` | Crear vehículo |
-| PUT | `/api_rest/v1/vehiculos/{patente}` | Actualizar vehículo |
+| PATCH | `/api_rest/v1/vehiculos/{patente}` | Actualizar vehículo |
 | POST | `/api_rest/v1/vehiculos/activar` | Activar vehículo |
 | POST | `/api_rest/v1/vehiculos/desactivar` | Desactivar vehículo |
 

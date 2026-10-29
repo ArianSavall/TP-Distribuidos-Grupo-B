@@ -163,7 +163,7 @@ async function accion(form) {
     case 'logout': await api('/auth/logout', 'POST'); location.assign('/login'); break;
     case 'vehiculos-create': await api('/api_rest/v1/vehiculos', 'POST', d); form.reset(); await cargarVehiculos(); mensaje('Vehículo registrado.'); break;
     case 'vehiculos-search': await cargarVehiculos(d.patente); break;
-    case 'vehiculosUpdate': await api(`/api_rest/v1/vehiculos/${id}`, 'PUT', d); location.assign('/vehiculos'); break;
+    case 'vehiculosUpdate': await api(`/api_rest/v1/vehiculos/${id}`, 'PATCH', d); location.assign('/vehiculos'); break;
     case 'clientes-create': await api('/api_rest/v1/clientes', 'POST', d); form.reset(); await cargarClientes(); mensaje('Cliente registrado.'); break;
     case 'clientes-search': await cargarClientes(d.dni); break;
     case 'clientesUpdate': await api(`/api_rest/v1/clientes/${id}`, 'PATCH', d); location.assign('/clientes'); break;

@@ -2,6 +2,7 @@ package unla.tp.vehiculos.services;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.dao.DataIntegrityViolationException;
 import unla.tp.vehiculos.config.RabbitMQConfig;
 import unla.tp.vehiculos.dtos.EventosVehiculoDTOs;
 import unla.tp.vehiculos.entities.Vehiculo;
@@ -19,8 +20,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import unla.tp.vehiculos.repositories.IVehiculoRepository;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 
@@ -75,10 +78,15 @@ public class VehiculoService extends VehiculoServiceGrpc.VehiculoServiceImplBase
                             .asRuntimeException()
             );
         }
-        }catch (Exception e) {
+        }catch(DataIntegrityViolationException e){
+            responseObserver.onError(Status.INVALID_ARGUMENT
+                    .withDescription("Error 400: Datos inválidos")
+                    .asRuntimeException());
+        }
+        catch (Exception e) {
             responseObserver.onError(
                     Status.INTERNAL
-                            .withDescription("Error al persistir el vehículo: " + e.getMessage())
+                            .withDescription("Error al persistir el vehículo: " + e.toString())
                             .asRuntimeException()
             );
         }
@@ -110,11 +118,19 @@ public class VehiculoService extends VehiculoServiceGrpc.VehiculoServiceImplBase
             responseObserver.onNext(grpcResponse);
             responseObserver.onCompleted();
 
+        }catch(NoSuchElementException e){
+            responseObserver.onError(Status.NOT_FOUND
+                    .withDescription("Error 404: no se encontró el vehículo")
+                    .asRuntimeException());
+        } catch(IllegalArgumentException | DateTimeParseException | DataIntegrityViolationException e){
+            responseObserver.onError(Status.INVALID_ARGUMENT
+                    .withDescription("Error 400: Datos inválidos")
+                    .asRuntimeException());
         }
         catch (Exception e) {
             responseObserver.onError(
                     Status.INTERNAL
-                            .withDescription("Error al persistir el vehículo: " + e.getMessage())
+                            .withDescription("Error al persistir el vehículo: " + e.toString())
                             .asRuntimeException()
             );
         }
@@ -239,7 +255,11 @@ public class VehiculoService extends VehiculoServiceGrpc.VehiculoServiceImplBase
 
         if (vehiculoRepository.findByPatente(request.getPatente()).isPresent()) {
             Vehiculo vehiculo = vehiculoRepository.findByPatente(request.getPatente()).get();
-
+            if(!vehiculo.isEstaActivo()){
+                responseObserver.onError(Status.NOT_FOUND
+                        .withDescription("El vehiculo no está activo")
+                        .asRuntimeException());
+            }
             vehiculo.setEstaActivo(false);
 
             Vehiculo vehiculoBaja = vehiculoRepository.save(vehiculo);

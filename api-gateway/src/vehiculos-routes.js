@@ -36,7 +36,7 @@ router.get('/:patente', async (req, res) => {
   res.json(respuestaVehiculosParaFrontend(await llamarRpc(vehiculos, 'getVehiculoByPatente', { patente: req.params.patente })));
 });
 
-router.put('/:patente', exigirRol('ADMIN'), objetoJSON, async (req, res) => {
+router.patch('/:patente', exigirRol('ADMIN'), objetoJSON, async (req, res) => {
   // No enviar una actualización si el contrato no puede identificar su destinatario.
   // proto-loader expone los nombres de los métodos del descriptor en PascalCase.
   const fields = vehiculos.constructor.service.SaveVehiculo?.requestType?.type?.field || [];
