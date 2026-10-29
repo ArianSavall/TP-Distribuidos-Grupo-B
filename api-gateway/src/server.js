@@ -6,8 +6,6 @@ const clientesRoutes = require("./clientes-routes");
 const vehiculosRoutes = require("./vehiculos-routes");
 const grpc = require("@grpc/grpc-js");
 const {
-  vehiculos,
-  llamarRpc,
   cerrarClientes
 } = require("./grpc-clients");
 
@@ -17,7 +15,9 @@ const PORT = Number(process.env.PORT || 3000);
 app.use(express.json());
 instalarAutenticacion(app);
 app.all("/graphql", graphqlHandler);
+
 app.use("/api_rest/v1/clientes", clientesRoutes);
+app.use("/api_rest/v1/vehiculos", vehiculosRoutes);
 app.use("/api_rest/v1/reservas", reservasRoutes);
 
 require("./web")(app);
@@ -30,8 +30,6 @@ app.get("/health", (req, res) => {
     servicio: "api-gateway"
   });
 });
-
-app.use("/api_rest/v1/vehiculos", vehiculosRoutes);
 
 app.use((req, res) => {
   res.status(404).json({
@@ -65,9 +63,9 @@ app.use((err, req, res, next) => {
     "Error interno del Gateway o del servicio"
   ];
   const mensajeServicio =
-    typeof err.details === "string" && err.details.trim()
-      ? err.details
-      : mensaje;
+      typeof err.details === "string" && err.details.trim()
+          ? err.details
+          : mensaje;
 
   console.error(mensajeServicio);
 

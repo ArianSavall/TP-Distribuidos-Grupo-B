@@ -4,28 +4,21 @@ const { exigirRol, objetoJSON, noImplementado, campos, clienteDeRespuesta } = re
 const { vehiculoParaGrpc, respuestaVehiculosParaFrontend } = require('./vehiculo-enums');
 const datos = body => campos(body, ['marca', 'modelo', 'anio', 'color', 'tipoVehiculo', 'precioDiario']);
 
-
-
-router.get('/getAll', async (req, res) => {
+router.get('/', async (req, res) => {
   res.json(respuestaVehiculosParaFrontend((await llamarRpc(vehiculos, 'getAllVehiculos', {})).vehiculos));
 });
-router.post('/create', exigirRol('ADMIN'), objetoJSON, async (req, res) => {
-  res.json(respuestaVehiculosParaFrontend(await llamarRpc(
-    vehiculos, 'createVehiculo', vehiculoParaGrpc({ ...datos(req.body), patente: req.body.patente })
+
+router.post('/', exigirRol('ADMIN'), objetoJSON, async (req, res) => {
+  res.status(201).json(respuestaVehiculosParaFrontend(await llamarRpc(
+      vehiculos, 'createVehiculo', vehiculoParaGrpc({ ...datos(req.body), patente: req.body.patente })
   )));
 });
-router.post('/desactivar', exigirRol('ADMIN'), objetoJSON, async (req, res) => {
-  res.json(respuestaVehiculosParaFrontend(await llamarRpc(vehiculos, 'deleteVehiculo', { patente: req.body.patente })));
-});
-router.post('/activar', exigirRol('ADMIN'), objetoJSON, async (req, res) => {
-  // Esta operación requiere acordar un RPC; no simular éxito ni crear otro vehículo.
-  throw noImplementado('El contrato de vehículos todavía no ofrece reactivación');
-});
-router.post('/externos', exigirRol('CLIENTE'), objetoJSON, async (req, res) =>{
+
+router.post('/externos', exigirRol('CLIENTE'), objetoJSON, async (req, res) => {
   const respuestaCliente = await llamarRpc(
-    clientes,
-    'consultarClienteId',
-    { id: req.session.usuario.id}
+      clientes,
+      'consultarClienteId',
+      { id: req.session.usuario.id }
   );
   const cliente = clienteDeRespuesta(respuestaCliente);
 
@@ -38,9 +31,11 @@ router.post('/externos', exigirRol('CLIENTE'), objetoJSON, async (req, res) =>{
 
   res.status(202).json(respuestaVehiculosParaFrontend(respuesta));
 });
+
 router.get('/:patente', async (req, res) => {
   res.json(respuestaVehiculosParaFrontend(await llamarRpc(vehiculos, 'getVehiculoByPatente', { patente: req.params.patente })));
 });
+
 router.put('/:patente', exigirRol('ADMIN'), objetoJSON, async (req, res) => {
   // No enviar una actualización si el contrato no puede identificar su destinatario.
   // proto-loader expone los nombres de los métodos del descriptor en PascalCase.
@@ -49,7 +44,17 @@ router.put('/:patente', exigirRol('ADMIN'), objetoJSON, async (req, res) => {
     throw noImplementado('PatchVehiculoRequest necesita la patente para poder actualizar');
   }
   res.json(respuestaVehiculosParaFrontend(await llamarRpc(
-    vehiculos, 'saveVehiculo', vehiculoParaGrpc({ ...datos(req.body), patente: req.params.patente })
+      vehiculos, 'saveVehiculo', vehiculoParaGrpc({ ...datos(req.body), patente: req.params.patente })
   )));
 });
+
+router.delete('/:patente', exigirRol('ADMIN'), async (req, res) => {
+  res.json(respuestaVehiculosParaFrontend(await llamarRpc(vehiculos, 'deleteVehiculo', { patente: req.params.patente })));
+});
+
+router.patch('/:patente/estado', exigirRol('ADMIN'), async (req, res) => {
+  // Esta operación requiere acordar un RPC; no simular éxito ni crear otro vehículo.
+  throw noImplementado('El contrato de vehículos todavía no ofrece reactivación');
+});
+
 module.exports = router;

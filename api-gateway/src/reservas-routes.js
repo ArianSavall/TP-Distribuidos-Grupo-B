@@ -38,8 +38,8 @@ router.post("/", async (req, res, next) => {
 
     if (usuario.rol === "CLIENTE") {
       if (
-        datos.idCliente != null &&
-        String(datos.idCliente) !== String(usuario.id)
+          datos.idCliente != null &&
+          String(datos.idCliente) !== String(usuario.id)
       ) {
         return res.status(403).json({
           error: "No podés crear reservas para otro cliente"
@@ -76,7 +76,7 @@ router.post("/", async (req, res, next) => {
   }
 });
 
-router.put("/:id", async (req, res, next) => {
+const manejarCancelacion = async (req, res, next) => {
   try {
     if (!idValido(req.params.id)) {
       return res.status(400).json({
@@ -88,16 +88,16 @@ router.put("/:id", async (req, res, next) => {
 
     // Consulta la reserva antes de autorizar su cancelación.
     const respuesta = await llamarRpc(
-      reservas,
-      "obtenerReserva",
-      { id: req.params.id }
+        reservas,
+        "obtenerReserva",
+        { id: req.params.id }
     );
     const reserva = respuesta.reserva;
 
     if (
-      !reserva ||
-      String(reserva.idReserva) !== req.params.id ||
-      !idValido(reserva.idCliente)
+        !reserva ||
+        String(reserva.idReserva) !== req.params.id ||
+        !idValido(reserva.idCliente)
     ) {
       return res.status(502).json({
         error: "El servicio devolvió una reserva incompleta o inesperada"
@@ -105,8 +105,8 @@ router.put("/:id", async (req, res, next) => {
     }
 
     if (
-      usuario.rol === "CLIENTE" &&
-      String(reserva.idCliente) !== String(usuario.id)
+        usuario.rol === "CLIENTE" &&
+        String(reserva.idCliente) !== String(usuario.id)
     ) {
       return res.status(403).json({
         error: "No podés cancelar reservas de otro cliente"
@@ -118,6 +118,9 @@ router.put("/:id", async (req, res, next) => {
   } catch (error) {
     next(error);
   }
-});
+};
+
+router.delete("/:id", manejarCancelacion);
+router.put("/:id", manejarCancelacion);
 
 module.exports = router;
