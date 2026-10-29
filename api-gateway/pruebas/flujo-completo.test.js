@@ -31,7 +31,7 @@ test('pantallas originales adaptadas, redirección al login y permisos de admini
   for (const ruta of ['/clientes','/vehiculos','/api_rest/v1/clientes']) assert.equal((await req(ruta, cliente)).status, 403);
 });
 test('cliente no puede ejecutar operaciones administrativas REST', async () => {
-  for (const [ruta, method] of [['/api_rest/v1/vehiculos/create','POST'],['/api_rest/v1/vehiculos/desactivar','POST'],['/api_rest/v1/vehiculos/activar','POST'],['/api_rest/v1/vehiculos/PRUEBA01','PUT'],['/api_rest/v1/clientes','POST'],['/api_rest/v1/clientes/modificar/id/1','PATCH'],['/api_rest/v1/clientes/borrar/id/2','DELETE']]) {
+  for (const [ruta, method] of [['/api_rest/v1/vehiculos/create','POST'],['/api_rest/v1/vehiculos/desactivar','POST'],['/api_rest/v1/vehiculos/activar','POST'],['/api_rest/v1/vehiculos/PRUEBA01','PATCH'],['/api_rest/v1/clientes','POST'],['/api_rest/v1/clientes/modificar/id/1','PATCH'],['/api_rest/v1/clientes/borrar/id/2','DELETE']]) {
     assert.equal((await req(ruta, cliente, method, {})).status, 403, ruta);
   }
 });
@@ -52,7 +52,7 @@ test('alta y baja de vehículos y rechazo seguro de contratos incompletos', asyn
   const datos = { patente: 'TEST999', marca: 'Test', modelo: 'Mock', anio: 2025, tipoVehiculo: 'SUV', precioDiario: 12000, color: 'Azul' };
   assert.equal((await req(`${base}/create`, admin, 'POST', datos)).status, 200);
   assert.equal((await req(`${base}/TEST999`, admin)).data.modelo, 'Mock');
-  assert.equal((await req(`${base}/TEST999`, admin, 'PUT', { modelo: 'No debe cambiar' })).status, 501);
+  assert.equal((await req(`${base}/TEST999`, admin, 'PATCH', { modelo: 'No debe cambiar' })).status, 501);
   assert.equal((await req(`${base}/TEST999`, admin)).data.modelo, 'Mock');
   assert.equal((await req(`${base}/desactivar`, admin, 'POST', { patente: 'TEST999' })).data.estaActivo, false);
   assert.equal((await req(`${base}/activar`, admin, 'POST', { patente: 'TEST999' })).status, 501);

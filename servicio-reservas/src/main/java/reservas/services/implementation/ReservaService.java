@@ -7,6 +7,7 @@ import net.devh.boot.grpc.client.inject.GrpcClient;
 import net.devh.boot.grpc.server.service.GrpcService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.dao.DataIntegrityViolationException;
 import reservas.config.RabbitMQConfig;
 import reservas.dtos.ReservaConfirmadaEvent;
 
@@ -17,6 +18,7 @@ import reservas.mappers.Parsers;
 import reservas.mappers.ReservaMapper;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
@@ -101,11 +103,15 @@ public class ReservaService extends ReservaServiceGrpc.ReservaServiceImplBase {
                     .build());
             responseObserver.onCompleted();
 
+        } catch(IllegalArgumentException | DateTimeParseException | DataIntegrityViolationException e){
+            responseObserver.onError(Status.INVALID_ARGUMENT
+                    .withDescription("Error 400: Datos inválidos")
+                    .asRuntimeException());
         } catch (io.grpc.StatusRuntimeException e) {
             responseObserver.onError(e);
         } catch (Exception e) {
             responseObserver.onError(Status.INTERNAL
-                    .withDescription("Error al crear la reserva: " + e.getMessage())
+                    .withDescription("Error al crear la reserva: " + e.toString())
                     .asRuntimeException());
         }
     }
@@ -246,7 +252,12 @@ public class ReservaService extends ReservaServiceGrpc.ReservaServiceImplBase {
             responseObserver.onNext(response);
             responseObserver.onCompleted();
 
-        } catch (Exception e) {
+        }catch(IllegalArgumentException | DateTimeParseException | DataIntegrityViolationException e){
+            responseObserver.onError(Status.INVALID_ARGUMENT
+                    .withDescription("Error 400: Datos inválidos")
+                    .asRuntimeException());
+        }
+        catch (Exception e) {
             responseObserver.onError(Status.INTERNAL
                     .withDescription("Error al obtener vehículos ocupados: " + e.getMessage())
                     .asRuntimeException());

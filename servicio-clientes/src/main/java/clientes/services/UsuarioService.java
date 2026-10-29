@@ -1,7 +1,9 @@
 package clientes.services;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import org.mindrot.jbcrypt.BCrypt;
 import clientes.entities.Usuario;
@@ -11,6 +13,7 @@ import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import net.devh.boot.grpc.server.service.GrpcService;
 import clientes.repositories.IUsuarioRepository;
+import org.springframework.dao.DataIntegrityViolationException;
 
 
 @GrpcService
@@ -131,6 +134,11 @@ public class UsuarioService extends ClienteServiceGrpc.ClienteServiceImplBase{
             Usuario u = usuarioRepository.findById(request.getId());
 
             if (u != null) {
+                if(!u.getEstaActivo()){
+                    responseObserver.onError(Status.NOT_FOUND
+                            .withDescription("El cliente ya fue eliminado")
+                            .asRuntimeException());
+                }
                 u.setEstaActivo(false);
                 usuarioRepository.save(u);
 
@@ -209,12 +217,15 @@ public class UsuarioService extends ClienteServiceGrpc.ClienteServiceImplBase{
                                 .asRuntimeException()
                 );
             }
-
+       }catch(IllegalArgumentException | DateTimeParseException | DataIntegrityViolationException e){
+           responseObserver.onError(Status.INVALID_ARGUMENT
+                   .withDescription("Error 400: Datos inválidos")
+                   .asRuntimeException());
        }
        catch(Exception e){
             responseObserver.onError(
                 Status.INTERNAL
-                    .withDescription("Error al crear el cliente: " + e.getMessage())
+                    .withDescription("Error al crear el cliente: " + e.toString())
                     .asRuntimeException()
                 );
        }
@@ -385,7 +396,15 @@ public class UsuarioService extends ClienteServiceGrpc.ClienteServiceImplBase{
                 );
             }
 
-        } catch(Exception e){
+        } catch(NoSuchElementException e){
+            responseObserver.onError(Status.NOT_FOUND
+                    .withDescription("Error 404: no se encontró el vehículo")
+                    .asRuntimeException());
+        } catch(IllegalArgumentException | DateTimeParseException | DataIntegrityViolationException e){
+            responseObserver.onError(Status.INVALID_ARGUMENT
+                    .withDescription("Error 400: Datos inválidos")
+                    .asRuntimeException());
+        }catch(Exception e){
             responseObserver.onError(
                 Status.ALREADY_EXISTS
                     .withDescription("Error al modificar el cliente: " + e.getMessage())
