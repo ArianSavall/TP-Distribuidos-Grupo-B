@@ -183,9 +183,7 @@ a los servicios Java.
 Node.js 24 y npm. Ejecutar desde `api-gateway`:
 
 ```bat
-npm ci
-npm test
-npm run demo
+npm start
 ```
 
 Abrir http://localhost:3000. La demostración levanta los tres servicios gRPC
