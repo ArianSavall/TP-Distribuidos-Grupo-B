@@ -30,9 +30,8 @@ public class MantenimientoPreventivoService {
             return;
         }
 
-        // Regla de negocio simulada: por ejemplo, si el vehiculoId es válido se realiza;
-        // podés simular fallo (NO_REALIZADO) para un vehiculoId específico de prueba (ej. ID 999)
-        boolean exitoMantenimiento = evento.vehiculoId() != null && evento.vehiculoId() != 999L;
+        // Se realiza el mantenimiento en un 75% de los casos 
+        boolean exitoMantenimiento = Math.random() < 0.75;
 
         ResultadoMantenimiento estadoFinal = exitoMantenimiento 
                 ? ResultadoMantenimiento.REALIZADO 
