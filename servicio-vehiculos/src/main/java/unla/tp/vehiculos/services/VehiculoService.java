@@ -146,7 +146,8 @@ public class VehiculoService extends VehiculoServiceGrpc.VehiculoServiceImplBase
             List<Vehiculo> filtradoVehiculos = new ArrayList<>();
             for(Vehiculo v : vehiculosDisponibles){
                 boolean coincideTipo = request.getTipoVehiculo() == grpc.TipoVehiculo.TIPO_VEHICULO_UNSPECIFIED
-                        || request.getTipoVehiculo().name().equals(v.getTipoVehiculo().name());
+                        || VehiculoMapper.getEnumStringSanitized(request.getTipoVehiculo().name()).equals(v.getTipoVehiculo().name());
+                        
                 boolean coincideMarca = (request.getMarca().isEmpty()) || v.getMarca().equals(request.getMarca());
                 boolean coincideModelo = (request.getModelo().isEmpty()) || v.getModelo().equals(request.getModelo());
                 boolean estaEntrePrecios =(v.getPrecioDiario()<=request.getPrecioDiarioMax() || request.getPrecioDiarioMax() == 0)
