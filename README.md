@@ -230,88 +230,212 @@ Operaciones disponibles:
 Las APIs REST requieren autenticación.
 
 ## API GraphQL
-
-Endpoint principal:
-
-```text
-http://localhost:8080/graphql
+ 
+**Endpoint:** `POST http://localhost:3000/graphql`, con cuerpo JSON `{"query": "...", "variables": {...}}`.
+ 
+La identidad del usuario sale siempre de la sesión y nunca de un parámetro, así que ningún filtro amplía los permisos. Los errores se devuelven en el campo `errors`, con un código en `extensions.code`.
+ 
+El schema está documentado con descripciones en el propio código (`api-gateway/src/graphql.js`), y se puede consultar por introspección. Por ejemplo:
+ 
+```json
+{ "query": "{ __type(name: \"Reserva\") { description fields { name description } } }" }
 ```
-
-Interfaz GraphiQL:
-
-```text
-http://localhost:8080/graphiql
-```
-
-### Consultar vehículos disponibles
-
+ 
+### Consultas disponibles
+ 
+| Consulta | Rol | Qué devuelve |
+|---|---|---|
+| `vehiculosDisponibles` | <!-- VERIFICAR: ¿exige sesión? --> | Vehículos libres durante todo el período indicado |
+| `vehiculos` | <!-- VERIFICAR: ¿exige sesión? --> | Vehículos activos de la flota |
+| `reservas` | `ADMIN` y `CLIENTE` | Reservas, con alcance según el rol |
+| `miHistorialAlquileres` | solo `CLIENTE` | Historial del cliente de la sesión |
+ 
+### `vehiculosDisponibles`
+ 
+Devuelve los vehículos activos y habilitados que no tienen reservas confirmadas que se solapen con el período. Las reservas canceladas no bloquean.
+ 
+| Parámetro | Tipo | Obligatorio | Descripción |
+|---|---|---|---|
+| `fechaInicio` | String | Sí | Inicio del período. Formato `yyyy-MM-ddTHH:mm`, sin zona horaria |
+| `fechaFinal` | String | Sí | Fin del período. Mismo formato, posterior a `fechaInicio` |
+| `tipo` | TipoVehiculo | No | `SEDAN`, `SUV`, `PICKUP`, `COUPE` o `HATCHBACK` |
+| `marca` | String | No | Marca exacta |
+| `modelo` | String | No | Modelo exacto |
+| `precioMin` | Float | No | Precio diario mínimo |
+| `precioMax` | Float | No | Precio diario máximo. Si se omite, no hay tope |
+ 
+Campos devueltos: `id`, `patente`, `marca`, `modelo`, `anio`, `color`, `tipoVehiculo`, `precioDiario`.
+ 
+Errores: `BAD_USER_INPUT` (fecha inválida), `SERVICIO_VEHICULOS_ERROR`.
+ 
 ```graphql
 query {
   vehiculosDisponibles(
-    tipo: SUV
-    marca: "Toyota"
-    modelo: "Corolla"
-    precioMin: 10000
+    fechaInicio: "2028-06-01T10:00"
+    fechaFinal: "2028-06-05T10:00"
+    tipo: SEDAN
     precioMax: 50000
-    fechaInicio: "2026-10-01T10:00:00"
-    fechaFinal: "2026-10-05T10:00:00"
   ) {
     patente
     marca
     modelo
-    anio
-    color
     tipoVehiculo
     precioDiario
   }
 }
 ```
-
-### Consultar reservas
-
+ 
+### `reservas`
+ 
+Devuelve las reservas con el nombre del cliente y la marca y modelo del vehículo ya resueltos. El gateway combina datos de los servicios de reservas, clientes y vehículos. Ordena de la reserva más reciente a la más antigua por fecha de inicio.
+ 
+- `ADMIN`: ve las reservas de todos los clientes.
+- `CLIENTE`: ve solamente las propias, sin importar los filtros.
+Parámetro: `filtros` (opcional), de tipo `FiltroReservasInput`. Los filtros se combinan con AND.
+ 
+| Filtro | Tipo | Descripción | Quién lo aplica |
+|---|---|---|---|
+| `dniCliente` | String | DNI del cliente | Solo `ADMIN` (un `CLIENTE` lo ignora) |
+| `patenteVehiculo` | String | Patente exacta | `ADMIN` y `CLIENTE` |
+| `tipoVehiculo` | TipoVehiculo | Tipo del vehículo reservado | `ADMIN` y `CLIENTE` |
+| `estado` | EstadoReserva | `CONFIRMADO` o `CANCELADO` | `ADMIN` y `CLIENTE` |
+| `fechaDesde` | String | Reservas que terminan en esa fecha o después | `ADMIN` y `CLIENTE` |
+| `fechaHasta` | String | Reservas que empiezan en esa fecha o antes | `ADMIN` y `CLIENTE` |
+ 
+Las fechas usan formato ISO local sin zona horaria (`yyyy-MM-ddTHH:mm[:ss]`), y `fechaDesde` no puede ser posterior a `fechaHasta`.
+ 
+Campos devueltos:
+ 
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `id` | ID | Identificador de la reserva |
+| `cliente` | String | Nombre y apellido |
+| `vehiculo` | String | Marca y modelo |
+| `patente` | String | Patente del vehículo |
+| `fechaInicio` | String | Inicio del alquiler |
+| `fechaFinalizacion` | String | Fin del alquiler |
+| `precioDiario` | Float | Precio por día |
+| `importeTotal` | Float | Importe total de la reserva |
+| `estado` | EstadoReserva | `CONFIRMADO` o `CANCELADO` |
+| `estadoMantenimiento` | String | `PENDIENTE`, `REALIZADO` o `NO_REALIZADO` |
+ 
+Errores: `UNAUTHENTICATED`, `FORBIDDEN`, `BAD_USER_INPUT`, `SERVICIO_RESERVAS_ERROR`. Si falla alguno de los servicios, devuelve un error y no una lista vacía.
+ 
 ```graphql
-query {
-  reservas(
-    filtros: {
-      patenteVehiculo: "ABC123"
-      tipoVehiculo: SUV
-      estado: CONFIRMADO
-      fechaDesde: "2026-10-01T00:00:00"
-      fechaHasta: "2026-10-31T23:59:59"
-    }
-  ) {
-    id
+query ($f: FiltroReservasInput) {
+  reservas(filtros: $f) {
     cliente
     vehiculo
     patente
     fechaInicio
-    fechaFinalizacion
-    precioDiario
     importeTotal
     estado
+    estadoMantenimiento
   }
 }
 ```
-
-Los administradores pueden filtrar reservas por `dniCliente`. Los clientes autenticados solo pueden consultar sus propias reservas.
-
-### Consultar historial del cliente
-
+ 
+Variables:
+ 
+```json
+{ "f": { "estado": "CONFIRMADO", "patenteVehiculo": "AC222FF" } }
+```
+ 
+Respuesta de ejemplo:
+ 
+```json
+{
+  "data": {
+    "reservas": [
+      {
+        "cliente": "Super Admin",
+        "vehiculo": "Chevrolet Camaro",
+        "patente": "AC222FF",
+        "fechaInicio": "2027-12-11T11:11",
+        "importeTotal": 45000,
+        "estado": "CONFIRMADO",
+        "estadoMantenimiento": "REALIZADO"
+      }
+    ]
+  }
+}
+```
+ 
+### `miHistorialAlquileres`
+ 
+Devuelve el historial del cliente autenticado: las reservas canceladas y las reservas confirmadas cuyo período ya terminó. Va ordenado de la más reciente a la más antigua. No recibe parámetros: el cliente sale de la sesión.
+ 
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `vehiculo` | String | Marca y modelo |
+| `patente` | String | Patente del vehículo |
+| `fechaInicio` | String | Inicio del alquiler |
+| `fechaFinalizacion` | String | Fin del alquiler |
+| `cantidadDias` | Int | Días del alquiler, con mínimo de 1 |
+| `importeTotal` | Float | Importe total |
+| `estado` | String | `CANCELADO`, o `FINALIZADO` (confirmada con período terminado) |
+ 
+`FINALIZADO` no se guarda en la base: se deriva de la fecha de fin.
+ 
+Errores: `UNAUTHENTICATED`, `FORBIDDEN` (un `ADMIN` no puede usarla), `SERVICIO_RESERVAS_ERROR`.
+ 
 ```graphql
 query {
   miHistorialAlquileres {
     vehiculo
     patente
     fechaInicio
-    fechaFinalizacion
     cantidadDias
     importeTotal
     estado
   }
 }
 ```
-
-Esta consulta requiere el rol `CLIENTE`.
+ 
+Respuesta de ejemplo:
+ 
+```json
+{
+  "data": {
+    "miHistorialAlquileres": [
+      {
+        "vehiculo": "Chevrolet Camaro",
+        "patente": "AC222FF",
+        "fechaInicio": "2027-10-30T11:11",
+        "cantidadDias": 1,
+        "importeTotal": 45000,
+        "estado": "CANCELADO"
+      },
+      {
+        "vehiculo": "Chevrolet Camaro",
+        "patente": "AC222FF",
+        "fechaInicio": "2026-10-10T07:00",
+        "cantidadDias": 2,
+        "importeTotal": 90000,
+        "estado": "FINALIZADO"
+      }
+    ]
+  }
+}
+```
+ 
+Error de ejemplo (un `ADMIN` pide el historial):
+ 
+```json
+{
+  "errors": [
+    { "message": "El historial requiere el rol CLIENTE", "extensions": { "code": "FORBIDDEN" } }
+  ],
+  "data": null
+}
+```
+ 
+### Restricciones de acceso por rol
+ 
+| Consulta | Sin sesión | `ADMIN` | `CLIENTE` |
+|---|---|---|---|
+| `reservas` | `UNAUTHENTICATED` | Todas las reservas | Solo las propias |
+| `miHistorialAlquileres` | `UNAUTHENTICATED` | `FORBIDDEN` | Su historial |
 
 ## Documentación OpenAPI
 
