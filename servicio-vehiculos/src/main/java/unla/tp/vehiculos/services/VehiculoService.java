@@ -152,7 +152,8 @@ public class VehiculoService extends VehiculoServiceGrpc.VehiculoServiceImplBase
                 boolean estaEntrePrecios =(v.getPrecioDiario()<=request.getPrecioDiarioMax() || request.getPrecioDiarioMax() == 0)
                                             &&
                                             (v.getPrecioDiario()>=request.getPrecioDiarioMin() || request.getPrecioDiarioMin() == 0);
-                if(coincideTipo && coincideMarca && coincideModelo && estaEntrePrecios && v.isEstaActivo() && v.isHabilitado()) {
+                boolean estaDisponible = v.getEstado().equals(EstadoVehiculo.DISPONIBLE);
+                if(coincideTipo && coincideMarca && coincideModelo && estaEntrePrecios && v.isEstaActivo() && v.isHabilitado() && estaDisponible) {
                     filtradoVehiculos.add(v);
                 }
             }
