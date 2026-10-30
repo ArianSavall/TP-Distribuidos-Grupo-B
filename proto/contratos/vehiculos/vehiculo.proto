@@ -61,6 +61,8 @@
    ResultadoValidacionExterna resultado_validacion_titular = 12;
    // Indica si el vehículo puede operar y ser ofrecido para alquiler.
    bool habilitado = 13;
+   // Resultado de la verificación policial o de antecedentes.
+   ResultadoVerificacion resultado_verificacion = 14;
  }
 
  // Respuesta de la consulta por identificador; contiene el vehículo encontrado.
@@ -91,6 +93,8 @@
    ResultadoValidacionExterna resultado_validacion_titular = 12;
    // Indica si puede operar.
    bool habilitado = 13;
+   // Resultado de la verificación policial o de antecedentes.
+   ResultadoVerificacion resultado_verificacion = 14;
  }
 
  // Respuesta de la consulta por patente; contiene el vehículo encontrado.
@@ -121,6 +125,8 @@
    ResultadoValidacionExterna resultado_validacion_titular = 12;
    // Indica si puede operar.
    bool habilitado = 13;
+   // Resultado de la verificación policial o de antecedentes.
+   ResultadoVerificacion resultado_verificacion = 14;
  }
 
  // Vehículo creado y sus datos iniciales.
@@ -145,6 +151,8 @@
    int32 anio = 9;
    // Color del vehículo.
    string color= 10;
+   // Resultado de la verificación policial o de antecedentes.
+   ResultadoVerificacion resultado_verificacion = 11;
  }
 
  // Datos persistidos por una operación de guardado.
@@ -161,6 +169,8 @@
    int32 anio = 5;
    // Color actualizado.
    string color= 6;
+   // Resultado de la verificación policial o de antecedentes.
+   ResultadoVerificacion resultado_verificacion = 7;
  }
 
  // Vehículo que fue desactivado lógicamente.
@@ -185,6 +195,8 @@
    int32 anio = 9;
    // Color.
    string color= 10;
+   // Resultado de la verificación policial o de antecedentes.
+   ResultadoVerificacion resultado_verificacion = 11;
  }
 
  // Respuesta de listado general.

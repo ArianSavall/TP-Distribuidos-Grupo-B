@@ -78,7 +78,7 @@ const dinero = n => Number(n).toLocaleString('es-AR', { style: 'currency', curre
 async function cargarVehiculos(patente) {
   const base = '/api_rest/v1/vehiculos';
   const rows = patente ? [await api(`${base}/${encodeURIComponent(patente)}`)] : await api(base);
-  tabla('vehiculos', rows, ['patente', v => `${v.marca} ${v.modelo}`, 'anio', 'tipoVehiculo', v => dinero(v.precioDiario), 'estado', v => v.estaActivo ? 'ACTIVO' : 'INACTIVO'], v => [
+  tabla('vehiculos', rows, ['patente', v => `${v.marca} ${v.modelo}`, 'anio', 'tipoVehiculo', v => dinero(v.precioDiario), 'estado', v => v.estaActivo ? 'ACTIVO' : 'INACTIVO', 'resultadoVerificacion'], v => [
     enlace('Editar', `/vehiculos/editar/${encodeURIComponent(v.patente)}`),
     boton(v.estaActivo ? 'Baja' : 'Alta', async () => {
       if (!confirm(`¿${v.estaActivo ? 'Dar de baja' : 'Reactivar'} el vehículo ${v.patente}?`)) return;

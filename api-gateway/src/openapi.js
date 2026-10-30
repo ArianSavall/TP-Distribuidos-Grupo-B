@@ -40,6 +40,7 @@ const openapi = {
           precioDiario: { type: "number", format: "double" },
           estaActivo: { type: "boolean" },
           estado: { type: "string", enum: ["DISPONIBLE", "RESERVADO", "EN_ALQUILER"] },
+          resultadoVerificacion: { type: "string", enum: ["PENDIENTE", "VALIDADO", "ROBADO"] },
           habilitado: { type: "boolean" }
         }
       },

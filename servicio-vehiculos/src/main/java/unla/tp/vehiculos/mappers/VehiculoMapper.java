@@ -23,6 +23,7 @@ public final class VehiculoMapper {
                 .setResultadoValidacionPatente(validacionPatente(v))
                 .setResultadoValidacionTitular(validacionTitular(v))
                 .setHabilitado(v.isHabilitado())
+                .setResultadoVerificacion(resultadoVerificacion(v))
                 .setColor(value(v.getColor()))
                 .build();
     }
@@ -35,6 +36,7 @@ public final class VehiculoMapper {
                 .setEstado(estado(v)).setEstaActivo(v.isEstaActivo()).setColor(value(v.getColor()))
                 .setResultadoValidacionPatente(validacionPatente(v))
                 .setResultadoValidacionTitular(validacionTitular(v)).setHabilitado(v.isHabilitado())
+                .setResultadoVerificacion(resultadoVerificacion(v))
                 .build();
     }
 
@@ -46,6 +48,7 @@ public final class VehiculoMapper {
                 .setEstado(estado(v)).setEstaActivo(v.isEstaActivo()).setColor(value(v.getColor()))
                 .setResultadoValidacionPatente(validacionPatente(v))
                 .setResultadoValidacionTitular(validacionTitular(v)).setHabilitado(v.isHabilitado())
+                .setResultadoVerificacion(resultadoVerificacion(v))
                 .build();
     }
 
@@ -55,6 +58,7 @@ public final class VehiculoMapper {
                 .setMarca(value(v.getMarca())).setModelo(value(v.getModelo()))
                 .setAnio(v.getAnio()).setTipoVehiculo(tipo(v)).setPrecioDiario(v.getPrecioDiario())
                 .setEstado(estado(v)).setEstaActivo(v.isEstaActivo()).setColor(value(v.getColor()))
+                .setResultadoVerificacion(resultadoVerificacion(v))
                 .build();
     }
 
@@ -63,6 +67,7 @@ public final class VehiculoMapper {
                 .setMarca(value(v.getMarca())).setModelo(value(v.getModelo()))
                 .setAnio(v.getAnio()).setTipoVehiculo(tipo(v))
                 .setPrecioDiario(v.getPrecioDiario()).setColor(value(v.getColor()))
+                .setResultadoVerificacion(resultadoVerificacion(v))
                 .build();
     }
 
@@ -72,6 +77,7 @@ public final class VehiculoMapper {
                 .setMarca(value(v.getMarca())).setModelo(value(v.getModelo()))
                 .setAnio(v.getAnio()).setTipoVehiculo(tipo(v)).setPrecioDiario(v.getPrecioDiario())
                 .setEstado(estado(v)).setEstaActivo(v.isEstaActivo()).setColor(value(v.getColor()))
+                .setResultadoVerificacion(resultadoVerificacion(v))
                 .build();
     }
 
@@ -123,6 +129,12 @@ public final class VehiculoMapper {
         return enumValue(grpc.ResultadoValidacionExterna.RESULTADO_VALIDACION_EXTERNA_UNSPECIFIED,
                 "RESULTADO_VALIDACION_EXTERNA_",
                 v.getResultadoValidacionPatente() == null ? null : v.getResultadoValidacionPatente().name());
+    }
+
+    private static grpc.ResultadoVerificacion resultadoVerificacion(Vehiculo v) {
+        return enumValue(grpc.ResultadoVerificacion.RESULTADO_VERIFICACION_UNSPECIFIED,
+                "RESULTADO_VERIFICACION_", v.getResultadoVerificacion() == null
+                        ? null : v.getResultadoVerificacion().name());
     }
 
     private static grpc.ResultadoValidacionExterna validacionTitular(Vehiculo v) {
