@@ -6,12 +6,14 @@ const { respuestaVehiculosParaFrontend, vehiculoParaGrpc } = require('./vehiculo
 function fechaProto(valor) {
   const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::00(?:\.0+)?)?$/.exec(valor || '');
   if (!m) throw new GraphQLError('Usá fecha y hora sin zona horaria, con precisión de minutos', { extensions: { code: 'BAD_USER_INPUT' } });
-  const [year, month, day, hours, minutes] = m.slice(1).map(Number);
-  const fecha = new Date(`${m[1]}-${m[2]}-${m[3]}T${m[4]}:${m[5]}:00Z`);
+  
+  const fechaIso = `${m[1]}-${m[2]}-${m[3]}T${m[4]}:${m[5]}:00`;
+  const fecha = new Date(`${fechaIso}Z`);
+
   if (!Number.isFinite(fecha.getTime()) || fecha.toISOString().slice(0, 16) !== valor.slice(0, 16)) {
     throw new GraphQLError('La fecha indicada no es válida', { extensions: { code: 'BAD_USER_INPUT' } });
   }
-  return { year, month, day, hours, minutes };
+  return fechaIso;
 }
 async function consultarDisponibilidad(args) {
   const solicitud = {

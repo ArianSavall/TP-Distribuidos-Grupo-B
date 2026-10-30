@@ -149,4 +149,11 @@ public final class VehiculoMapper {
     private static long value(Long value) {
         return value == null ? 0L : value;
     }
+
+    public static String getEnumStringSanitized(String s){
+        return s.replace("TIPO_VEHICULO_","")
+                .replace("ESTADO_VEHICULO_","")
+                .replace("RESULTADO_VALIDACION_EXTERNA_","")
+                .replace("RESULTADO_VERIFICACION_","");
+    }
 }

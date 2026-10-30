@@ -10,6 +10,7 @@ import unla.tp.vehiculos.dtos.EventosVehiculoDTOs.*;
 import unla.tp.vehiculos.entities.Vehiculo;
 import unla.tp.vehiculos.enums.EstadoVehiculo;
 import unla.tp.vehiculos.enums.ResultadoVerificacion;
+import unla.tp.vehiculos.mappers.VehiculoMapper;
 import unla.tp.vehiculos.repositories.IVehiculoRepository;
 import unla.tp.vehiculos.enums.ResultadoValidacionExterna;
 
@@ -36,8 +37,8 @@ public class VehiculoEventosService {
         Vehiculo vehiculo = optVehiculo.get();
         vehiculo.setResultadoVerificacion(ResultadoVerificacion.valueOf(evento.resultado())); // "VALIDADO" o "ROBADO"
         // Si es ROBADO, no cambia EstadoVehiculo pero queda inhabilitado para operar
-        vehiculo.setHabilitado("VALIDADO".equalsIgnoreCase(evento.resultado()));
-        vehiculo.setEstaActivo("VALIDADO".equalsIgnoreCase(evento.resultado()));
+        vehiculo.setHabilitado("VALIDADO".equalsIgnoreCase(VehiculoMapper.getEnumStringSanitized(evento.resultado())));
+        vehiculo.setEstaActivo("VALIDADO".equalsIgnoreCase(VehiculoMapper.getEnumStringSanitized(evento.resultado())));
         vehiculoRepository.save(vehiculo);
     }
 
@@ -89,8 +90,8 @@ public class VehiculoEventosService {
 
     private void evaluarCorrelacion(Vehiculo vehiculo) {
 
-        ResultadoValidacionExterna patente = vehiculo.getResultadoValidacionPatente();
-        ResultadoValidacionExterna titular = vehiculo.getResultadoValidacionTitular();
+        ResultadoValidacionExterna patente = ResultadoValidacionExterna.valueOf(VehiculoMapper.getEnumStringSanitized(vehiculo.getResultadoValidacionPatente().name()));
+        ResultadoValidacionExterna titular = ResultadoValidacionExterna.valueOf(VehiculoMapper.getEnumStringSanitized(vehiculo.getResultadoValidacionTitular().name()));
 
         // Esperamos hasta que ambas validaciones dejen de estar en PENDIENTE
         if (patente == null || titular == null ||
@@ -105,8 +106,8 @@ public class VehiculoEventosService {
             return;
         }else{
 
-            boolean patenteOk = "VALIDADO".equals(vehiculo.getResultadoValidacionPatente().name());
-            boolean titularidadOk = "VALIDADO".equals(vehiculo.getResultadoValidacionTitular().name());
+            boolean patenteOk = "VALIDADO".equals(VehiculoMapper.getEnumStringSanitized(vehiculo.getResultadoValidacionPatente().name()));
+            boolean titularidadOk = "VALIDADO".equals(VehiculoMapper.getEnumStringSanitized(vehiculo.getResultadoValidacionTitular().name()));
 
             if (patenteOk && titularidadOk) {
                 vehiculo.setHabilitado(true);

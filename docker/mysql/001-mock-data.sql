@@ -57,6 +57,25 @@ CREATE TABLE IF NOT EXISTS reservas (
     PRIMARY KEY (id_reserva)
 );
 
+CREATE TABLE IF NOT EXISTS denuncias_policiales (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    patente VARCHAR(15) NOT NULL,
+    motivo VARCHAR(255) NOT NULL,
+    fecha_denuncia DATETIME(6) NOT NULL,
+    activa BOOLEAN NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_denuncias_patente (patente)
+);
+
+CREATE TABLE IF NOT EXISTS titularidades_vehiculos (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    cliente_id BIGINT NOT NULL,
+    documento VARCHAR(20) NOT NULL,
+    patente VARCHAR(15) NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_titularidades_patente (patente)
+);
+
 INSERT INTO usuarios_metadatos (id, usuario, password, rol)
 VALUES
     (1, 'admin_principal', '$2a$12$1Lk.cZeHax/KlwjH0EfiaurIQ/e.VfWhK/wy0wamJD5dKYrHstsrm', 'ADMIN'),
@@ -93,3 +112,17 @@ VALUES
     (2, 3, 'AD789DD', '2026-12-05 15:00:00', '2026-12-01 15:00:00', 72000.0, 'CONFIRMADO', 'PENDIENTE'),
     (3, 2, 'AE123BB', '2026-09-20 18:00:00', '2026-09-18 10:00:00', 30000.0, 'CANCELADO', 'PENDIENTE'),
     (4, 4, 'AC222FF', '2026-08-15 12:00:00', '2026-08-10 12:00:00', 225000.0, 'CONFIRMADO', 'PENDIENTE');
+
+INSERT INTO denuncias_policiales
+    (id, activa, fecha_denuncia, motivo, patente)
+VALUES
+    (1, 1, '2026-10-19 22:13:38.117809',
+     'Denuncia de robo automotor - Comisaría 1ra', 'ROB999'),
+    (2, 1, '2026-10-23 22:13:38.117872',
+     'Pedido de secuestro judicial activo', 'AF999ZZ');
+
+INSERT INTO titularidades_vehiculos
+    (id, cliente_id, documento, patente)
+VALUES
+    (1, 2, '22222222', 'ROB999'),
+    (2, 3, '33333333', 'EXT456');

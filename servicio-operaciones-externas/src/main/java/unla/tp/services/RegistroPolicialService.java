@@ -87,7 +87,7 @@ public class RegistroPolicialService {
         String documento = titular == null ? "" : titular.getDocumento();
 
         log.info("[TITULARIDAD] Solicitud Externa ID: {} | Patente: {} y DNI: {} -> Resultado: {}", 
-                evento.vehiculoExternoId(), patente, titular.getDocumento(), resultado);
+                evento.vehiculoExternoId(), patente, documento, resultado);
 
         rabbitTemplate.convertAndSend(
                 RabbitMQConfig.EXCHANGE,
