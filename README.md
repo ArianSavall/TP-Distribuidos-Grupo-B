@@ -106,7 +106,6 @@ Crear un archivo `.env` en la raíz del proyecto:
 DB_URL=jdbc:mysql://localhost:3306/tp_distribuidos
 DB_USERNAME=root
 DB_PASSWORD=tu_contraseña
-SERVER_PORT=8080
 ```
 
 La aplicación utiliza Hibernate con la configuración `ddl-auto: update`, por lo que las tablas se actualizan automáticamente al iniciar.
@@ -149,7 +148,7 @@ java -jar target/tp_distribuidos-0.0.1-SNAPSHOT.jar
 La aplicación estará disponible en:
 
 ```text
-http://localhost:8080
+http://localhost:3000
 ```
 
 ## Acceso web
@@ -157,7 +156,7 @@ http://localhost:8080
 La aplicación utiliza autenticación mediante formulario:
 
 ```text
-http://localhost:8080/login
+http://localhost:3000/login
 ```
 
 Una vez autenticado, el panel principal permite acceder a:
