@@ -2,37 +2,40 @@
 
 <html lang="es">
 <head>
-<meta charset="utf-8"/>
-<title>Inicio | Rentar</title>
-<link href="/assets/css/app.css" rel="stylesheet"/>
-<meta content="width=device-width, initial-scale=1" name="viewport"/></head>
+    <meta charset="utf-8"/>
+    <title>Inicio | Rentar</title>
+    <link href="/assets/css/app.css" rel="stylesheet"/>
+    <meta content="width=device-width, initial-scale=1" name="viewport"/>
+</head>
 <body data-page="index">
-<main class="form-container dashboard-layout"><p aria-live="polite" class="estado-pagina" hidden="" id="estado-pagina" role="status"></p>
-<div class="dashboard-header">
-<h1 class="form-section-title">Panel de Control</h1>
-<form action="#" data-action="logout" method="post">
-<button class="btn-secondary btn-inline" type="submit">Cerrar Sesión</button>
-</form>
-</div>
-<p class="historial-description">Seleccioná una opción del menú para continuar.</p>
-<div class="menu-grid">
-<div class="menu-card" data-role="ADMIN" hidden="">
-<h3 class="menu-title">Administración</h3>
-<a class="btn-primary menu-btn" href="/clientes">Gestionar Clientes</a>
-<a class="btn-primary menu-btn" href="/vehiculos">Gestionar Vehículos</a>
-</div>
-<div class="menu-card">
-<h3 class="menu-title">Gestión de Reservas</h3>
-<a class="btn-primary menu-btn" href="/reservas">Gestionar Reservas</a>
-</div>
-<div class="menu-card" data-role="CLIENTE" hidden="">
-<h3 class="menu-title">Mi Cuenta</h3>
-<a class="btn-primary menu-btn" href="/historial">Historial de Reservas</a>
-<a class="btn-primary menu-btn" href="/vehiculos/externos/nuevo">
-  Incorporar mi vehículo
-</a>
-</div>
-</div>
+<main class="form-container dashboard-layout"><p aria-live="polite" class="estado-pagina" hidden="" id="estado-pagina"
+                                                 role="status"></p>
+    <div class="dashboard-header">
+        <h1 class="form-section-title">Panel de Control</h1>
+        <form action="#" data-action="logout" method="post">
+            <button class="btn-secondary btn-inline" type="submit">Cerrar Sesión</button>
+        </form>
+    </div>
+    <p class="historial-description">Seleccioná una opción del menú para continuar.</p>
+    <div class="menu-grid">
+        <div class="menu-card" data-role="ADMIN" hidden="">
+            <h3 class="menu-title">Administración</h3>
+            <a class="btn-primary menu-btn" href="/clientes">Gestionar Clientes</a>
+            <a class="btn-primary menu-btn" href="/vehiculos">Gestionar Vehículos</a>
+        </div>
+        <div class="menu-card">
+            <h3 class="menu-title">Gestión de Reservas</h3>
+            <a class="btn-primary menu-btn" href="/reservas">Gestionar Reservas</a>
+        </div>
+        <div class="menu-card" data-role="CLIENTE" hidden="">
+            <h3 class="menu-title">Mi Cuenta</h3>
+            <a class="btn-primary menu-btn" href="/historial">Historial de Reservas</a>
+            <a class="btn-primary menu-btn" href="/vehiculos/externos/nuevo">
+                Incorporar mi vehículo
+            </a>
+        </div>
+    </div>
 </main>
-<script defer="" src="/assets/app.js"></script></body>
+<script defer="" src="/assets/app.js"></script>
+</body>
 </html>

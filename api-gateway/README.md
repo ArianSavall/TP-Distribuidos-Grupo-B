@@ -76,6 +76,10 @@ El historial personal requiere CLIENTE.
 
 ## REST
 
+La documentación interactiva OpenAPI/Swagger está disponible en
+`http://localhost:3000/api-docs`. El documento JSON se puede consultar en
+`http://localhost:3000/api-docs/swagger.json`.
+
 Todas las API salvo login/health requieren la cookie de sesión.
 
 | Método | Ruta | Uso |
@@ -95,7 +99,7 @@ Todas las API salvo login/health requieren la cookie de sesión.
 | GET | /api_rest/v1/vehiculos/:patente | Consultar vehículo |
 | POST | /api_rest/v1/vehiculos/create | Alta (ADMIN) |
 | POST | /api_rest/v1/vehiculos/desactivar | Baja, JSON `{patente}` (ADMIN) |
-| PUT | /api_rest/v1/vehiculos/:patente | Pendiente de contrato identificable, 501 (ADMIN) |
+| PATCH | /api_rest/v1/vehiculos/:patente | Pendiente de contrato identificable, 501 (ADMIN) |
 | POST | /api_rest/v1/vehiculos/activar | Pendiente de RPC, 501 (ADMIN) |
 | POST | /api_rest/v1/reservas | Alta: idVehiculo o patenteVehiculo, fechaHoraInicio/Final |
 | PUT | /api_rest/v1/reservas/:id | Cancelar (propietario o ADMIN) |

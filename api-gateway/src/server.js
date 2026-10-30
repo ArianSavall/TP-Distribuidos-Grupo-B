@@ -1,13 +1,13 @@
 const reservasRoutes = require("./reservas-routes");
 const { instalarAutenticacion } = require("./auth");
 const express = require("express");
+const swaggerUi = require("swagger-ui-express");
+const openapi = require("./openapi");
 const graphqlHandler = require("./graphql");
 const clientesRoutes = require("./clientes-routes");
 const vehiculosRoutes = require("./vehiculos-routes");
 const grpc = require("@grpc/grpc-js");
 const {
-  vehiculos,
-  llamarRpc,
   cerrarClientes
 } = require("./grpc-clients");
 
@@ -16,9 +16,13 @@ const PORT = Number(process.env.PORT || 3000);
 const HOST = process.env.HOST || "0.0.0.0";
 
 app.use(express.json());
+app.get("/api-docs/swagger.json", (req, res) => res.json(openapi));
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(openapi));
 instalarAutenticacion(app);
 app.all("/graphql", graphqlHandler);
+
 app.use("/api_rest/v1/clientes", clientesRoutes);
+app.use("/api_rest/v1/vehiculos", vehiculosRoutes);
 app.use("/api_rest/v1/reservas", reservasRoutes);
 
 require("./web")(app);
@@ -31,8 +35,6 @@ app.get("/health", (req, res) => {
     servicio: "api-gateway"
   });
 });
-
-app.use("/api_rest/v1/vehiculos", vehiculosRoutes);
 
 app.use((req, res) => {
   res.status(404).json({
@@ -66,9 +68,9 @@ app.use((err, req, res, next) => {
     "Error interno del Gateway o del servicio"
   ];
   const mensajeServicio =
-    typeof err.details === "string" && err.details.trim()
-      ? err.details
-      : mensaje;
+      typeof err.details === "string" && err.details.trim()
+          ? err.details
+          : mensaje;
 
   console.error(mensajeServicio);
 

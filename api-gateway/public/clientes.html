@@ -2,23 +2,24 @@
 
 <html lang="es">
 <head>
-<meta charset="utf-8"/>
-<title>Rentar - Gestión de Clientes</title>
-<link href="/assets/css/app.css" rel="stylesheet"/>
-<meta content="width=device-width, initial-scale=1" name="viewport"/></head>
+    <meta charset="utf-8"/>
+    <title>Rentar - Gestión de Clientes</title>
+    <link href="/assets/css/app.css" rel="stylesheet"/>
+    <meta content="width=device-width, initial-scale=1" name="viewport"/>
+</head>
 <body data-page="clientes">
 <nav class="navbar">
-<h2>Rentar - Admin</h2>
-<div class="links">
-<a data-role="ADMIN" hidden="" href="/vehiculos">Vehículos</a>
-<a data-role="ADMIN" hidden="" href="/clientes">Clientes</a>
-<a href="/reservas">Reservas</a>
-</div>
+    <h2>Rentar - Admin</h2>
+    <div class="links">
+        <a data-role="ADMIN" hidden="" href="/vehiculos">Vehículos</a>
+        <a data-role="ADMIN" hidden="" href="/clientes">Clientes</a>
+        <a href="/reservas">Reservas</a>
+    </div>
 </nav>
 <div class="container"><p aria-live="polite" class="estado-pagina" hidden="" id="estado-pagina" role="status"></p>
-<div class="top-nav">
-<a class="btn-back" href="/">← Volver al Panel</a>
-</div>
+    <div class="top-nav">
+        <a class="btn-back" href="/">← Volver al Panel</a>
+    </div>
 
 <div class="form-card">
 <h3>Registrar Nuevo Cliente</h3>
@@ -71,22 +72,23 @@
 </div>
 </form>
 
+    </div>
+    <h3>Directorio de Clientes</h3>
+    <table class="data-table">
+        <thead>
+        <tr>
+            <th>DNI</th>
+            <th>Nombre Completo</th>
+            <th>Email</th>
+            <th>Teléfono</th>
+            <th>Usuario</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+        </thead>
+        <tbody data-table="clientes"></tbody>
+    </table>
 </div>
-<h3>Directorio de Clientes</h3>
-<table class="data-table">
-<thead>
-<tr>
-<th>DNI</th>
-<th>Nombre Completo</th>
-<th>Email</th>
-<th>Teléfono</th>
-<th>Usuario</th>
-<th>Estado</th>
-<th>Acciones</th>
-</tr>
-</thead>
-<tbody data-table="clientes"></tbody>
-</table>
-</div>
-<script defer="" src="/assets/app.js"></script></body>
+<script defer="" src="/assets/app.js"></script>
+</body>
 </html>

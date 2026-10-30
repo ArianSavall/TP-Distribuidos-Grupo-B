@@ -65,7 +65,7 @@ function tabla(nombre, rows, columnas, acciones) {
   }
   for (const row of rows) {
     const tr = body.insertRow();
-        for (const valor of columnas) {
+    for (const valor of columnas) {
       const celda = tr.insertCell();
       const contenido = typeof valor === 'function' ? valor(row) : (row[valor] ?? '');
       if (contenido instanceof Node) celda.append(contenido);
@@ -77,24 +77,28 @@ function tabla(nombre, rows, columnas, acciones) {
 const dinero = n => Number(n).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' });
 async function cargarVehiculos(patente) {
   const base = '/api_rest/v1/vehiculos';
-  const rows = patente ? [await api(`${base}/${encodeURIComponent(patente)}`)] : await api(`${base}/getAll`);
+  const rows = patente ? [await api(`${base}/${encodeURIComponent(patente)}`)] : await api(base);
   tabla('vehiculos', rows, ['patente', v => `${v.marca} ${v.modelo}`, 'anio', 'tipoVehiculo', v => dinero(v.precioDiario), 'estado', v => v.estaActivo ? 'ACTIVO' : 'INACTIVO'], v => [
     enlace('Editar', `/vehiculos/editar/${encodeURIComponent(v.patente)}`),
     boton(v.estaActivo ? 'Baja' : 'Alta', async () => {
       if (!confirm(`¿${v.estaActivo ? 'Dar de baja' : 'Reactivar'} el vehículo ${v.patente}?`)) return;
-      await api(`${base}/${v.estaActivo ? 'desactivar' : 'activar'}`, 'POST', { patente: v.patente });
+      if (v.estaActivo) {
+        await api(`${base}/${encodeURIComponent(v.patente)}`, 'DELETE');
+      } else {
+        await api(`${base}/${encodeURIComponent(v.patente)}/estado`, 'PATCH', { estaActivo: true });
+      }
       await cargarVehiculos();mensaje('Estado actualizado.');
     }, 'btn-danger')
   ]);
 }
 async function cargarClientes(dni) {
   const base = '/api_rest/v1/clientes';
-  const rows = dni ? [await api(`${base}/buscar/dni/${encodeURIComponent(dni)}`)] : await api(base);
+  const rows = dni ? [await api(`${base}/dni/${encodeURIComponent(dni)}`)] : await api(base);
   tabla('clientes', rows, ['dni', c => `${c.nombre} ${c.apellido}`, 'email', 'telefono', c => c.metadatos?.usuario || '', c => c.estaActivo ? 'ACTIVO' : 'INACTIVO'], c => [
     enlace('Editar', `/clientes/editar/${encodeURIComponent(c.id)}`),
     ...(c.estaActivo ? [boton('Baja', async () => {
       if (!confirm(`¿Dar de baja a ${c.nombre} ${c.apellido}?`)) return;
-      await api(`${base}/borrar/id/${encodeURIComponent(c.id)}`, 'DELETE');
+      await api(`${base}/${encodeURIComponent(c.id)}`, 'DELETE');
       await cargarClientes();mensaje('Cliente dado de baja.');
     }, 'btn-danger')] : [])
   ]);
@@ -121,11 +125,11 @@ async function cargarReservas(f = {}) {
     id cliente vehiculo patente fechaInicio fechaFinalizacion importeTotal estado estadoMantenimiento
   } }`, { f: filtros });
   tabla('reservas', r.reservas, ['cliente', r => `${r.vehiculo} (${r.patente})`, 'fechaInicio', 'fechaFinalizacion', r => dinero(r.importeTotal), 'estado', r => badgeMantenimiento(r.estadoMantenimiento)], r =>
-    r.estado === 'CANCELADO' ? [] : [boton('Cancelar', async () => {
-      if (!confirm(`¿Cancelar la reserva ${r.id}?`)) return;
-      await api(`/api_rest/v1/reservas/${encodeURIComponent(r.id)}`, 'PUT');
-      await cargarReservas();mensaje('Reserva cancelada.');
-    }, 'btn-danger')]
+      r.estado === 'CANCELADO' ? [] : [boton('Cancelar', async () => {
+        if (!confirm(`¿Cancelar la reserva ${r.id}?`)) return;
+        await api(`/api_rest/v1/reservas/${encodeURIComponent(r.id)}`, 'DELETE');
+        await cargarReservas();mensaje('Reserva cancelada.');
+      }, 'btn-danger')]
   );
   // Refresco automático mientras haya mantenimientos pendientes
   clearTimeout(refrescoReservas);
@@ -157,12 +161,12 @@ async function accion(form) {
   switch (form.dataset.action) {
     case 'login': await api('/auth/login', 'POST', d); location.assign('/'); break;
     case 'logout': await api('/auth/logout', 'POST'); location.assign('/login'); break;
-    case 'vehiculos-create': await api('/api_rest/v1/vehiculos/create', 'POST', d); form.reset(); await cargarVehiculos(); mensaje('Vehículo registrado.'); break;
+    case 'vehiculos-create': await api('/api_rest/v1/vehiculos', 'POST', d); form.reset(); await cargarVehiculos(); mensaje('Vehículo registrado.'); break;
     case 'vehiculos-search': await cargarVehiculos(d.patente); break;
-    case 'vehiculosUpdate': await api(`/api_rest/v1/vehiculos/${id}`, 'PUT', d); location.assign('/vehiculos'); break;
+    case 'vehiculosUpdate': await api(`/api_rest/v1/vehiculos/${id}`, 'PATCH', d); location.assign('/vehiculos'); break;
     case 'clientes-create': await api('/api_rest/v1/clientes', 'POST', d); form.reset(); await cargarClientes(); mensaje('Cliente registrado.'); break;
     case 'clientes-search': await cargarClientes(d.dni); break;
-    case 'clientesUpdate': await api(`/api_rest/v1/clientes/modificar/id/${id}`, 'PATCH', d); location.assign('/clientes'); break;
+    case 'clientesUpdate': await api(`/api_rest/v1/clientes/${id}`, 'PATCH', d); location.assign('/clientes'); break;
     case 'reservas-create':
       if (identidad.rol !== 'ADMIN') delete d.dniCliente;
       await api('/api_rest/v1/reservas', 'POST', d); form.reset(); await cargarReservas(); mensaje('Reserva registrada.'); break;
@@ -190,14 +194,14 @@ document.querySelector('button[data-action=historial]')?.addEventListener('click
 });
 (async () => {
   try {
-  const salud = await api('/health');
-  if (salud.modo === 'simulado') {
-    const aviso = document.createElement('p');
-    aviso.className = 'estado-pagina';
-    aviso.textContent = 'Modo de prueba: datos ficticios que se borran al cerrar.';
-    document.body.prepend(aviso);
-  }
-  if (page === 'login') return;
+    const salud = await api('/health');
+    if (salud.modo === 'simulado') {
+      const aviso = document.createElement('p');
+      aviso.className = 'estado-pagina';
+      aviso.textContent = 'Modo de prueba: datos ficticios que se borran al cerrar.';
+      document.body.prepend(aviso);
+    }
+    if (page === 'login') return;
     identidad = (await api('/auth/me')).usuario;
     for (const el of document.querySelectorAll('[data-role]')) el.hidden = el.dataset.role !== identidad.rol;
     if (page === 'vehiculos') await cargarVehiculos();
@@ -206,6 +210,6 @@ document.querySelector('button[data-action=historial]')?.addEventListener('click
     if (page === 'historial') await historial();
     const key = encodeURIComponent(decodeURIComponent(location.pathname.split('/').pop()));
     if (page === 'vehiculosUpdate') rellenar(document.querySelector('form'), await api(`/api_rest/v1/vehiculos/${key}`));
-    if (page === 'clientesUpdate') rellenar(document.querySelector('form'), await api(`/api_rest/v1/clientes/buscar/id/${key}`));
+    if (page === 'clientesUpdate') rellenar(document.querySelector('form'), await api(`/api_rest/v1/clientes/${key}`));
   } catch (e) { mensaje(e.message, true); }
 })();
