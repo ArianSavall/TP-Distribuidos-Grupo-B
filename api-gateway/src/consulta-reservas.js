@@ -1,6 +1,7 @@
 const { GraphQLError } = require("graphql");
 const { reservas, clientes, vehiculos, llamarRpc } = require("./grpc-clients");
 const { estadoReserva, estadoMantenimiento } = require("./enums");
+const { respuestaVehiculosParaFrontend } = require("./vehiculo-enums");
 
 function fallo(mensaje, code) {
   return new GraphQLError(mensaje, { extensions: { code } });
@@ -61,7 +62,7 @@ async function consultarReservasCompletas(usuario, filtros = {}) {
       ...[...new Set(permitidas.map(r => r.patenteVehiculo))].map(async patente => {
         const v = await llamarRpc(vehiculos, "getVehiculoByPatente", { patente });
         if (v.patente !== patente) throw new Error("Respuesta de vehículos inválida");
-        vehiculosPorPatente.set(patente, v);
+        vehiculosPorPatente.set(patente, respuestaVehiculosParaFrontend(v));
       })
     ]);
 
