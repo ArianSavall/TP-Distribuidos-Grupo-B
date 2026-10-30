@@ -40,7 +40,7 @@ public class Usuario {
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(nullable = true)
+    @Column(nullable = false)
     private String telefono;
 
     @Column(nullable = true)
