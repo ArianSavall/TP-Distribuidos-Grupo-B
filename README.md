@@ -143,7 +143,7 @@ http://localhost:8080
 La aplicación utiliza autenticación mediante formulario:
 
 ```text
-http://localhost:8080/login
+http://localhost:3000/login
 ```
 
 Una vez autenticado, el panel principal permite acceder a:
