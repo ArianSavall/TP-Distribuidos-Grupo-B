@@ -15,50 +15,49 @@
     </div>
 </nav>
 <div class="container"><p aria-live="polite" class="estado-pagina" hidden="" id="estado-pagina" role="status"></p>
-    <div class="form-card">
-        <h3>Modificar Vehículo: <span></span></h3>
-        <form action="#" class="grid-form" data-action="vehiculosUpdate" method="post">
-            <div class="form-group">
-                <label for="vehiculosUpdate-campo-0">Patente:</label>
-                <input id="vehiculosUpdate-campo-0" name="patente" readonly="" style="background-color: #e9ecef;"
-                       type="text"/>
-            </div>
-            <div class="form-group">
-                <label for="vehiculosUpdate-campo-1">Marca:</label>
-                <input id="vehiculosUpdate-campo-1" name="marca" required="" type="text"/>
-            </div>
-            <div class="form-group">
-                <label for="vehiculosUpdate-campo-2">Modelo:</label>
-                <input id="vehiculosUpdate-campo-2" name="modelo" required="" type="text"/>
-            </div>
-            <div class="form-group">
-                <label for="vehiculosUpdate-campo-3">Año:</label>
-                <input id="vehiculosUpdate-campo-3" name="anio" required="" type="number"/>
-            </div>
-            <div class="form-group">
-                <label for="vehiculosUpdate-campo-4">Color:</label>
-                <input id="vehiculosUpdate-campo-4" name="color" type="text"/>
-            </div>
-            <div class="form-group">
-                <label for="vehiculosUpdate-campo-5">Tipo de Vehículo:</label>
-                <select id="vehiculosUpdate-campo-5" name="tipoVehiculo">
-                    <option value="SEDAN">Sedán</option>
-                    <option value="SUV">SUV</option>
-                    <option value="PICKUP">Pickup</option>
-                    <option value="COUPE">Coupé</option>
-                    <option value="HATCHBACK">Hatchback</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="vehiculosUpdate-campo-6">Precio Diario:</label>
-                <input id="vehiculosUpdate-campo-6" name="precioDiario" required="" step="0.01" type="number"/>
-            </div>
-            <div style="grid-column: 1 / -1; display: flex; gap: 1rem; margin-top: 1rem;">
-                <button class="btn btn-success" type="submit">Guardar Cambios</button>
-                <a class="btn btn-secondary" href="/vehiculos">Cancelar</a>
-            </div>
-        </form>
-    </div>
+<div class="form-card">
+<h3>Modificar Vehículo: <span></span></h3>
+<form action="#" class="grid-form" data-action="vehiculosUpdate" method="post">
+<div class="form-group">
+<label for="vehiculosUpdate-campo-0">Patente:</label>
+<input id="vehiculosUpdate-campo-0" name="patente" readonly="" style="background-color: #e9ecef;" type="text"/>
+</div>
+<div class="form-group">
+<label for="vehiculosUpdate-campo-1">Marca:</label>
+<input id="vehiculosUpdate-campo-1" name="marca" required="" type="text"/>
+</div>
+<div class="form-group">
+<label for="vehiculosUpdate-campo-2">Modelo:</label>
+<input id="vehiculosUpdate-campo-2" name="modelo" required="" type="text"/>
+</div>
+<div class="form-group">
+<label for="vehiculosUpdate-campo-3">Año:</label>
+<input id="vehiculosUpdate-campo-3" name="anio" required="" type="number"/>
+</div>
+<div class="form-group">
+<label for="vehiculosUpdate-campo-4">Color:</label>
+<input id="vehiculosUpdate-campo-4" name="color" required="" type="text"/>
+</div>
+<div class="form-group">
+<label for="vehiculosUpdate-campo-5">Tipo de Vehículo:</label>
+<select id="vehiculosUpdate-campo-5" name="tipoVehiculo">
+<option value="SEDAN">Sedán</option>
+<option value="SUV">SUV</option>
+<option value="PICKUP">Pickup</option>
+<option value="COUPE">Coupé</option>
+<option value="HATCHBACK">Hatchback</option>
+</select>
+</div>
+<div class="form-group">
+<label for="vehiculosUpdate-campo-6">Precio Diario:</label>
+<input id="vehiculosUpdate-campo-6" name="precioDiario" required="" step="0.01" type="number"/>
+</div>
+<div style="grid-column: 1 / -1; display: flex; gap: 1rem; margin-top: 1rem;">
+<button class="btn btn-success" type="submit">Guardar Cambios</button>
+<a class="btn btn-secondary" href="/vehiculos">Cancelar</a>
+</div>
+</form>
+</div>
 </div>
 <script defer="" src="/assets/app.js"></script>
 </body>

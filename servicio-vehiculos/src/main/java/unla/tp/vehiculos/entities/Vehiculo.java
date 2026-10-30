@@ -33,7 +33,7 @@ public class Vehiculo {
     @Column(nullable = false)
     private int anio;
 
-    @Column(nullable = true)
+    @Column(nullable = false)
     private String color;
 
     @Enumerated(EnumType.STRING)

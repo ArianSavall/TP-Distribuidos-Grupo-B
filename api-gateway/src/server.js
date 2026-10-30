@@ -13,6 +13,7 @@ const {
 
 const app = express();
 const PORT = Number(process.env.PORT || 3000);
+const HOST = process.env.HOST || "0.0.0.0";
 
 app.use(express.json());
 app.get("/api-docs/swagger.json", (req, res) => res.json(openapi));
@@ -80,7 +81,7 @@ app.use((err, req, res, next) => {
 
 // Permite probar el servidor HTTP en un puerto libre sin abrir el puerto habitual.
 if (require.main === module) {
-  const servidor = app.listen(PORT, "127.0.0.1", () => {
+  const servidor = app.listen(PORT, HOST, () => {
     console.log(`API Gateway de Rentar: http://localhost:${PORT}`);
   });
   process.on("SIGINT", () => {

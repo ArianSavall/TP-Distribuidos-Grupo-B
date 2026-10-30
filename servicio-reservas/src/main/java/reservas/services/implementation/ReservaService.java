@@ -27,6 +27,13 @@ import java.util.Optional;
 @GrpcService
 public class ReservaService extends ReservaServiceGrpc.ReservaServiceImplBase {
 
+    public static String getEnumStringSanitized(String s){
+        return s.replace("TIPO_VEHICULO_","")
+                .replace("ESTADO_VEHICULO_","")
+                .replace("RESULTADO_VALIDACION_EXTERNA_","")
+                .replace("RESULTADO_VERIFICACION_","");
+    }
+
     @Autowired
     private IReservaRepository reservaRepository;
 
@@ -55,7 +62,9 @@ public class ReservaService extends ReservaServiceGrpc.ReservaServiceImplBase {
 
             grpc.GetVehiculoByPatenteResponse vehiculoResponse = vehiculoStub.getVehiculoByPatente(vehiculoReq);
 
-            if (!vehiculoResponse.getEstado().name().equalsIgnoreCase("DISPONIBLE") || !vehiculoResponse.getEstaActivo()) {
+            
+
+            if (!getEnumStringSanitized(vehiculoResponse.getEstado().name()).equalsIgnoreCase("DISPONIBLE") || !vehiculoResponse.getEstaActivo()) {
                 responseObserver.onError(Status.FAILED_PRECONDITION
                         .withDescription("El vehículo no está disponible o está inactivo.")
                         .asRuntimeException());
