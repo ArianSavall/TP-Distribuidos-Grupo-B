@@ -6,76 +6,392 @@
  option java_package = "grpc";
  option java_outer_classname = "VehiculoProto";
 
+
+
+ // Servicio para consultar, dar de alta, actualizar y dar de baja vehículos.
+ // Las operaciones de baja son lógicas: el registro se conserva para consultas históricas.
  service VehiculoService{
-   rpc getVehiculoById(GetVehiculoIdRequest) returns (Vehiculo);
-   rpc getVehiculoByPatente(GetVehiculoPatenteRequest) returns (Vehiculo);
-   rpc getAllVehiculos(empty) returns (VehiculoListResponse);
-   rpc getVehiculosDisponibles(GetVehiculosDisponiblesRequest) returns (VehiculoListResponse);
-   rpc createVehiculo(PostVehiculoRequest) returns (Vehiculo);
-   rpc saveVehiculo(PatchVehiculoRequest) returns (Vehiculo);
-   rpc deleteVehiculo(GetVehiculoPatenteRequest) returns (Vehiculo);
+   // Busca un vehículo por su identificador único. Devuelve NOT_FOUND si no existe.
+   rpc GetVehiculoById(GetVehiculoByIdRequest) returns (GetVehiculoByIdResponse);
+   // Busca un vehículo por su patente. La patente debe corresponder a un registro existente.
+   rpc GetVehiculoByPatente(GetVehiculoByPatenteRequest) returns (GetVehiculoByPatenteResponse);
+   // Lista los vehículos activos registrados, incluyendo su estado y validaciones.
+   rpc GetAllVehiculos(GetAllVehiculosRequest) returns (GetAllVehiculosResponse);
+   // Busca vehículos aptos para alquilar en un período y que cumplan los filtros indicados.
+   // Solo se consideran vehículos activos y habilitados, sin reservas que se superpongan.
+   rpc GetVehiculosDisponibles(GetVehiculosDisponiblesRequest) returns (GetVehiculosDisponiblesResponse);
+   // Crea un vehículo nuevo. La patente debe ser única; el vehículo queda activo,
+   // disponible y pendiente de las validaciones externas correspondientes.
+   rpc CreateVehiculo(CreateVehiculoRequest) returns (CreateVehiculoResponse);
+   // Persiste los datos editables de un vehículo. Solo deben guardarse vehículos habilitados.
+   rpc SaveVehiculo(SaveVehiculoRequest) returns (SaveVehiculoResponse);
+   // Desactiva lógicamente el vehículo identificado por su patente y devuelve el registro afectado.
+   rpc DeleteVehiculo(DeleteVehiculoRequest) returns (DeleteVehiculoResponse);
+
+   // Registra un vehículo informado por un sistema externo y devuelve el resultado
+   // de la incorporación y de las validaciones de patente y titularidad.
+   rpc RegistrarVehiculoExterno(RegistrarVehiculoExternoRequest) returns (RegistrarVehiculoExternoResponse);
  }
 
+ // Representa un vehículo y su estado operativo y de validación.
  message Vehiculo {
+   // Identificador único asignado por el servicio.
    int64 id = 1;
+   // Marca comercial del vehículo.
    string marca = 2;
+   // Modelo del vehículo.
    string modelo = 3;
+   // Patente; identifica unívocamente al vehículo y no puede repetirse.
    string patente = 4;
-   string tipo_vehiculo = 5;
+   // Categoría del vehículo.
+   TipoVehiculo tipo_vehiculo = 5;
+   // Precio diario de alquiler. Debe ser no negativo.
    double precio_diario = 6;
+   // Indica si el registro está activo. La baja modifica este valor a false.
    bool esta_activo = 7;
-   string estado = 8;
+   // Estado operativo: disponible, reservado o en alquiler.
+   EstadoVehiculo estado = 8;
+   // Año de fabricación o modelo del vehículo.
    int32 anio = 9;
+   // Color declarado del vehículo.
    string color= 10;
+   // Resultado de la validación externa de la patente.
+   ResultadoValidacionExterna resultado_validacion_patente = 11;
+   // Resultado de la validación externa del titular.
+   ResultadoValidacionExterna resultado_validacion_titular = 12;
+   // Indica si el vehículo puede operar y ser ofrecido para alquiler.
+   bool habilitado = 13;
+   // Resultado de la verificación policial o de antecedentes.
+   ResultadoVerificacion resultado_verificacion = 14;
  }
 
- message GetVehiculoIdRequest {
+ // Respuesta de la consulta por identificador; contiene el vehículo encontrado.
+ message GetVehiculoByIdResponse {
+   // Identificador único del vehículo.
+   int64 id = 1;
+   // Marca comercial.
+   string marca = 2;
+   // Modelo.
+   string modelo = 3;
+   // Patente única.
+   string patente = 4;
+   // Categoría del vehículo.
+   TipoVehiculo tipo_vehiculo = 5;
+   // Precio diario de alquiler.
+   double precio_diario = 6;
+   // Indica si el registro continúa activo.
+   bool esta_activo = 7;
+   // Estado operativo actual.
+   EstadoVehiculo estado = 8;
+   // Año del vehículo.
+   int32 anio = 9;
+   // Color del vehículo.
+   string color= 10;
+   // Resultado de validación de la patente.
+   ResultadoValidacionExterna resultado_validacion_patente = 11;
+   // Resultado de validación del titular.
+   ResultadoValidacionExterna resultado_validacion_titular = 12;
+   // Indica si puede operar.
+   bool habilitado = 13;
+   // Resultado de la verificación policial o de antecedentes.
+   ResultadoVerificacion resultado_verificacion = 14;
+ }
+
+ // Respuesta de la consulta por patente; contiene el vehículo encontrado.
+ message GetVehiculoByPatenteResponse {
+   // Identificador único del vehículo.
+   int64 id = 1;
+   // Marca comercial.
+   string marca = 2;
+   // Modelo.
+   string modelo = 3;
+   // Patente consultada.
+   string patente = 4;
+   // Categoría del vehículo.
+   TipoVehiculo tipo_vehiculo = 5;
+   // Precio diario de alquiler.
+   double precio_diario = 6;
+   // Indica si el registro continúa activo.
+   bool esta_activo = 7;
+   // Estado operativo actual.
+   EstadoVehiculo estado = 8;
+   // Año del vehículo.
+   int32 anio = 9;
+   // Color del vehículo.
+   string color= 10;
+   // Resultado de validación de la patente.
+   ResultadoValidacionExterna resultado_validacion_patente = 11;
+   // Resultado de validación del titular.
+   ResultadoValidacionExterna resultado_validacion_titular = 12;
+   // Indica si puede operar.
+   bool habilitado = 13;
+   // Resultado de la verificación policial o de antecedentes.
+   ResultadoVerificacion resultado_verificacion = 14;
+ }
+
+ // Vehículo creado y sus datos iniciales.
+ message CreateVehiculoResponse {
+   // Identificador asignado.
+   int64 id = 1;
+   // Marca comercial.
+   string marca = 2;
+   // Modelo.
+   string modelo = 3;
+   // Patente única.
+   string patente = 4;
+   // Categoría.
+   TipoVehiculo tipo_vehiculo = 5;
+   // Precio diario.
+   double precio_diario = 6;
+   // El alta normal crea el vehículo activo.
+   bool esta_activo = 7;
+   // Estado inicial, normalmente disponible.
+   EstadoVehiculo estado = 8;
+   // Año del vehículo.
+   int32 anio = 9;
+   // Color del vehículo.
+   string color= 10;
+   // Resultado de la verificación policial o de antecedentes.
+   ResultadoVerificacion resultado_verificacion = 11;
+ }
+
+ // Datos persistidos por una operación de guardado.
+ message SaveVehiculoResponse {
+   // Marca actualizada.
+   string marca = 1;
+   // Modelo actualizado.
+   string modelo = 2;
+   // Categoría actualizada.
+   TipoVehiculo tipo_vehiculo = 3;
+   // Precio diario actualizado.
+   double precio_diario = 4;
+   // Año actualizado.
+   int32 anio = 5;
+   // Color actualizado.
+   string color= 6;
+   // Resultado de la verificación policial o de antecedentes.
+   ResultadoVerificacion resultado_verificacion = 7;
+ }
+
+ // Vehículo que fue desactivado lógicamente.
+ message DeleteVehiculoResponse {
+   // Identificador del vehículo dado de baja.
+   int64 id = 1;
+   // Marca.
+   string marca = 2;
+   // Modelo.
+   string modelo = 3;
+   // Patente.
+   string patente = 4;
+   // Categoría.
+   TipoVehiculo tipo_vehiculo = 5;
+   // Precio diario vigente.
+   double precio_diario = 6;
+   // Debe quedar false después de la baja lógica.
+   bool esta_activo = 7;
+   // Estado operativo al momento de la baja.
+   EstadoVehiculo estado = 8;
+   // Año.
+   int32 anio = 9;
+   // Color.
+   string color= 10;
+   // Resultado de la verificación policial o de antecedentes.
+   ResultadoVerificacion resultado_verificacion = 11;
+ }
+
+ // Respuesta de listado general.
+ message GetAllVehiculosResponse {
+   // Vehículos activos registrados. La colección puede estar vacía.
+   repeated Vehiculo vehiculos = 1;
+ }
+
+ // Respuesta de la búsqueda de disponibilidad.
+ message GetVehiculosDisponiblesResponse {
+   // Vehículos activos, habilitados y no ocupados durante el período solicitado.
+   repeated Vehiculo vehiculos = 1;
+ }
+
+ // Resultado del registro de un vehículo proveniente de otro sistema.
+ message RegistrarVehiculoExternoResponse {
+   // Identificador asignado al vehículo.
+   int64 id = 1;
+   // Marca recibida.
+   string marca = 2;
+   // Modelo recibido.
+   string modelo = 3;
+   // Patente recibida.
+   string patente = 4;
+   // Categoría recibida.
+   TipoVehiculo tipo_vehiculo = 5;
+   // Precio diario recibido.
+   double precio_diario = 6;
+   // Indica si el registro quedó activo.
+   bool esta_activo = 7;
+   // Estado operativo del vehículo.
+   EstadoVehiculo estado = 8;
+   // Año recibido.
+   int32 anio = 9;
+   // Color recibido.
+   string color= 10;
+   // Resultado global de la incorporación externa.
+   string estado_incorporacion = 11;
+   // Resultado de validar la patente ante el sistema externo.
+   ResultadoVerificacion resultado_validacion_patente = 12;
+   // Resultado de validar la titularidad ante el sistema externo.
+   ResultadoValidacionExterna validacion_titularidad = 13;
+   // Solo queda habilitado cuando las validaciones requeridas lo permiten.
+   bool habilitado = 14;
+   // Cliente titular asociado al registro externo.
+   int64 cliente_id = 15;
+ }
+
+ // Parámetros para buscar un vehículo por identificador.
+ message GetVehiculoByIdRequest {
+   // Identificador único requerido.
    int64 id = 1;
  }
 
- message GetVehiculoPatenteRequest{
+ // Parámetros para buscar un vehículo por patente.
+ message GetVehiculoByPatenteRequest{
+   // Patente exacta del vehículo requerido.
    string patente = 1;
  }
 
- message GetVehiculosDisponiblesRequest{
-   string marca = 1;
-   string modelo = 2;
-   string tipoVehiculo = 3;
-   date_time fechaDesde = 4;
-   date_time fechaHasta = 5;
-   double precioDiarioMin = 6;
-   double precioDiarioMax = 7;
+ // Parámetros para dar de baja lógicamente un vehículo.
+ message DeleteVehiculoRequest{
+   // Patente del vehículo que se desea desactivar.
+   string patente = 1;
  }
 
- message PostVehiculoRequest{
+ // Filtros para consultar vehículos disponibles para alquiler.
+ message GetVehiculosDisponiblesRequest{
+   // Filtro opcional por marca; vacío significa cualquier marca.
    string marca = 1;
+   // Filtro opcional por modelo; vacío significa cualquier modelo.
    string modelo = 2;
+   // Filtro opcional por categoría; UNSPECIFIED significa cualquier categoría.
+   TipoVehiculo tipo_vehiculo = 3;
+   // Inicio del período solicitado, con fecha y hora.
+   string fecha_desde = 4;
+   // Fin del período solicitado; debe ser posterior a fecha_desde.
+   string fecha_hasta = 5;
+   // Precio diario mínimo; cero omite este límite.
+   double precio_diario_min = 6;
+   // Precio diario máximo; cero omite este límite.
+   double precio_diario_max = 7;
+ }
+
+ // Datos necesarios para crear un vehículo local.
+ message CreateVehiculoRequest{
+   // Marca; requerido.
+   string marca = 1;
+   // Modelo; requerido.
+   string modelo = 2;
+   // Patente única; requerida.
    string patente = 3;
-   string tipo_vehiculo = 4;
+   // Categoría del vehículo.
+   TipoVehiculo tipo_vehiculo = 4;
+   // Precio diario no negativo.
    double precio_diario = 5;
+   // Año del vehículo.
    int32 anio = 6;
+   // Color del vehículo.
    string color= 7;
  }
 
- message PatchVehiculoRequest{
+ // Datos editables que se persisten al guardar un vehículo.
+ message SaveVehiculoRequest{
+   // Marca actualizada.
    string marca = 1;
+   // Modelo actualizado.
    string modelo = 2;
+   // Año actualizado.
    int32 anio = 3;
+   // Color actualizado.
    string color = 4;
-   string tipoVehiculo = 5;
-   double precioDiario = 6;
+   // Categoría actualizada.
+   TipoVehiculo tipo_vehiculo = 5;
+   // Precio diario actualizado.
+   double precio_diario = 6;
+   // Patente única; requerida.
+   string patente = 7;
+   // Id único en la base de datos.
+   int64 id = 8;
  }
 
- message VehiculoListResponse {
-   repeated Vehiculo vehiculos = 1;// "repeated" equivale a un List o Array en Java
+ // Solicitud sin filtros para listar vehículos activos.
+ message GetAllVehiculosRequest{}
+
+ // Datos necesarios para registrar un vehículo proveniente de un sistema externo.
+ message RegistrarVehiculoExternoRequest {
+    // Identificador del cliente titular; requerido.
+    int64 cliente_id=1;
+    // Documento del titular para la validación externa.
+    string documento = 2;
+    // Patente que se validará y asociará al vehículo.
+    string patente = 3;
+    // Marca del vehículo.
+    string marca = 4;
+    // Modelo del vehículo.
+    string modelo = 5;
+    // Categoría del vehículo.
+    TipoVehiculo tipo_vehiculo = 6;
+    // Precio diario propuesto.
+    double precio_diario = 7;
+    // Año del vehículo.
+    int32 anio = 8;
+    // Color del vehículo.
+    string color = 9;
  }
 
- message date_time{
-   int32 year = 1;
-   int32 month = 2;
-   int32 day = 3;
-
-   int32 hours = 4;
-   int32 minutes = 5;
+ // Categorías admitidas para clasificar vehículos.
+ enum TipoVehiculo {
+   // Valor por defecto de proto3; no representa una categoría válida.
+   TIPO_VEHICULO_UNSPECIFIED = 0;
+   // Automóvil tipo sedán.
+   TIPO_VEHICULO_SEDAN = 1;
+   // Vehículo utilitario deportivo.
+   TIPO_VEHICULO_SUV = 2;
+   // Vehículo tipo pickup.
+   TIPO_VEHICULO_PICKUP = 3;
+   // Automóvil tipo coupé.
+   TIPO_VEHICULO_COUPE = 4;
+   // Automóvil tipo hatchback.
+   TIPO_VEHICULO_HATCHBACK = 5;
  }
- message empty{}
+
+ // Estado operativo del vehículo dentro del sistema de alquiler.
+ enum EstadoVehiculo {
+   // Estado no informado.
+   ESTADO_VEHICULO_UNSPECIFIED = 0;
+   // Puede ser ofrecido, siempre que también esté activo y habilitado.
+   ESTADO_VEHICULO_DISPONIBLE = 1;
+   // Tiene una reserva vigente.
+   ESTADO_VEHICULO_RESERVADO = 2;
+   // Está siendo utilizado en un alquiler.
+   ESTADO_VEHICULO_EN_ALQUILER = 3;
+ }
+
+ // Resultado de una validación realizada por un sistema externo.
+ enum ResultadoValidacionExterna {
+   // Resultado no informado.
+   RESULTADO_VALIDACION_EXTERNA_UNSPECIFIED = 0;
+   // La validación aún no finalizó.
+   RESULTADO_VALIDACION_EXTERNA_PENDIENTE = 1;
+   // El dato fue validado correctamente.
+   RESULTADO_VALIDACION_EXTERNA_VALIDADO = 2;
+   // El dato fue rechazado por el sistema externo.
+   RESULTADO_VALIDACION_EXTERNA_RECHAZADO = 3;
+ }
+
+ // Resultado de la verificación policial o de antecedentes del vehículo.
+ enum ResultadoVerificacion {
+   // Resultado no informado.
+   RESULTADO_VERIFICACION_UNSPECIFIED = 0;
+   // La verificación está pendiente.
+   RESULTADO_VERIFICACION_PENDIENTE = 1;
+   // El vehículo fue validado y puede habilitarse.
+   RESULTADO_VERIFICACION_VALIDADO = 2;
+   // El vehículo figura como robado y no debe habilitarse.
+   RESULTADO_VERIFICACION_ROBADO = 3;
+ }

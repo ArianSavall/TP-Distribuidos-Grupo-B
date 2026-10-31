@@ -2,40 +2,42 @@
 
 <html lang="es">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1" name="viewport"/>
-<link href="/assets/css/app.css" rel="stylesheet"/>
-<title>Mi historial | Rentar</title>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1" name="viewport"/>
+    <link href="/assets/css/app.css" rel="stylesheet"/>
+    <title>Mi historial | Rentar</title>
 </head>
 <body data-page="historial">
-<main class="form-container historial-layout"><p aria-live="polite" class="estado-pagina" hidden="" id="estado-pagina" role="status"></p>
-<div class="top-nav">
-<a class="btn-back" href="/">← Volver al Panel</a>
-</div>
-<h1 class="form-section-title historial-title">Mi historial de alquileres</h1>
-<p class="historial-description">Consultá tus alquileres finalizados y tus reservas canceladas.</p>
-<button class="btn-primary btn-inline" data-action="historial" id="actualizar" type="button">
+<main class="form-container historial-layout"><p aria-live="polite" class="estado-pagina" hidden="" id="estado-pagina"
+                                                 role="status"></p>
+    <div class="top-nav">
+        <a class="btn-back" href="/">← Volver al Panel</a>
+    </div>
+    <h1 class="form-section-title historial-title">Mi historial de alquileres</h1>
+    <p class="historial-description">Consultá tus alquileres finalizados y tus reservas canceladas.</p>
+    <button class="btn-primary btn-inline" data-action="historial" id="actualizar" type="button">
         Actualizar historial
     </button>
 
-<div class="table-wrapper">
-<table class="data-table full-width" hidden="" id="tabla">
-<caption class="historial-caption">Detalle de tus alquileres</caption>
-<thead>
-<tr>
-<th scope="col">Vehículo</th>
-<th scope="col">Patente</th>
-<th scope="col">Inicio</th>
-<th scope="col">Finalización</th>
-<th scope="col">Días</th>
-<th scope="col">Importe total</th>
-<th scope="col">Estado</th>
-</tr>
-</thead>
-<tbody data-table="historial" id="filas"></tbody>
-</table>
-</div>
+    <div class="table-wrapper">
+        <table class="data-table full-width" hidden="" id="tabla">
+            <caption class="historial-caption">Detalle de tus alquileres</caption>
+            <thead>
+            <tr>
+                <th scope="col">Vehículo</th>
+                <th scope="col">Patente</th>
+                <th scope="col">Inicio</th>
+                <th scope="col">Finalización</th>
+                <th scope="col">Días</th>
+                <th scope="col">Importe total</th>
+                <th scope="col">Estado</th>
+            </tr>
+            </thead>
+            <tbody data-table="historial" id="filas"></tbody>
+        </table>
+    </div>
 </main>
 
-<script defer="" src="/assets/app.js"></script></body>
+<script defer="" src="/assets/app.js"></script>
+</body>
 </html>

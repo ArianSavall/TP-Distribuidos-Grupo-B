@@ -6,80 +6,170 @@ option java_multiple_files = true;
 option java_package = "grpc";
 option java_outer_classname = "ReservaProto";
 
+// Servicio de reservas y alquileres.
+// Es dueño de los datos de reservas: las reglas de negocio sobre ellas se
+// aplican en este servicio y no en el API Gateway.
 service ReservaService {
-    rpc CrearReserva (CrearReservaRequest) returns (Reserva);
-    rpc ObtenerReserva (ObtenerReservaRequest) returns (Reserva);
+    // Crea una reserva en estado CONFIRMADO.
+    // Valida fechas, disponibilidad del vehículo y solapamiento de períodos.
+    rpc CrearReserva (CrearReservaRequest) returns (CrearReservaResponse);
+
+    // Devuelve una reserva por su id. 
+    rpc ObtenerReserva (ObtenerReservaRequest) returns (ObtenerReservaResponse);
+
+    // Lista todas las reservas. El filtrado según rol y criterios de búsqueda
+    // lo realiza el API Gateway.
     rpc ListarReservas (ListarReservasRequest) returns (ListarReservasResponse);
+
+    // Cancela una reserva (baja lógica, no se elimina de la base).
+    // Solo es posible si el período de alquiler todavía no comenzó.
     rpc CancelarReserva (CancelarReservaRequest) returns (CancelarReservaResponse);
-    rpc ObtenerMiHistorial (ObtenerHistorialRequest) returns (ObtenerHistorialResponse);
-    rpc GetVehiculosOcupados(FechasRequest) returns (VehiculosOcupadosResponse);
+
+    // Historial de un cliente: reservas canceladas y reservas confirmadas
+    // cuyo período ya finalizó.
+    rpc ObtenerMiHistorial (ObtenerMiHistorialRequest) returns (ObtenerMiHistorialResponse);
+
+    // Devuelve las patentes con reservas no canceladas que se solapan con el
+    // rango indicado. Lo usa el servicio de vehículos para la disponibilidad.
+    rpc GetVehiculosOcupados (GetVehiculosOcupadosRequest) returns (GetVehiculosOcupadosResponse);
 }
 
+// Estados almacenados de una reserva.
+// FINALIZADO no se guarda: se deriva en el historial (confirmada con fecha de fin pasada).
 enum EstadoReserva {
-    ESTADO_NO_ESPECIFICADO = 0;
-    CONFIRMADO = 1;
-    CANCELADO = 2;
+    ESTADO_RESERVA_UNSPECIFIED = 0;
+    ESTADO_RESERVA_CONFIRMADO = 1;
+    ESTADO_RESERVA_CANCELADO = 2;
 }
 
+// Resultado del mantenimiento preventivo asociado a la reserva (Hito 3).
+// PENDIENTE indica que el resultado todavía no llegó por el broker de mensajes.
+enum EstadoMantenimiento {
+    ESTADO_MANTENIMIENTO_UNSPECIFIED = 0;
+    ESTADO_MANTENIMIENTO_PENDIENTE = 1;
+    ESTADO_MANTENIMIENTO_REALIZADO = 2;
+    ESTADO_MANTENIMIENTO_NO_REALIZADO = 3;
+}
+
+// Estado de un alquiler en el historial. FINALIZADO se deriva de la fecha de fin.
+enum EstadoHistorial {
+    ESTADO_HISTORIAL_UNSPECIFIED = 0;
+    ESTADO_HISTORIAL_CANCELADO = 1;
+    ESTADO_HISTORIAL_FINALIZADO = 2;
+}
+
+// Datos de una reserva
 message Reserva {
-    int64 idReserva = 1;
-    string patenteVehiculo = 2;
-    int64 idCliente = 3;
-    string fechaHoraInicio = 4;
-    string fechaHoraFinal = 5;
-    EstadoReserva estadoReserva = 6;
-    double importeTotal = 7;
+    // Identificador
+    int64 id_reserva = 1;
+
+    // Patente del vehículo reservado. El vehículo pertenece al servicio de vehículos.
+    string patente_vehiculo = 2;
+
+    // Identificador del cliente.
+    int64 id_cliente = 3;
+
+    // Inicio del alquiler
+    string fecha_hora_inicio = 4;
+
+    // Fin del alquiler
+    string fecha_hora_final = 5;
+
+    // Estado actual de la reserva
+    EstadoReserva estado_reserva = 6;
+
+    // Importe total: días de alquiler (mínimo 1) por precio diario del vehículo.
+    double importe_total = 7;
+
+    // Resultado del mantenimiento preventivo asociado (Hito 3):
+    // PENDIENTE, REALIZADO o NO_REALIZADO. PENDIENTE indica que el resultado
+    // todavía no llegó por el broker de mensajes.
+    EstadoMantenimiento estado_mantenimiento = 8;
 }
 
+// Pedido de alta de reserva. El importe y el estado los calcula el servicio.
 message CrearReservaRequest {
-    string patenteVehiculo = 1;
-    int64 idCliente = 2;
-    string fechaHoraInicio = 3;
-    string fechaHoraFinal = 4;
+    // Patente del vehículo a reservar.
+    string patente_vehiculo = 1;
+
+    // Cliente que realiza la reserva.
+    int64 id_cliente = 2;
+
+    // Inicio solicitado. Debe ser una fecha futura.
+    string fecha_hora_inicio = 3;
+
+    // Fin solicitado. Debe ser posterior al inicio.
+    string fecha_hora_final = 4;
+}
+
+message CrearReservaResponse {
+    // Reserva creada.
+    Reserva reserva = 1;
 }
 
 message ObtenerReservaRequest {
+    // Id de la reserva a consultar.
     int64 id = 1;
+}
+
+message ObtenerReservaResponse {
+    // Reserva encontrada.
+    Reserva reserva = 1;
 }
 
 message ListarReservasRequest {}
 
 message ListarReservasResponse {
+    // Devuelve una lista de reservas.
     repeated Reserva reservas = 1;
 }
 
 message CancelarReservaRequest {
+    // Id de la reserva a cancelar.
     int64 id = 1;
 }
 
 message CancelarReservaResponse {
+    // Verdadero si la cancelación se concretó.
     bool exito = 1;
-    EstadoReserva estadoReserva = 2;
+
+    // Estado resultante de la reserva.
+    EstadoReserva estado_reserva = 2;
 }
 
-message ObtenerHistorialRequest {
-    int64 idCliente = 1; 
+message ObtenerMiHistorialRequest {
+    // Cliente cuyo historial se consulta.
+    int64 id_cliente = 1; 
 }
 
-message ObtenerHistorialResponse {
+message ObtenerMiHistorialResponse {
     repeated HistorialItem historial = 1;
 }
 
-message FechasRequest { // Para pedir un rango de fechas
+message GetVehiculosOcupadosRequest {
+    // Inicio del rango consultado.
     string fecha_desde = 1;
+
+    // Fin del rango consultado.
     string fecha_hasta = 2;
 }
 
-message VehiculosOcupadosResponse {
-    repeated string patentes = 1; 
+message GetVehiculosOcupadosResponse {
+    // Patentes ocupadas en el rango (puede haber repetidas).
+    repeated string patentes = 1;
 }
 
+// Un alquiler del historial de un cliente.
 message HistorialItem {
+    // Descripción del vehículo. Hoy "Vehículo <patente>"; el gateway la
+    // completa con marca y modelo consultando al servicio de vehículos.
     string vehiculo = 1; 
     string patente = 2;
-    string fechaHoraInicio = 3;
-    string fechaHoraFinal = 4;
+    string fecha_hora_inicio = 3;
+    string fecha_hora_final = 4;
+    // Cantidad de días del alquiler (mínimo 1).
     int32 dias = 5;
-    double importeTotal = 6;
-    string estado = 7;
+    double importe_total = 6;
+    // CANCELADO o FINALIZADO.
+    EstadoHistorial estado = 7;
 }

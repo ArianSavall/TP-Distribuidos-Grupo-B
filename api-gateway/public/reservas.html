@@ -2,170 +2,185 @@
 
 <html lang="es">
 <head>
-<meta charset="utf-8"/>
-<title>Rentar - Gestión de Reservas</title>
-<link href="/assets/css/app.css" rel="stylesheet"/>
-<meta content="width=device-width, initial-scale=1" name="viewport"/></head>
+    <meta charset="utf-8"/>
+    <title>Rentar - Gestión de Reservas</title>
+    <link href="/assets/css/app.css" rel="stylesheet"/>
+    <meta content="width=device-width, initial-scale=1" name="viewport"/>
+</head>
 <body data-page="reservas">
 <nav class="navbar">
-<h2>Rentar</h2>
-<div class="links">
-<a data-role="ADMIN" hidden="" href="/vehiculos">Vehículos</a>
-<a data-role="ADMIN" hidden="" href="/clientes">Clientes</a>
-<a href="/reservas">Reservas</a>
-</div>
+    <h2>Rentar</h2>
+    <div class="links">
+        <a data-role="ADMIN" hidden="" href="/vehiculos">Vehículos</a>
+        <a data-role="ADMIN" hidden="" href="/clientes">Clientes</a>
+        <a href="/reservas">Reservas</a>
+    </div>
 </nav>
 <div class="container"><p aria-live="polite" class="estado-pagina" hidden="" id="estado-pagina" role="status"></p>
-<div class="top-nav">
-<a class="btn-back" href="/">← Volver al Panel</a>
-</div>
-<div class="form-container">
-<h3 class="form-section-title">Consultar Disponibilidad</h3>
-<form action="#" data-action="disponibilidad" method="get">
-<div class="form-row">
-<div class="form-group">
-<label class="form-label" for="reservas-campo-0">Buscar desde:</label>
-<input class="form-input" id="reservas-campo-0" name="fechaInicioDisp" required="" type="datetime-local"/>
-</div>
-<div class="form-group">
-<label class="form-label" for="reservas-campo-1">Buscar hasta:</label>
-<input class="form-input" id="reservas-campo-1" name="fechaFinalDisp" required="" type="datetime-local"/>
-</div>
-<div class="form-group">
-<label class="form-label" for="reservas-campo-2">Tipo de vehículo:</label>
-<select class="form-input" id="reservas-campo-2" name="tipoVehiculoDisp">
-<option value="">Todos los tipos</option>
-<option value="SEDAN">Sedán</option>
-<option value="HATCHBACK">Hatchback</option>
-<option value="SUV">SUV</option>
-<option value="PICKUP">Pick-up</option>
-<option value="COUPE">Coupé</option>
-</select>
-</div>
-</div>
-<div class="form-row">
-<div class="form-group">
-<label class="form-label" for="reservas-campo-3">Marca:</label>
-<input class="form-input" id="reservas-campo-3" name="marcaDisp" type="text"/>
-</div>
-<div class="form-group">
-<label class="form-label" for="reservas-campo-4">Modelo:</label>
-<input class="form-input" id="reservas-campo-4" name="modeloDisp" type="text"/>
-</div>
-<div class="form-group">
-<label class="form-label" for="reservas-campo-5">Precio diario mínimo:</label>
-<input class="form-input" id="reservas-campo-5" min="0" name="precioMinDisp" step="0.01" type="number"/>
-</div>
-<div class="form-group">
-<label class="form-label" for="reservas-campo-6">Precio diario máximo:</label>
-<input class="form-input" id="reservas-campo-6" min="0" name="precioMaxDisp" step="0.01" type="number"/>
-</div>
-</div>
-<button class="btn-primary" type="submit">Ver Disponibles</button>
-</form>
+    <div class="top-nav">
+        <a class="btn-back" href="/">← Volver al Panel</a>
+    </div>
+    <div class="form-container">
+        <h3 class="form-section-title">Consultar Disponibilidad</h3>
+        <form action="#" data-action="disponibilidad" method="get">
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="reservas-campo-0">Buscar desde:</label>
+                    <input class="form-input" id="reservas-campo-0" name="fechaInicioDisp" required=""
+                           type="datetime-local"/>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="reservas-campo-1">Buscar hasta:</label>
+                    <input class="form-input" id="reservas-campo-1" name="fechaFinalDisp" required=""
+                           type="datetime-local"/>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="reservas-campo-2">Tipo de vehículo:</label>
+                    <select class="form-input" id="reservas-campo-2" name="tipoVehiculoDisp">
+                        <option value="">Todos los tipos</option>
+                        <option value="SEDAN">Sedán</option>
+                        <option value="HATCHBACK">Hatchback</option>
+                        <option value="SUV">SUV</option>
+                        <option value="PICKUP">Pick-up</option>
+                        <option value="COUPE">Coupé</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="reservas-campo-3">Marca:</label>
+                    <input class="form-input" id="reservas-campo-3" name="marcaDisp" type="text"/>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="reservas-campo-4">Modelo:</label>
+                    <input class="form-input" id="reservas-campo-4" name="modeloDisp" type="text"/>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="reservas-campo-5">Precio diario mínimo:</label>
+                    <input class="form-input" id="reservas-campo-5" min="0" name="precioMinDisp" step="0.01"
+                           type="number"/>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="reservas-campo-6">Precio diario máximo:</label>
+                    <input class="form-input" id="reservas-campo-6" min="0" name="precioMaxDisp" step="0.01"
+                           type="number"/>
+                </div>
+            </div>
+            <button class="btn-primary" type="submit">Ver Disponibles</button>
+        </form>
 
-<div>
-<h4 class="form-subtitle">Vehículos libres en ese período:</h4>
-<table class="data-table">
-<thead>
-<tr>
-<th>Patente</th>
-<th>Vehículo</th>
-<th>Tipo</th>
-<th>Color</th>
-<th>Año</th>
-<th>Precio Diario</th>
-</tr>
-</thead>
-<tbody data-table="disponibilidad"></tbody>
-</table>
-</div>
-</div>
+        <div>
+            <h4 class="form-subtitle">Vehículos libres en ese período:</h4>
+            <table class="data-table">
+                <thead>
+                <tr>
+                    <th>Patente</th>
+                    <th>Vehículo</th>
+                    <th>Tipo</th>
+                    <th>Color</th>
+                    <th>Año</th>
+                    <th>Precio Diario</th>
+                </tr>
+                </thead>
+                <tbody data-table="disponibilidad"></tbody>
+            </table>
+        </div>
+    </div>
 
 
-<div class="form-container">
-<h3 class="form-section-title">Registrar Nueva Reserva</h3>
-<form action="#" data-action="reservas-create" method="post">
-<div class="form-row"><div class="form-group" data-role="ADMIN" hidden=""><label for="reservas-campo-7">DNI del cliente (administrador):</label><input class="form-input" id="reservas-campo-7" name="dniCliente" type="text"/></div>
-<div class="form-group">
-<label class="form-label" for="reservas-campo-8">Patente del Vehículo:</label>
-<input class="form-input" id="reservas-campo-8" name="patenteVehiculo" placeholder="Ej: ABC123" required="" type="text"/>
+    <div class="form-container">
+        <h3 class="form-section-title">Registrar Nueva Reserva</h3>
+        <form action="#" data-action="reservas-create" method="post">
+            <div class="form-row">
+                <div class="form-group" data-role="ADMIN" hidden=""><label for="reservas-campo-7">DNI del cliente
+                    (administrador):</label><input class="form-input" id="reservas-campo-7" name="dniCliente"
+                                                   type="text"/></div>
+                <div class="form-group">
+                    <label class="form-label" for="reservas-campo-8">Patente del Vehículo:</label>
+                    <input class="form-input" id="reservas-campo-8" name="patenteVehiculo" placeholder="Ej: ABC123"
+                           required="" type="text"/>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="reservas-campo-9">Fecha y Hora de Inicio:</label>
+                    <input class="form-input" id="reservas-campo-9" name="fechaHoraInicio" required=""
+                           type="datetime-local"/>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="reservas-campo-10">Fecha y Hora Final:</label>
+                    <input class="form-input" id="reservas-campo-10" name="fechaHoraFinal" required=""
+                           type="datetime-local"/>
+                </div>
+            </div>
+            <button class="btn-primary" type="submit">Confirmar Reserva</button>
+        </form>
+    </div>
+    <div class="form-container">
+        <h3 class="form-section-title">Buscar Reservas</h3>
+        <form action="#" data-action="reservas-search" method="get">
+            <div class="form-row">
+                <div class="form-group" data-role="ADMIN" hidden="">
+                    <label class="form-label" for="reservas-campo-11">DNI del Cliente:</label>
+                    <input class="form-input" id="reservas-campo-11" name="dniCliente" placeholder="Ej: 12345678"
+                           type="text"/>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="reservas-campo-12">Patente del Vehículo:</label>
+                    <input class="form-input" id="reservas-campo-12" name="patenteVehiculo" placeholder="Ej: ASF587"
+                           type="text"/>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="reservas-campo-13">Tipo de Vehículo:</label>
+                    <select class="form-input" id="reservas-campo-13" name="tipoVehiculo">
+                        <option value="">Todos los tipos</option>
+                        <option value="SEDAN">Sedán</option>
+                        <option value="HATCHBACK">Hatchback</option>
+                        <option value="SUV">SUV</option>
+                        <option value="PICKUP">Pick-up</option>
+                        <option value="COUPE">Coupé</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="reservas-campo-14">Estado de la Reserva:</label>
+                    <select class="form-input" id="reservas-campo-14" name="estado">
+                        <option value="">Todos los estados</option>
+                        <option value="CONFIRMADO">Confirmado</option>
+                        <option value="CANCELADO">Cancelado</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="reservas-campo-15">Fecha Desde:</label>
+                    <input class="form-input" id="reservas-campo-15" name="fechaDesde" type="date"/>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="reservas-campo-16">Fecha Hasta:</label>
+                    <input class="form-input" id="reservas-campo-16" name="fechaHasta" type="date"/>
+                </div>
+            </div>
+            <div style="display: flex; gap: 15px; margin-top: 10px;">
+                <button class="btn-primary" style="width: auto; padding: 10px 25px;" type="submit">Filtrar</button>
+                <a class="btn-secondary" href="/reservas" style="width: auto;">Limpiar Filtros</a>
+            </div>
+        </form>
+    </div>
+    <h3>Historial de Reservas</h3>
+    <table class="data-table">
+        <thead>
+        <tr>
+            <th>Cliente</th>
+            <th>Vehículo</th>
+            <th>Desde</th>
+            <th>Hasta</th>
+            <th>Importe Total</th>
+            <th>Estado</th>
+            <th>Mantenimiento</th>
+            <th>Acciones</th>
+        </tr>
+        </thead>
+        <tbody data-table="reservas"></tbody>
+    </table>
 </div>
-<div class="form-group">
-<label class="form-label" for="reservas-campo-9">Fecha y Hora de Inicio:</label>
-<input class="form-input" id="reservas-campo-9" name="fechaHoraInicio" required="" type="datetime-local"/>
-</div>
-<div class="form-group">
-<label class="form-label" for="reservas-campo-10">Fecha y Hora Final:</label>
-<input class="form-input" id="reservas-campo-10" name="fechaHoraFinal" required="" type="datetime-local"/>
-</div>
-</div>
-<button class="btn-primary" type="submit">Confirmar Reserva</button>
-</form>
-</div>
-<div class="form-container">
-<h3 class="form-section-title">Buscar Reservas</h3>
-<form action="#" data-action="reservas-search" method="get">
-<div class="form-row">
-<div class="form-group" data-role="ADMIN" hidden="">
-<label class="form-label" for="reservas-campo-11">DNI del Cliente:</label>
-<input class="form-input" id="reservas-campo-11" name="dniCliente" placeholder="Ej: 12345678" type="text"/>
-</div>
-<div class="form-group">
-<label class="form-label" for="reservas-campo-12">Patente del Vehículo:</label>
-<input class="form-input" id="reservas-campo-12" name="patenteVehiculo" placeholder="Ej: ASF587" type="text"/>
-</div>
-<div class="form-group">
-<label class="form-label" for="reservas-campo-13">Tipo de Vehículo:</label>
-<select class="form-input" id="reservas-campo-13" name="tipoVehiculo">
-<option value="">Todos los tipos</option>
-<option value="SEDAN">Sedán</option>
-<option value="HATCHBACK">Hatchback</option>
-<option value="SUV">SUV</option>
-<option value="PICKUP">Pick-up</option>
-<option value="COUPE">Coupé</option>
-</select>
-</div>
-</div>
-<div class="form-row">
-<div class="form-group">
-<label class="form-label" for="reservas-campo-14">Estado de la Reserva:</label>
-<select class="form-input" id="reservas-campo-14" name="estado">
-<option value="">Todos los estados</option>
-<option value="CONFIRMADO">Confirmado</option>
-<option value="CANCELADO">Cancelado</option>
-</select>
-</div>
-<div class="form-group">
-<label class="form-label" for="reservas-campo-15">Fecha Desde:</label>
-<input class="form-input" id="reservas-campo-15" name="fechaDesde" type="date"/>
-</div>
-<div class="form-group">
-<label class="form-label" for="reservas-campo-16">Fecha Hasta:</label>
-<input class="form-input" id="reservas-campo-16" name="fechaHasta" type="date"/>
-</div>
-</div>
-<div style="display: flex; gap: 15px; margin-top: 10px;">
-<button class="btn-primary" style="width: auto; padding: 10px 25px;" type="submit">Filtrar</button>
-<a class="btn-secondary" href="/reservas" style="width: auto;">Limpiar Filtros</a>
-</div>
-</form>
-</div>
-<h3>Historial de Reservas</h3>
-<table class="data-table">
-<thead>
-<tr>
-<th>Cliente </th>
-<th>Vehículo </th>
-<th>Desde</th>
-<th>Hasta</th>
-<th>Importe Total</th>
-<th>Estado</th>
-<th>Acciones</th>
-</tr>
-</thead>
-<tbody data-table="reservas"></tbody>
-</table>
-</div>
-<script defer="" src="/assets/app.js"></script></body>
+<script defer="" src="/assets/app.js"></script>
+</body>
 </html>

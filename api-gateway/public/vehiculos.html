@@ -2,98 +2,100 @@
 
 <html lang="es">
 <head>
-<meta charset="utf-8"/>
-<title>Rentar - Gestión de Vehículos</title>
+    <meta charset="utf-8"/>
+    <title>Rentar - Gestión de Vehículos</title>
 
-<link href="/assets/css/app.css" rel="stylesheet"/>
-<meta content="width=device-width, initial-scale=1" name="viewport"/></head>
+    <link href="/assets/css/app.css" rel="stylesheet"/>
+    <meta content="width=device-width, initial-scale=1" name="viewport"/>
+</head>
 <body data-page="vehiculos">
 <nav class="navbar">
-<h2>Rentar - Admin</h2>
-<div class="links">
-<a data-role="ADMIN" hidden="" href="/vehiculos">Vehículos</a>
-<a data-role="ADMIN" hidden="" href="/clientes">Clientes</a>
-<a href="/reservas">Reservas</a>
-</div>
+    <h2>Rentar - Admin</h2>
+    <div class="links">
+        <a data-role="ADMIN" hidden="" href="/vehiculos">Vehículos</a>
+        <a data-role="ADMIN" hidden="" href="/clientes">Clientes</a>
+        <a href="/reservas">Reservas</a>
+    </div>
 </nav>
 <div class="container"><p aria-live="polite" class="estado-pagina" hidden="" id="estado-pagina" role="status"></p>
-<div class="top-nav">
-<a class="btn-back" href="/">← Volver al Panel</a>
-</div>
-<div class="form-card">
-<h3>Registrar Nuevo Vehículo</h3>
-<form action="#" class="grid-form" data-action="vehiculos-create" method="post">
-<div class="form-group">
-<label for="vehiculos-campo-0">Patente (Única):</label>
-<input id="vehiculos-campo-0" name="patente" required="" type="text"/>
-</div>
-<div class="form-group">
-<label for="vehiculos-campo-1">Marca:</label>
-<input id="vehiculos-campo-1" name="marca" required="" type="text"/>
-</div>
-<div class="form-group">
-<label for="vehiculos-campo-2">Modelo:</label>
-<input id="vehiculos-campo-2" name="modelo" required="" type="text"/>
-</div>
-<div class="form-group">
-<label for="vehiculos-campo-3">Año:</label>
-<input id="vehiculos-campo-3" name="anio" required="" type="number"/>
-</div>
-<div class="form-group">
-<label for="vehiculos-campo-4">Color:</label>
-<input id="vehiculos-campo-4" name="color" type="text"/>
-</div>
-<div class="form-group">
-<label for="vehiculos-campo-5">Tipo de Vehículo:</label>
-<select id="vehiculos-campo-5" name="tipoVehiculo">
-<option value="SEDAN">Sedán</option>
-<option value="SUV">SUV</option>
-<option value="PICKUP">Pickup</option>
-<option value="COUPE">Coupé</option>
-<option value="HATCHBACK">Hatchback</option>
-</select>
-</div>
-<div class="form-group">
-<label for="vehiculos-campo-6">Precio Diario:</label>
-<input id="vehiculos-campo-6" name="precioDiario" required="" step="0.01" type="number"/>
-</div>
-<button class="btn btn-primary" style="grid-column: 1 / -1;" type="submit">Registrar Vehículo</button>
-</form>
+    <div class="top-nav">
+        <a class="btn-back" href="/">← Volver al Panel</a>
+    </div>
+    <div class="form-card">
+        <h3>Registrar Nuevo Vehículo</h3>
+        <form action="#" class="grid-form" data-action="vehiculos-create" method="post">
+            <div class="form-group">
+                <label for="vehiculos-campo-0">Patente (Única):</label>
+                <input id="vehiculos-campo-0" name="patente" required="" type="text"/>
+            </div>
+            <div class="form-group">
+                <label for="vehiculos-campo-1">Marca:</label>
+                <input id="vehiculos-campo-1" name="marca" required="" type="text"/>
+            </div>
+            <div class="form-group">
+                <label for="vehiculos-campo-2">Modelo:</label>
+                <input id="vehiculos-campo-2" name="modelo" required="" type="text"/>
+            </div>
+            <div class="form-group">
+                <label for="vehiculos-campo-3">Año:</label>
+                <input id="vehiculos-campo-3" name="anio" required="" type="number"/>
+            </div>
+            <div class="form-group">
+                <label for="vehiculos-campo-4">Color:</label>
+                <input id="vehiculos-campo-4" name="color" required="" type="text"/>
+            </div>
+            <div class="form-group">
+                <label for="vehiculos-campo-5">Tipo de Vehículo:</label>
+                <select id="vehiculos-campo-5" name="tipoVehiculo">
+                    <option value="SEDAN">Sedán</option>
+                    <option value="SUV">SUV</option>
+                    <option value="PICKUP">Pickup</option>
+                    <option value="COUPE">Coupé</option>
+                    <option value="HATCHBACK">Hatchback</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="vehiculos-campo-6">Precio Diario:</label>
+                <input id="vehiculos-campo-6" name="precioDiario" required="" step="0.01" type="number"/>
+            </div>
+            <button class="btn btn-primary" style="grid-column: 1 / -1;" type="submit">Registrar Vehículo</button>
+        </form>
 
-</div>
-<div class="form-card search-card">
-<h3>Buscar Vehículo por Patente</h3>
-<form action="#" class="search-form" data-action="vehiculos-search" method="get">
-<div class="form-group">
-<label for="vehiculos-campo-7">Ingrese Patente:</label>
-<input id="vehiculos-campo-7" name="patente" placeholder="Ej: ABC123" required="" type="text"/>
-</div>
-<div class="search-buttons">
-<button class="btn btn-primary" type="submit">Buscar</button>
-<a class="btn btn-secondary" href="/vehiculos">Ver Todos</a>
-</div>
-</form>
+    </div>
+    <div class="form-card search-card">
+        <h3>Buscar Vehículo por Patente</h3>
+        <form action="#" class="search-form" data-action="vehiculos-search" method="get">
+            <div class="form-group">
+                <label for="vehiculos-campo-7">Ingrese Patente:</label>
+                <input id="vehiculos-campo-7" name="patente" placeholder="Ej: ABC123" required="" type="text"/>
+            </div>
+            <div class="search-buttons">
+                <button class="btn btn-primary" type="submit">Buscar</button>
+                <a class="btn btn-secondary" href="/vehiculos">Ver Todos</a>
+            </div>
+        </form>
 
+    </div>
+    <h3>Flota de Vehículos</h3>
+    <table class="data-table">
+        <thead>
+        <tr>
+            <th>Patente</th>
+            <th>Marca y Modelo</th>
+            <th>Año</th>
+            <th>Tipo</th>
+            <th>Precio</th>
+            <th>Disponibilidad</th>
+            <th>Estado (Activo)</th>
+            <th>Resultado Verificación</th>
+            <th>Acciones</th>
+        </tr>
+        </thead>
+        <tbody data-table="vehiculos"></tbody>
+    </table>
 </div>
-<h3>Flota de Vehículos</h3>
-<table class="data-table">
-<thead>
-<tr>
-<th>Patente</th>
-<th>Marca y Modelo</th>
-<th>Año</th>
-<th>Tipo</th>
-<th>Precio</th>
-<th>Disponibilidad</th>
-<th>Estado (Activo)</th>
-<th>Acciones</th>
-</tr>
-</thead>
-<tbody data-table="vehiculos"></tbody>
-</table>
-</div>
 
 
-
-<script defer="" src="/assets/app.js"></script></body>
+<script defer="" src="/assets/app.js"></script>
+</body>
 </html>

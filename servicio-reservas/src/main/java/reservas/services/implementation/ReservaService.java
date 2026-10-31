@@ -6,6 +6,11 @@ import io.grpc.stub.StreamObserver;
 import net.devh.boot.grpc.client.inject.GrpcClient;
 import net.devh.boot.grpc.server.service.GrpcService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.dao.DataIntegrityViolationException;
+import reservas.config.RabbitMQConfig;
+import reservas.dtos.ReservaConfirmadaEvent;
+
 import reservas.models.Reserva;
 import reservas.enums.EstadoReserva;
 import reservas.repositories.IReservaRepository;
@@ -13,14 +18,21 @@ import reservas.mappers.Parsers;
 import reservas.mappers.ReservaMapper;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @GrpcService
 public class ReservaService extends ReservaServiceGrpc.ReservaServiceImplBase {
+
+    public static String getEnumStringSanitized(String s){
+        return s.replace("TIPO_VEHICULO_","")
+                .replace("ESTADO_VEHICULO_","")
+                .replace("RESULTADO_VALIDACION_EXTERNA_","")
+                .replace("RESULTADO_VERIFICACION_","");
+    }
 
     @Autowired
     private IReservaRepository reservaRepository;
@@ -28,8 +40,11 @@ public class ReservaService extends ReservaServiceGrpc.ReservaServiceImplBase {
     @GrpcClient("servicio-vehiculos")
     private VehiculoServiceGrpc.VehiculoServiceBlockingStub vehiculoStub;
 
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
+
     @Override
-    public void crearReserva(CrearReservaRequest request, StreamObserver<grpc.Reserva> responseObserver) {
+    public void crearReserva(CrearReservaRequest request, StreamObserver<CrearReservaResponse> responseObserver) {
         try {
             LocalDateTime fechaInicio = Parsers.fechaHora(request.getFechaHoraInicio(), "fechaHoraInicio");
             LocalDateTime fechaFin = Parsers.fechaHora(request.getFechaHoraFinal(), "fechaHoraFinal");
@@ -41,15 +56,31 @@ public class ReservaService extends ReservaServiceGrpc.ReservaServiceImplBase {
                 return;
             }
 
-            GetVehiculoPatenteRequest vehiculoReq = GetVehiculoPatenteRequest.newBuilder()
+            GetVehiculoByPatenteRequest vehiculoReq = GetVehiculoByPatenteRequest.newBuilder()
                     .setPatente(request.getPatenteVehiculo())
                     .build();
 
-            grpc.Vehiculo vehiculoResponse = vehiculoStub.getVehiculoByPatente(vehiculoReq);
+            grpc.GetVehiculoByPatenteResponse vehiculoResponse = vehiculoStub.getVehiculoByPatente(vehiculoReq);
 
-            if (!vehiculoResponse.getEstado().equalsIgnoreCase("DISPONIBLE") || !vehiculoResponse.getEstaActivo()) {
+            
+
+            if (!getEnumStringSanitized(vehiculoResponse.getEstado().name()).equalsIgnoreCase("DISPONIBLE") || !vehiculoResponse.getEstaActivo()) {
                 responseObserver.onError(Status.FAILED_PRECONDITION
                         .withDescription("El vehículo no está disponible o está inactivo.")
+                        .asRuntimeException());
+                return;
+            }
+            
+             long solapadas = reservaRepository.countReservasSolapadas(
+                    request.getPatenteVehiculo(),
+                    EstadoReserva.CONFIRMADO,
+                    fechaInicio,
+                    fechaFin
+            );
+
+            if (solapadas > 0) {
+                responseObserver.onError(Status.FAILED_PRECONDITION
+                        .withDescription("El vehículo ya está reservado en ese período.")
                         .asRuntimeException());
                 return;
             }
@@ -66,26 +97,42 @@ public class ReservaService extends ReservaServiceGrpc.ReservaServiceImplBase {
             nuevaReserva.setPrecioTotal(importeTotal);
 
             Reserva guardada = reservaRepository.save(nuevaReserva);
-            grpc.Reserva grpcResponse = ReservaMapper.toProto(guardada);
 
-            responseObserver.onNext(grpcResponse);
+            ReservaConfirmadaEvent evento = new ReservaConfirmadaEvent(
+                guardada.getId(),
+                vehiculoResponse.getId(),
+                guardada.getFechaHoraInicio().toString(),
+                guardada.getFechaHoraFinal().toString()
+            );
+
+            rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE, RabbitMQConfig.RK_RESERVA_CONFIRMADA, evento);
+
+            responseObserver.onNext(CrearReservaResponse.newBuilder()
+                    .setReserva(ReservaMapper.toProto(guardada))
+                    .build());
             responseObserver.onCompleted();
 
+        } catch(IllegalArgumentException | DateTimeParseException | DataIntegrityViolationException e){
+            responseObserver.onError(Status.INVALID_ARGUMENT
+                    .withDescription("Error 400: Datos inválidos")
+                    .asRuntimeException());
         } catch (io.grpc.StatusRuntimeException e) {
             responseObserver.onError(e);
         } catch (Exception e) {
             responseObserver.onError(Status.INTERNAL
-                    .withDescription("Error al crear la reserva: " + e.getMessage())
+                    .withDescription("Error al crear la reserva: " + e.toString())
                     .asRuntimeException());
         }
     }
 
     @Override
-    public void obtenerReserva(ObtenerReservaRequest request, StreamObserver<grpc.Reserva> responseObserver) {
+    public void obtenerReserva(ObtenerReservaRequest request, StreamObserver<ObtenerReservaResponse> responseObserver) {
         Optional<Reserva> reservaOpt = reservaRepository.findById(request.getId());
 
         if (reservaOpt.isPresent()) {
-            responseObserver.onNext(ReservaMapper.toProto(reservaOpt.get()));
+            responseObserver.onNext(ObtenerReservaResponse.newBuilder()
+                    .setReserva(ReservaMapper.toProto(reservaOpt.get()))
+                    .build());
             responseObserver.onCompleted();
         } else {
             responseObserver.onError(Status.NOT_FOUND
@@ -130,13 +177,19 @@ public class ReservaService extends ReservaServiceGrpc.ReservaServiceImplBase {
                         .asRuntimeException());
                 return;
             }
-
+        
+             if (!reserva.getFechaHoraInicio().isAfter(LocalDateTime.now())) {
+                responseObserver.onError(Status.FAILED_PRECONDITION
+                        .withDescription("No se puede cancelar una reserva cuyo período ya comenzó.")
+                        .asRuntimeException());
+                return;
+            }
             reserva.setEstadoReserva(EstadoReserva.CANCELADO);
             reservaRepository.save(reserva);
 
             CancelarReservaResponse response = CancelarReservaResponse.newBuilder()
                     .setExito(true)
-                    .setEstadoReserva(grpc.EstadoReserva.CANCELADO)
+                    .setEstadoReserva(grpc.EstadoReserva.ESTADO_RESERVA_CANCELADO)
                     .build();
 
             responseObserver.onNext(response);
@@ -148,8 +201,8 @@ public class ReservaService extends ReservaServiceGrpc.ReservaServiceImplBase {
         }
     }
 
-@Override
-    public void obtenerMiHistorial(ObtenerHistorialRequest request, StreamObserver<ObtenerHistorialResponse> responseObserver) {
+    @Override
+    public void obtenerMiHistorial(ObtenerMiHistorialRequest request, StreamObserver<ObtenerMiHistorialResponse> responseObserver) {
         try {
             List<reservas.models.Reserva> historialDb = reservaRepository.buscarHistorial(
                     request.getIdCliente(),
@@ -158,20 +211,22 @@ public class ReservaService extends ReservaServiceGrpc.ReservaServiceImplBase {
                     LocalDateTime.now()
             );
 
-            ObtenerHistorialResponse.Builder responseBuilder = ObtenerHistorialResponse.newBuilder();
+            ObtenerMiHistorialResponse.Builder responseBuilder = ObtenerMiHistorialResponse.newBuilder();
 
             for (reservas.models.Reserva cruda : historialDb) {
                 long dias = Math.max(1, ChronoUnit.DAYS.between(cruda.getFechaHoraInicio(), cruda.getFechaHoraFinal()));
-                String estadoStr = cruda.getEstadoReserva() == reservas.enums.EstadoReserva.CANCELADO ? "CANCELADO" : "FINALIZADO";
+                EstadoHistorial estado = cruda.getEstadoReserva() == reservas.enums.EstadoReserva.CANCELADO
+                        ? EstadoHistorial.ESTADO_HISTORIAL_CANCELADO
+                        : EstadoHistorial.ESTADO_HISTORIAL_FINALIZADO;
 
                 HistorialItem item = HistorialItem.newBuilder()
-                        .setVehiculo("Vehículo " + cruda.getPatenteVehiculo()) 
+                        .setVehiculo("Vehículo " + cruda.getPatenteVehiculo())
                         .setPatente(cruda.getPatenteVehiculo())
                         .setFechaHoraInicio(cruda.getFechaHoraInicio().toString())
                         .setFechaHoraFinal(cruda.getFechaHoraFinal().toString())
                         .setDias(Math.toIntExact(dias))
                         .setImporteTotal(cruda.getPrecioTotal())
-                        .setEstado(estadoStr)
+                        .setEstado(estado)
                         .build();
 
                 responseBuilder.addHistorial(item);
@@ -187,8 +242,8 @@ public class ReservaService extends ReservaServiceGrpc.ReservaServiceImplBase {
         }
     }
 
-@Override
-    public void getVehiculosOcupados(FechasRequest request, StreamObserver<VehiculosOcupadosResponse> responseObserver) {
+    @Override
+    public void getVehiculosOcupados(GetVehiculosOcupadosRequest request, StreamObserver<GetVehiculosOcupadosResponse> responseObserver) {
         try {
             LocalDateTime fechaDesde = Parsers.fechaHora(request.getFechaDesde(), "fecha_desde");
             LocalDateTime fechaHasta = Parsers.fechaHora(request.getFechaHasta(), "fecha_hasta");
@@ -199,14 +254,19 @@ public class ReservaService extends ReservaServiceGrpc.ReservaServiceImplBase {
                     reservas.enums.EstadoReserva.CANCELADO
             );
 
-            VehiculosOcupadosResponse response = VehiculosOcupadosResponse.newBuilder()
+            GetVehiculosOcupadosResponse response = GetVehiculosOcupadosResponse.newBuilder()
                     .addAllPatentes(patentesOcupadas)
                     .build();
 
             responseObserver.onNext(response);
             responseObserver.onCompleted();
 
-        } catch (Exception e) {
+        }catch(IllegalArgumentException | DateTimeParseException | DataIntegrityViolationException e){
+            responseObserver.onError(Status.INVALID_ARGUMENT
+                    .withDescription("Error 400: Datos inválidos")
+                    .asRuntimeException());
+        }
+        catch (Exception e) {
             responseObserver.onError(Status.INTERNAL
                     .withDescription("Error al obtener vehículos ocupados: " + e.getMessage())
                     .asRuntimeException());

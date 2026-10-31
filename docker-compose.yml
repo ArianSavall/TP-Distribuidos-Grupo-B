@@ -1,0 +1,159 @@
+services:
+  mysql:
+    image: mysql:8.4
+    networks:
+      - tp-distribuidos
+    environment:
+      MYSQL_DATABASE: tp_distribuidos
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-root}
+    ports:
+      - "3305:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./docker/mysql/001-mock-data.sql:/docker-entrypoint-initdb.d/001-mock-data.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$${MYSQL_ROOT_PASSWORD} --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    networks:
+      - tp-distribuidos
+    environment:
+      RABBITMQ_DEFAULT_USER: rentar
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:-rentar_dev}
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  servicio-vehiculos:
+    build:
+      context: .
+      dockerfile: servicio-vehiculos/Dockerfile
+    networks:
+      - tp-distribuidos
+    environment:
+      DB_URL: "jdbc:mysql://mysql:3306/tp_distribuidos?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true"
+      DB_USERNAME: root
+      DB_PASSWORD: ${DB_PASSWORD:-root}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: rentar
+      RABBITMQ_PASS: ${RABBITMQ_PASS:-rentar_dev}
+      GRPC_CLIENT_SERVICIO_RESERVAS_ADDRESS: "static://servicio-reservas:9092"
+    ports:
+      - "9090:9090"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: on-failure
+
+  servicio-clientes:
+    build:
+      context: .
+      dockerfile: servicio-clientes/Dockerfile
+    networks:
+      - tp-distribuidos
+    environment:
+      DB_URL: "jdbc:mysql://mysql:3306/tp_distribuidos?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true"
+      DB_USERNAME: root
+      DB_PASSWORD: ${DB_PASSWORD:-root}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: rentar
+      RABBITMQ_PASS: ${RABBITMQ_PASS:-rentar_dev}
+    ports:
+      - "9091:9091"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: on-failure
+
+  servicio-reservas:
+    build:
+      context: .
+      dockerfile: servicio-reservas/Dockerfile
+    networks:
+      - tp-distribuidos
+    environment:
+      DB_URL: "jdbc:mysql://mysql:3306/tp_distribuidos?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true"
+      DB_USERNAME: root
+      DB_PASSWORD: ${DB_PASSWORD:-root}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: rentar
+      RABBITMQ_PASS: ${RABBITMQ_PASS:-rentar_dev}
+      GRPC_CLIENT_SERVICIO_VEHICULOS_ADDRESS: "static://servicio-vehiculos:9090"
+    ports:
+      - "9092:9092"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: on-failure
+
+  servicio-operaciones-externas:
+    build:
+      context: .
+      dockerfile: servicio-operaciones-externas/Dockerfile
+    networks:
+      - tp-distribuidos
+    environment:
+      DB_URL: "jdbc:mysql://mysql:3306/tp_distribuidos?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true"
+      DB_USERNAME: root
+      DB_PASSWORD: ${DB_PASSWORD:-root}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: rentar
+      RABBITMQ_PASS: ${RABBITMQ_PASS:-rentar_dev}
+    depends_on:
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: on-failure
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: api-gateway/Dockerfile
+    networks:
+      - tp-distribuidos
+    environment:
+      PORT: 3000
+      HOST: "0.0.0.0"
+      VEHICULOS_GRPC_ADDR: "servicio-vehiculos:9090"
+      CLIENTES_GRPC_ADDR: "servicio-clientes:9091"
+      RESERVAS_GRPC_ADDR: "servicio-reservas:9092"
+      SESSION_SECRET: ${SESSION_SECRET:-cambiar-este-secreto-local}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - servicio-vehiculos
+      - servicio-clientes
+      - servicio-reservas
+    restart: on-failure
+
+volumes:
+  mysql_data:
+  rabbitmq_data:
+
+networks:
+  tp-distribuidos:
+    driver: bridge
