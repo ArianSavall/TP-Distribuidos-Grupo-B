@@ -1,176 +1,256 @@
 # Integrantes Grupo B
 - Juan Martin Diez DNI 46335961
 - Arian Savall DNI 46686015
-- Joaquin Vadillo DNI 46687269
 - Santiago Zurlo DNI 46291432
 
-# Rentar - Gestión de alquiler de vehículos
+# Sistema Distribuido de Gestión de Flota y Reservas Vehiculares
 
-Aplicación web para administrar clientes, vehículos y reservas de una empresa de alquiler de automóviles.
+## 1. Título y Descripción General
 
-El sistema ofrece:
+### Resumen del Negocio
+El **Sistema Distribuido de Gestión de Flota y Reservas Vehiculares** es una plataforma integral diseñada bajo una arquitectura de microservicios orientada a resolver la problemática de alquiler, préstamo y administración de flotas de vehículos (tanto propios de la organización como de terceros/externos).
 
-- Gestión de clientes.
-- Alta, modificación y activación/desactivación de vehículos.
-- Consulta de disponibilidad por período y filtros.
-- Registro y cancelación de reservas.
-- Historial de alquileres.
-- Interfaz web con Thymeleaf.
-- API REST.
-- API GraphQL.
-- Autenticación y autorización mediante Spring Security.
-- Documentación OpenAPI/Swagger.
+El sistema resuelve los siguientes desafíos de negocio:
+- **Gestión centralizada de disponibilidad y reservas:** Permite a los usuarios reservar vehículos validando solapamientos horarios y estados operativos.
+- **Incorporación segura de flota externa:** Automatiza la validación de antecedentes policiales (denuncias de robo) y titularidad de dominio mediante flujos asíncronos antes de habilitar un vehículo externo.
+- **Mantenimiento preventivo automatizado:** Evalúa de forma asíncrona el desgaste y estado mecánico tras las reservas para garantizar la seguridad de la flota, actualizando automáticamente la disponibilidad del vehículo y el estado de las reservas afectadas.
+- **Interoperabilidad multicanal:** Ofrece una única puerta de enlace (API Gateway) que expone interfaces Web, API REST (documentada con OpenAPI/Swagger) y consultas flexibles mediante GraphQL.
 
-## Tecnologías
+---
 
-- Java 17
-- Spring Boot 4.1.1
-- Spring MVC
-- Spring Data JPA
-- Spring Security
-- Thymeleaf
-- MySQL
-- REST
-- GraphQL
-- Lombok
-- ModelMapper
-- Springdoc OpenAPI
-- Maven
-- gRPC
-- RabbitMQ
+### Diagrama de Arquitectura General
 
-## Requisitos
+A continuación se presenta el diagrama de arquitectura del ecosistema. *(Nota: Puedes visualizar este diagrama directamente en GitHub/GitLab gracias al soporte nativo de Mermaid, o exportar su diseño a herramientas como Draw.io / Lucidchart)*.
 
-Antes de ejecutar el proyecto es necesario tener instalado:
+```mermaid
+graph TD
+    subgraph Clientes ["Clientes / Consumidores"]
+        Browser["Navegador Web (UI HTML/JS)"]
+        APIClient["Cliente REST / Swagger"]
+        GQLClient["Cliente GraphQL"]
+    end
 
-- JDK 17 o superior
-- MySQL 8
-- Maven, o utilizar el Maven Wrapper incluido
-- Git, opcionalmente
+    subgraph Gateway ["Capa de Enrutamiento y BFF"]
+        APIGW["API Gateway (Node.js / Express)<br/>Puerto: 3000"]
+    end
 
-## Configuración de la base de datos
+    subgraph Microservicios ["Capa de Microservicios (Spring Boot / Java)"]
+        MS_Clientes["servicio-clientes<br/>gRPC: 9091"]
+        MS_Vehiculos["servicio-vehiculos<br/>gRPC: 9090"]
+        MS_Reservas["servicio-reservas<br/>gRPC: 9092"]
+        MS_Externas["servicio-operaciones-externas<br/>"]
+    end
 
-Crear una base de datos MySQL:
+    subgraph Mensajeria ["Message Broker (Comunicación Asíncrona)"]
+        RabbitMQ(("RabbitMQ<br/>AMQP: 5672 | UI: 15672"))
+    end
 
-```sql
-CREATE DATABASE tp_distribuidos;
+    subgraph Persistencia ["Capa de Persistencia Desacoplada (MySQL :3306)"]
+        DB_Clientes[("BD: db_clientes")]
+        DB_Vehiculos[("BD: db_vehiculos")]
+        DB_Reservas[("BD: db_reservas")]
+        DB_Externas[("BD: db_operaciones_externas")]
+    end
+
+    %% Relaciones Clientes -> Gateway
+    Browser -->|"HTTP / Estáticos"| APIGW
+    APIClient -->|"REST API / JSON"| APIGW
+    GQLClient -->|"POST /graphql"| APIGW
+
+    %% Relaciones Gateway -> Microservicios (gRPC)
+    APIGW ==>|"gRPC (Protobuf)"| MS_Clientes
+    APIGW ==>|"gRPC (Protobuf)"| MS_Vehiculos
+    APIGW ==>|"gRPC (Protobuf)"| MS_Reservas
+
+    %% Relaciones Microservicios -> RabbitMQ
+    MS_Vehiculos <-.->|"Eventos Validación / Policial"| RabbitMQ
+    MS_Reservas <-.->|"Eventos Reserva / Mantenimiento"| RabbitMQ
+    MS_Externas <-.->|"Procesamiento Externo"| RabbitMQ
+
+    %% Relaciones Microservicios -> Bases de Datos
+    MS_Clientes --> DB_Clientes
+    MS_Vehiculos --> DB_Vehiculos
+    MS_Reservas --> DB_Reservas
+    MS_Externas --> DB_Externas
 ```
 
-Proponemos el siguiente script para cargar datos mock básicos que servirán para probar todo el proyecto:
+---
 
-```sql
--- 1. Insertar datos en la tabla usuarios_metadatos
--- la password, para todos los usuarios, es 1234.
-INSERT INTO usuarios_metadatos (id, password, rol, usuario) VALUES
-(1, '$2a$12$1Lk.cZeHax/KlwjH0EfiaurIQ/e.VfWhK/wy0wamJD5dKYrHstsrm', 'ADMIN', 'admin_principal'),
-(2, '$2a$12$y1ceyX339xVDc7fUAu8Pxeqwl7Ub37OZNKrDNbogTVWiLwCoe8f2q', 'CLIENTE', 'juanperez99'),
-(3, '$2a$12$dVHfIc.kEEq/mxG/Hr.Hr.dcoCc6Sfm3FqbCa73OKKv7ORW/wroQK', 'CLIENTE', 'mariagomez22'),
-(4, '$2a$12$SXA9x31zqJDdgCwSuYu4nuDNctHHpXw3AkpVl8TwKK0Nx5Ghg/zSK', 'CLIENTE', 'carloslopez88');
+## 2. Inventario de Microservicios
 
--- 2. Insertar datos en la tabla usuarios
--- Nota: esta_activo es de tipo BIT(1), se suele representar con 1 (true) o 0 (false)
-INSERT INTO usuarios (id, apellido, dni, email, esta_activo, fecha_nacimiento, nombre, telefono, metadatos_id) VALUES
-(1, 'Admin', '11111111', 'admin@rentacar.com', 1, '1980-01-01', 'Super', '1122334455', 1),
-(2, 'Perez', '22222222', 'juan.perez@email.com', 1, '1990-05-15', 'Juan', '1155667788', 2),
-(3, 'Gomez', '33333333', 'maria.gomez@email.com', 1, '1985-11-23', 'Maria', '1199887766', 3),
-(4, 'Lopez', '44444444', 'carlos.lopez@email.com', 0, '1998-03-10', 'Carlos', '1144556677', 4);
+El repositorio está estructurado como un monorepo multi-módulo (Maven para los servicios Java y NPM para el Gateway). A continuación se detalla cada componente del ecosistema:
 
--- 3. Insertar datos en la tabla vehiculos
-INSERT INTO vehiculos (id, anio, color, esta_activo, estado, marca, modelo, patente, precio_diario, tipo_vehiculo) VALUES
-(1, 2021, 'Rojo', 1, 'DISPONIBLE', 'Toyota', 'Corolla', 'AE123BB', 15000.0, 'SEDAN'),
-(2, 2022, 'Blanco', 1, 'EN_ALQUILER', 'Ford', 'Ranger', 'AF456CC', 25000.0, 'PICKUP'),
-(3, 2020, 'Gris', 1, 'RESERVADO', 'Volkswagen', 'Golf', 'AD789DD', 18000.0, 'HATCHBACK'),
-(4, 2023, 'Negro', 1, 'DISPONIBLE', 'Jeep', 'Compass', 'AG111EE', 30000.0, 'SUV'),
-(5, 2019, 'Azul', 1, 'DISPONIBLE', 'Chevrolet', 'Camaro', 'AC222FF', 45000.0, 'COUPE');
+| Nombre del Servicio | Bounded Context / Responsabilidad | Lenguaje y Framework | Puertos por Defecto | Rutas Principales / Contratos y Documentación |
+| :--- | :--- | :--- | :--- | :--- |
+| **`api-gateway`** | Punto único de entrada (BFF), autenticación JWT, servidor de archivos estáticos (Frontend), orquestador gRPC, exposición de API REST y motor de consultas GraphQL. | Node.js (v18+) / Express, `@grpc/grpc-js`, `graphql` | **HTTP:** `3000` | • **Swagger / OpenAPI:** `/api-docs`<br>• **GraphQL:** `/graphql`<br>• **REST Auth:** `/api/auth/login`<br>• **REST Clientes:** `/api/clientes`<br>• **REST Vehículos:** `/api/vehiculos`<br>• **REST Reservas:** `/api/reservas`, `/api/disponibilidad`, `/api/historial`<br>• **Web UI:** `/index.html`, `/login.html`, etc. |
+| **`servicio-clientes`** | Gestión de identidad, registro de usuarios, metadatos de clientes, asignación de roles (`ADMIN`, `CLIENTE`) y validación de credenciales. | Java 17+ / Spring Boot 3, Spring Data JPA, `grpc-spring-boot-starter` | **gRPC:** `9091`<br>| **Contrato gRPC:** `clientes.proto`<br>• `CrearUsuario`, `ObtenerUsuario`, `ActualizarUsuario`, `ListarUsuarios`, `ValidarCredenciales` |
+| **`servicio-vehiculos`** | Administración del catálogo de flota (propia y externa), control de estados (`DISPONIBLE`, `EN_MANTENIMIENTO`, `PENDIENTE_VERIFICACION`, etc.) y emisión de eventos para validación externa. | Java 17+ / Spring Boot 3, Spring Data JPA, Spring AMQP (RabbitMQ), gRPC | **gRPC:** `9090`<br> | **Contrato gRPC:** `vehiculo.proto`<br>• `CrearVehiculo`, `RegistrarVehiculoExterno`, `ObtenerVehiculo`, `ListarVehiculos`, `ActualizarVehiculo`, `CambiarEstadoVehiculo` |
+| **`servicio-reservas`** | Gestión del ciclo de vida de reservas (`PENDIENTE`, `CONFIRMADA`, `CANCELADA`, `FINALIZADA`), validación de disponibilidad por rango de fechas, historial y disparo de solicitudes de mantenimiento. | Java 17+ / Spring Boot 3, Spring Data JPA, Spring AMQP (RabbitMQ), gRPC | **gRPC:** `9092`<br> | **Contrato gRPC:** `reserva.proto`<br>• `CrearReserva`, `ConfirmarReserva`, `CancelarReserva`, `ObtenerReserva`, `ListarReservas`, `ConsultarDisponibilidad` |
+| **`servicio-operaciones-externas`** | Simulación e integración con entes reguladores externos: verificación de denuncias policiales, validación de titularidad de patentes y ejecución de mantenimiento preventivo de flota. | Java 17+ / Spring Boot 3, Spring Data JPA, Spring AMQP (RabbitMQ)| <br>*(Worker asíncrono sin exposición pública)* | **Queues / Eventos RabbitMQ:**<br>• Escucha: Solicitudes de verificación policial, titularidad y confirmación de reservas.<br>• Publica: Resultados de verificación (`VerificacionResultadoEvent`) y de mantenimiento (`MantenimientoResultadoEvent`). |
+| **`proto`** *(Módulo compartido)* | Biblioteca centralizada de contratos Protocol Buffers (`.proto`) que compila y genera los *stubs* gRPC para los microservicios en Java y provee definiciones al Gateway. | Protocol Buffers (`proto3`) / Maven | *N/A (Librería)* | Contratos en `/proto/contratos/`:<br>• `clientes/clientes.proto`<br>• `vehiculos/vehiculo.proto`<br>• `reservas/reserva.proto` |
 
--- 4. Insertar datos en la tabla reservas
--- cliente_id hace referencia a usuarios.id
--- vehiculo_id hace referencia a vehiculos.id
-INSERT INTO reservas (id_reserva, estado_reserva, fecha_hora_final, fecha_hora_inicio, importe_total, cliente_id, vehiculo_id) VALUES
--- Reserva Confirmada del cliente 2 (Juan Perez) por el vehículo 2 (Ford Ranger, que está 'EN_ALQUILER')
-(1, 'CONFIRMADO', '2023-11-10 10:00:00', '2023-11-05 10:00:00', 125000.0, 2, 2),
+---
 
--- Reserva Confirmada (próxima) del cliente 3 (Maria Gomez) por el vehículo 3 (VW Golf, que está 'RESERVADO')
-(2, 'CONFIRMADO', '2023-12-05 15:00:00', '2023-12-01 15:00:00', 72000.0, 3, 3),
+## 3. Requisitos Previos y Entorno
 
--- Reserva Cancelada del cliente 2 (Juan Perez) por el vehículo 1 (Toyota Corolla)
-(3, 'CANCELADO', '2023-09-20 18:00:00', '2023-09-18 10:00:00', 30000.0, 2, 1),
+### Herramientas Globales Obligatorias
+Para ejecutar el proyecto de forma local (tanto contenerizado como en modo desarrollo aislado), asegúrate de contar con las siguientes herramientas:
 
--- Reserva histórica ya cumplida (confirmada en el pasado) del cliente 4 (Carlos Lopez) por el vehículo 5
-(4, 'CONFIRMADO', '2023-08-15 12:00:00', '2023-08-10 12:00:00', 225000.0, 4, 5);
-```
+- **Docker** (v20.10+) y **Docker Compose** (v2.0+): Obligatorio para levantar la infraestructura completa con un solo comando.
+- **Java Development Kit (JDK) 17 o 21**: Requerido para compilar y ejecutar los microservicios Spring Boot localmente.
+- **Apache Maven** (v3.8+): El repositorio incluye el wrapper `./mvnw` (`mvnw.cmd` en Windows), por lo que no es estrictamente necesario instalarlo de forma global.
+- **Node.js** (v18+ LTS) y **npm** (v9+): Requerido para ejecutar el `api-gateway` de forma aislada.
 
-Crear un archivo `.env` en la raíz del proyecto:
+### Variables de Entorno y Archivos `.env.example`
+El proyecto utiliza dos archivos plantilla de variables de entorno que deben copiarse antes de iniciar el sistema:
 
+1. **Raíz del proyecto (`.env.example` $\rightarrow$ `.env`):** Configura las credenciales de infraestructura para `docker-compose.yml` (MySQL, RabbitMQ y puertos de los servicios).
+2. **Directorio del Gateway (`api-gateway/.env.example` $\rightarrow$ `api-gateway/.env`):** Configura los targets gRPC hacia los microservicios, el puerto HTTP y el secreto JWT.
+
+#### Ejemplo de variables principales:
 ```env
-DB_URL=jdbc:mysql://localhost:3306/tp_distribuidos
-DB_USERNAME=root
-DB_PASSWORD=tu_contraseña
+# --- Infraestructura Base (Raíz .env) ---
+MYSQL_ROOT_PASSWORD=root
+MYSQL_PORT=3306
+
+RABBITMQ_DEFAULT_USER=guest
+RABBITMQ_DEFAULT_PASS=guest
+RABBITMQ_PORT=5672
+RABBITMQ_MANAGEMENT_PORT=15672
+
+# --- Configuración API Gateway (api-gateway/.env) ---
+PORT=3000
+JWT_SECRET=super_secret_jwt_key_distribuidos
+VEHICULOS_GRPC_URL=servicio-vehiculos:9090
+CLIENTES_GRPC_URL=servicio-clientes:9091
+RESERVAS_GRPC_URL=servicio-reservas:9092
 ```
+*(Nota: Para ejecución local fuera de Docker, reemplaza los nombres de host de los servicios por `localhost:9091`, `localhost:9092` y `localhost:9093` respectivamente).*
 
-La aplicación utiliza Hibernate con la configuración `ddl-auto: update`, por lo que las tablas se actualizan automáticamente al iniciar.
+---
 
-Al ejecutar el proyecto con Docker Compose, MySQL monta
-`docker/mysql/001-mock-data.sql` y carga estos datos mock automáticamente al crear
-el volumen por primera vez. Para volver a ejecutar la carga desde cero, hay que
-eliminar el volumen de datos:
+## 4. Guía de Ejecución Local (Quick Start)
 
+### Opción A: Levantar todo el ecosistema con un comando único (Recomendado)
+
+1. Clona el repositorio y sitúate en la carpeta raíz:
+   ```bash
+   git clone <url-del-repositorio>
+   cd TP-Distribuidos-Grupo-B-develop
+   ```
+
+2. Crea los archivos `.env` a partir de las plantillas `.env.example`:
+   ```bash
+   cp .env.example .env
+   cp api-gateway/.env.example api-gateway/.env
+   ```
+
+3. Construye y levanta todos los contenedores (Bases de datos, RabbitMQ, Microservicios Java y API Gateway):
+   ```bash
+   docker compose up --build -d
+   ```
+
+4. Verifica que todos los contenedores estén en estado `Up` / `healthy`:
+   ```bash
+   docker compose ps
+   ```
+
+5. **Accesos rápidos una vez iniciado:**
+   - 🌐 **Aplicación Web (Frontend):** [http://localhost:3000](http://localhost:3000)
+   - 📄 **Documentación Swagger / OpenAPI:** [http://localhost:3000/api-docs](http://localhost:3000/api-docs)
+   - 🔍 **Endpoint GraphQL:** `http://localhost:3000/graphql`
+   - 🐰 **Consola de RabbitMQ:** [http://localhost:15672](http://localhost:15672) *(Usuario/Pass por defecto: `guest` / `guest`)*
+
+Para detener todo el ecosistema:
 ```bash
-docker compose down -v
-docker compose up -d --build
+docker compose down
 ```
 
-La eliminación del volumen borra los datos persistidos de MySQL.
+---
 
-> No incluir el archivo `.env` en el repositorio. Las credenciales deben mantenerse privadas.
+### Opción B: Levantar un microservicio de forma aislada en modo Desarrollo
 
-## Ejecución
+Si deseas depurar o desarrollar sobre un microservicio específico sin empaquetar todo en Docker:
 
-En Windows:
+1. **Levanta únicamente la infraestructura de soporte (MySQL y RabbitMQ):**
+   ```bash
+   docker compose up -d mysql rabbitmq
+   ```
 
-```powershell
-`mvnw.cmd` spring-boot:run
-```
+2. **Compila e instala el módulo compartido `proto` en tu repositorio Maven local (`.m2`):**
+   *(Este paso es obligatorio antes de correr cualquier microservicio Java por primera vez o tras modificar un archivo `.proto`).*
+   ```bash
+   ./mvnw clean install -pl proto
+   ```
 
-En Linux o macOS:
+3. **Ejecuta el microservicio Java deseado (ejemplo con `servicio-vehiculos`):**
+   ```bash
+   ./mvnw spring-boot:run -pl servicio-vehiculos
+   ```
+   *(El servicio tomará la configuración de su archivo `src/main/resources/application.yaml`, conectándose a `localhost:3306` y `localhost:5672`).*
 
-```bash
-./mvnw spring-boot:run
-```
+4. **Ejecuta el `api-gateway` en modo desarrollo (Node.js):**
+   ```bash
+   cd api-gateway
+   npm install
+   # Asegúrate de apuntar las variables *_GRPC_URL a localhost en tu archivo api-gateway/.env
+   npm run dev
+   ```
 
-También es posible compilar y ejecutar el archivo generado:
+---
 
-```powershell
-.\mvnw.cmd clean package
-java -jar target/tp_distribuidos-0.0.1-SNAPSHOT.jar
-```
+## 5. Estrategia de Comunicación y Enrutamiento
 
-La aplicación estará disponible en:
+El sistema implementa una arquitectura de comunicación híbrida que combina lo mejor del rendimiento síncrono binario con el desacoplamiento asíncrono orientado a eventos:
 
-```text
-http://localhost:3000
-```
+### 1. Comunicación Síncrona (gRPC + Protocol Buffers)
+- Todas las peticiones que ingresan al **API Gateway** (ya sean llamadas REST desde la interfaz web o consultas **GraphQL**) son traducidas internamente e invocadas hacia `servicio-clientes`, `servicio-vehiculos` y `servicio-reservas` mediante **gRPC sobre HTTP/2**.
+- El uso de contratos tipados en `/proto/contratos/` garantiza baja latencia en la red interna y validación estricta de esquemas entre Node.js y Java.
 
-## Acceso web
+### 2. Comunicación Asíncrona (Event-Driven vía RabbitMQ)
+Los procesos de larga duración o que requieren integración con dominios externos se resuelven de manera completamente desacoplada a través de intercambios (*Exchanges*) y colas (*Queues*) en **RabbitMQ**:
 
-La aplicación utiliza autenticación mediante formulario:
+- **Flujo de Alta y Verificación de Vehículos Externos:**
+   1. Cuando se registra un vehículo externo en `servicio-vehiculos`, este se guarda con estado inicial pendiente y publica los eventos `VehiculoExternoRegistradoEvent` / `VerificacionSolicitadaEvent`.
+   2. `servicio-operaciones-externas` consume dichos eventos a través de `RegistroPolicialListener`, verifica en su base de datos si existen denuncias policiales (`DenunciaPolicial`) y valida la titularidad (`TitularidadVehiculo`).
+   3. Una vez procesado, emite un `VerificacionResultadoEvent` (y validaciones de patente/titularidad).
+   4. `servicio-vehiculos` escucha la respuesta mediante `VehiculoRabbitListener` y actualiza automáticamente el estado del vehículo a `DISPONIBLE` o `RECHAZADO`.
 
-```text
-http://localhost:3000/login
-```
+- **Flujo de Reservas y Mantenimiento Preventivo:**
+   1. Cuando se confirma o procesa una reserva en `servicio-reservas`, el servicio emite un `ReservaConfirmadaEvent` mediante `ReservaEventosService`.
+   2. `servicio-operaciones-externas` escucha este evento en `MantenimientoListener`, ejecuta la lógica de evaluación en `MantenimientoPreventivoService` y registra una `SolicitudMantenimiento`.
+   3. Al concluir el chequeo, publica el evento `MantenimientoResultadoEvent` con el resultado (`APROBADO`, `REQUIERE_REPARACION`, etc.).
+   4. Tanto `servicio-reservas` como `servicio-vehiculos` escuchan este resultado para actualizar el estado de la reserva y colocar el vehículo en estado `EN_MANTENIMIENTO` o `DISPONIBLE` según corresponda.
 
-Una vez autenticado, el panel principal permite acceder a:
+### 3. Configuración del API Gateway y Proxy / BFF
+El componente `api-gateway` actúa como un **Backend for Frontend (BFF)** y Gateway unificado:
+- **Seguridad y Autenticación (`src/auth.js`):** Valida credenciales contra `servicio-clientes` vía gRPC y emite tokens **JWT** para proteger las rutas privadas.
+- **Adaptador REST y OpenAPI (`src/*-routes.js`, `src/openapi.js`):** Expone endpoints RESTful estandarizados y genera la especificación interactiva en `/api-docs`.
+- **Agregador GraphQL (`src/graphql.js`):** Permite consultar en una sola petición HTTP datos combinados de Reservas, Clientes y Vehículos resolviendo las relaciones internamente mediante llamadas gRPC paralelas.
 
-- `/vehiculos`
-- `/clientes`
-- `/reservas`
-- `/historial`
+---
 
-Los roles disponibles son:
+## 6. Bases de Datos y Persistencia
 
-- `ADMIN`: administración completa del sistema.
-- `CLIENTE`: consulta y gestión de sus propias reservas.
+### Encapsulamiento por Dominio (Database-per-Service)
+Siguiendo las buenas prácticas de diseño de microservicios y **evitando el antipatrón de Base de Datos Compartida**, cada microservicio posee y encapsula su propio esquema lógico de datos de manera estricta. Ningún servicio realiza consultas SQL cruzadas (*JOINs* entre dominios) hacia las tablas de otro microservicio:
 
+- **`servicio-clientes`** $\rightarrow$ Esquema exclusivo para `Usuario` y `UsuarioMetaDatos`.
+- **`servicio-vehiculos`** $\rightarrow$ Esquema exclusivo para `Vehiculo` y sus estados de validación.
+- **`servicio-reservas`** $\rightarrow$ Esquema exclusivo para `Reserva` (almacena únicamente los IDs de referencia `usuarioId` y `vehiculoId`).
+- **`servicio-operaciones-externas`** $\rightarrow$ Esquema exclusivo para `DenunciaPolicial`, `TitularidadVehiculo` y `SolicitudMantenimiento`.
+
+*(Nota de infraestructura local: En el entorno `docker-compose.yml`, por simplicidad de recursos de desarrollo, se utiliza una única instancia del motor MySQL en el puerto `3306`, pero aprovisionando bases de datos/esquemas lógicos independientes para cada microservicio).*
+
+### Inicialización, Migración y Datos de Prueba (Seeds)
+La inicialización y migración de las bases de datos se realiza de forma automática mediante tres mecanismos combinados:
+
+1. **Scripts SQL de Inicialización en Docker (`docker/mysql/001-mock-data.sql`):**
+   Al levantar el contenedor de MySQL por primera vez, el motor ejecuta automáticamente todos los scripts montados en `/docker-entrypoint-initdb.d/`, creando los esquemas correspondientes e insertando el lote inicial de datos de prueba (*mock data*) para usuarios, vehículos y reservas.
+2. **Auto-migración de Esquemas con Hibernate / JPA:**
+   Cada microservicio Spring Boot está configurado en su `application.yaml` con `spring.jpa.hibernate.ddl-auto: update`, lo que permite que Hibernate cree o actualice las tablas automáticamente al iniciar cada aplicación en función de las clases `@Entity`.
+3. **Sembrado Programático (`DataInitializer.java`):**
+   El microservicio `servicio-operaciones-externas` cuenta con el componente `DataInitializer` (implementando `CommandLineRunner`), el cual verifica al arrancar si las tablas de registros policiales y titularidades están vacías y las puebla automáticamente con patentes válidas y patentes con denuncias de prueba para facilitar el testing de los flujos asíncronos.
 # API Gateway de Rentar
 
 Node.js + Express recibe REST, GraphQL y la interfaz web. Los clientes gRPC cargan
@@ -485,42 +565,6 @@ Error de ejemplo (un `ADMIN` pide el historial):
 |---|---|---|---|
 | `reservas` | `UNAUTHENTICATED` | Todas las reservas | Solo las propias |
 | `miHistorialAlquileres` | `UNAUTHENTICATED` | `FORBIDDEN` | Su historial |
-
-## Documentación OpenAPI
-
-Con la aplicación iniciada, la documentación de la API REST puede consultarse en:
-
-```text
-http://localhost:8080/swagger-ui/index.html
-```
-
-El documento OpenAPI está disponible en:
-
-```text
-http://localhost:8080/v3/api-docs
-```
-
-## Estructura principal
-
-```text
-src/
-├── main/
-│   ├── java/unla/tp/tp_distribuidos/
-│   │   ├── configuration/     Configuración de seguridad
-│   │   ├── controllers/       Controladores web, REST y GraphQL
-│   │   ├── dtos/              Objetos de transferencia
-│   │   ├── clientes.enums/             Enumeraciones del dominio
-│   │   ├── clientes.entities/            Entidades JPA
-│   │   ├── clientes.repositories/      Repositorios de persistencia
-│   │   └── services/          Lógica de negocio
-│   └── resources/
-│       ├── graphql/            Esquemas GraphQL
-│       ├── static/             CSS y recursos estáticos
-│       ├── templates/          Vistas Thymeleaf
-│       └── clientes.application.yaml   Configuración de la aplicación
-└── test/
-    └── java/                   Pruebas automatizadas
-```
 
 ## Ejecutar las pruebas
 
